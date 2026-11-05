@@ -1,0 +1,6 @@
+{
+  "name": "FC Tournament - eSport",
+  "description": "Plateforme officielle des tournois et compétitions EA SPORTS FC au Maroc. Inscriptions, matchs, classements et communauté e-sport.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}

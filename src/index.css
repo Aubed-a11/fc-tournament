@@ -1,0 +1,65 @@
+@import "tailwindcss";
+
+@layer base {
+  :root {
+    --bg-dark: #07090e;
+    --bg-surface: #0e121a;
+    --bg-surface-elevated: #161c28;
+    --border-subtle: #1e2636;
+    --accent-green: #00ff66;
+    --accent-green-glow: rgba(0, 255, 102, 0.25);
+  }
+
+  body {
+    background-color: #07090e;
+    color: #e2e8f0;
+    font-family: 'Plus Jakarta Sans', system-ui, -apple-system, sans-serif;
+    overflow-x: hidden;
+  }
+
+  h1, h2, h3, .font-display {
+    font-family: 'Barlow Condensed', sans-serif;
+    letter-spacing: 0.02em;
+  }
+
+  .font-mono, .tabular-nums {
+    font-family: 'JetBrains Mono', monospace;
+  }
+}
+
+/* Custom glow and gaming styling */
+.neon-glow-green {
+  box-shadow: 0 0 25px -4px rgba(0, 255, 102, 0.45);
+}
+
+.neon-glow-subtle {
+  box-shadow: 0 0 15px -2px rgba(0, 255, 102, 0.2);
+}
+
+.neon-text-glow {
+  text-shadow: 0 0 12px rgba(0, 255, 102, 0.5);
+}
+
+.gaming-grid-bg {
+  background-image: radial-gradient(rgba(0, 255, 102, 0.05) 1px, transparent 1px);
+  background-size: 32px 32px;
+}
+
+/* Custom scrollbar for brackets and tables */
+::-webkit-scrollbar {
+  width: 6px;
+  height: 6px;
+}
+
+::-webkit-scrollbar-track {
+  background: #090c12;
+}
+
+::-webkit-scrollbar-thumb {
+  background: #1e2636;
+  border-radius: 3px;
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: #00ff66;
+}
