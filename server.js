@@ -2474,31 +2474,48 @@ app.post("/api/admin/recalculate-leaderboard", requireAdmin, (_req, res) => {
   });
 });
 async function startServer() {
-  const isProduction = process.env.NODE_ENV === "production";
-  if (!isProduction) {
-    const { createServer: createViteServer } = await import("vite");
-    const vite = await createViteServer({
-      server: { middlewareMode: true },
-      appType: "spa"
-    });
-    app.use(vite.middlewares);
-    app.use("*", async (req, res, next) => {
-      const url = req.originalUrl;
-      try {
-        const template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
-        const html = await vite.transformIndexHtml(url, template);
-        res.status(200).set({ "Content-Type": "text/html" }).end(html);
-      } catch (e) {
-        vite.ssrFixStacktrace(e);
-        next(e);
+  const isViteDev = process.env.NODE_ENV !== "production" && fileURLToPath(import.meta.url).endsWith(".ts") && fs.existsSync(path.resolve(__dirname, "src"));
+  function serveStaticProduction() {
+    let staticDir = path.resolve(__dirname, "dist");
+    let indexHtmlPath = path.resolve(staticDir, "index.html");
+    if (!fs.existsSync(indexHtmlPath) && fs.existsSync(path.resolve(__dirname, "index.html"))) {
+      staticDir = __dirname;
+      indexHtmlPath = path.resolve(__dirname, "index.html");
+    }
+    app.use(express.static(staticDir));
+    app.use("*", (_req, res) => {
+      if (fs.existsSync(indexHtmlPath)) {
+        res.sendFile(indexHtmlPath);
+      } else {
+        res.status(404).send("Application build not found. Please upload index.html or dist/ folder.");
       }
     });
+  }
+  if (isViteDev) {
+    try {
+      const { createServer: createViteServer } = await import("vite");
+      const vite = await createViteServer({
+        server: { middlewareMode: true },
+        appType: "spa"
+      });
+      app.use(vite.middlewares);
+      app.use("*", async (req, res, next) => {
+        const url = req.originalUrl;
+        try {
+          const template = fs.readFileSync(path.resolve(__dirname, "index.html"), "utf-8");
+          const html = await vite.transformIndexHtml(url, template);
+          res.status(200).set({ "Content-Type": "text/html" }).end(html);
+        } catch (e) {
+          vite.ssrFixStacktrace(e);
+          next(e);
+        }
+      });
+    } catch (viteErr) {
+      console.warn("Vite dev middleware could not be loaded, falling back to static serving:", viteErr);
+      serveStaticProduction();
+    }
   } else {
-    const distPath = path.resolve(__dirname, "dist");
-    app.use(express.static(distPath));
-    app.use("*", (_req, res) => {
-      res.sendFile(path.resolve(distPath, "index.html"));
-    });
+    serveStaticProduction();
   }
   if (typeof PORT === "number") {
     app.listen(PORT, "0.0.0.0", () => {
@@ -2511,10 +2528,8 @@ async function startServer() {
   }
 }
 var server_default = app;
-const isMainModule = Boolean(
-  process.argv[1] && (fileURLToPath(import.meta.url) === path.resolve(process.argv[1]) || process.argv[1].endsWith("server.ts") || process.argv[1].endsWith("server.js") || process.argv[1].endsWith("app.js") || process.argv[1].endsWith("index.js"))
-);
-if (isMainModule && !process.env.VERCEL) {
+const isVercelServerless = Boolean(process.env.VERCEL);
+if (!isVercelServerless) {
   startServer().catch((err) => {
     console.error("Failed to start server:", err);
   });
