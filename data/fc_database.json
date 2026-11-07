@@ -1,6 +1,20 @@
 {
   "users": [
     {
+      "id": "usr_owner_ali",
+      "email": "alio227ng@gmail.com",
+      "passwordHash": "a6401e1032d825025d67e56ee7fba22f5963dce1232d345782cf011422a4c078340ee32559d2acdb51e8d68de8d505c0fe59ab3914c201f2765ae38abe6a3381",
+      "salt": "9eaf2a3cd5a3f29b95d377117e8013db",
+      "gamertag": "Ali_FC",
+      "firstName": "Ali",
+      "lastName": "O.",
+      "role": "admin",
+      "favoriteTeam": "Real Madrid",
+      "bio": "Fondateur et administrateur officiel de FC Tournament.",
+      "avatarUrl": "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
       "id": "usr_admin",
       "email": "admin@fctournament.ma",
       "passwordHash": "e15fbc0fef2d4c5a893994bf84cd7276efb46c0762a4a44414aca1d948e593a75574f21c7e1f989c50a6e4488f195076a6781d74698ff933bc678f39ca10a710",
@@ -2486,6 +2500,46 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif_1794072438745_nj4t",
+      "type": "system",
+      "title": "Inscription Validée (REG-2026-0021)",
+      "message": "L'inscription de Nassim Visiteur 1794072438185 (Nassim_1794072438185) [REG-2026-0021] a été passée à « Validé ».",
+      "registrationId": "reg_1794072438189_nv43",
+      "createdAt": "2026-11-07T17:27:18.745Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438189_nscb",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Nassim Visiteur 1794072438185 (Nassim_1794072438185) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Nassim Visiteur 1794072438185",
+      "gamertag": "Nassim_1794072438185",
+      "userEmail": "nassim.1794072438185@visiteur-fct.ma",
+      "phone": "+212 6 11 22 33 44",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794072438189_nv43",
+      "createdAt": "2026-11-07T17:27:18.189Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438179_uhwl",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 07/11/2026 17:27:18.",
+      "createdAt": "2026-11-07T17:27:18.179Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438154_pzkp",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 07/11/2026 17:27:18.",
+      "createdAt": "2026-11-07T17:27:18.173Z",
+      "read": false
+    },
     {
       "id": "notif_1794061839395_p26p",
       "type": "system",

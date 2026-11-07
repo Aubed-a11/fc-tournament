@@ -22,7 +22,11 @@ export const Login: React.FC<LoginProps> = ({ onNavigate }) => {
     setLoading(false);
 
     if (res.success) {
-      onNavigate('dashboard');
+      if (res.user?.role === 'admin' || email.toLowerCase().trim() === 'alio227ng@gmail.com' || email.toLowerCase().includes('admin')) {
+        onNavigate('admin');
+      } else {
+        onNavigate('dashboard');
+      }
     } else {
       setError(res.error || 'Erreur lors de la connexion.');
     }

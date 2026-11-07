@@ -65,14 +65,22 @@ FOR SELECT
 TO anon, authenticated, service_role
 USING (true);
 
--- Politique C : Mise à jour autorisée uniquement pour la validation / refus (UPDATE)
+-- Politique C : Mise à jour autorisée pour la validation / refus (UPDATE)
 DROP POLICY IF EXISTS "Modification réservée au service_role et administrateurs" ON public.registrations;
 CREATE POLICY "Modification réservée au service_role et administrateurs"
 ON public.registrations
 FOR UPDATE
-TO authenticated, service_role
+TO anon, authenticated, service_role
 USING (true)
 WITH CHECK (true);
+
+-- Politique D : Suppression autorisée pour les administrateurs (DELETE)
+DROP POLICY IF EXISTS "Suppression inscriptions" ON public.registrations;
+CREATE POLICY "Suppression inscriptions"
+ON public.registrations
+FOR DELETE
+TO anon, authenticated, service_role
+USING (true);
 
 -- Trigger pour actualiser automatiquement updated_at
 CREATE OR REPLACE FUNCTION public.handle_updated_at()

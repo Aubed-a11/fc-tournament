@@ -175,3 +175,27 @@ export async function updateRegistrationStatusInSupabase(
     return { success: false, error: err?.message || 'Erreur inattendue' };
   }
 }
+
+// Fetch all registrations from Supabase
+export async function fetchRegistrationsFromSupabase(): Promise<Registration[]> {
+  const client = getSupabaseServerClient();
+  if (!client) return [];
+
+  try {
+    const { data, error } = await client
+      .from('registrations')
+      .select('*')
+      .order('registered_at', { ascending: false });
+
+    if (error) {
+      console.warn('[SUPABASE] Erreur lors de la lecture des inscriptions:', error.message);
+      return [];
+    }
+
+    return (data || []).map(mapSupabaseRowToRegistration);
+  } catch (err: any) {
+    console.warn('[SUPABASE] Exception lecture inscriptions:', err?.message || err);
+    return [];
+  }
+}
+

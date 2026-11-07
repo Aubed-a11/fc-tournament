@@ -1,5 +1,6 @@
 import type { Tournament, Match, PlayerLeaderboard, Registration } from '../types/index.ts';
 import { INITIAL_TOURNAMENTS, INITIAL_MATCHES, INITIAL_LEADERBOARD } from '../data/initialData.ts';
+import { saveRegistrationToSupabase } from './supabaseClient.ts';
 
 const LOCAL_REGS_KEY = 'fc_local_registrations';
 
@@ -132,7 +133,7 @@ export const apiClient = {
   // Submit tournament registration
   async registerForTournament(tournamentId: string, payload: any, token?: string | null): Promise<{ success: boolean; registration?: Registration; message: string; error?: string }> {
     // Notify FormBold in background
-    const notifyFormBold = () => {
+    const notifyFormBold = (regNumber?: string) => {
       try {
         const formParams = new URLSearchParams();
         formParams.append('Email', payload.userEmail || 'alio227ng@gmail.com');
@@ -141,10 +142,11 @@ export const apiClient = {
         formParams.append('gamertag', payload.gamertag || '');
         formParams.append('phone', payload.phone || '');
         formParams.append('tournament', payload.tournamentName || tournamentId);
-        formParams.append('subject', `[FC TOURNAMENT] Inscription au tournoi : ${payload.gamertag}`);
+        formParams.append('subject', `[FC TOURNAMENT] Inscription ${regNumber || ''} : ${payload.gamertag}`);
         formParams.append(
           'message',
           `NOUVELLE INSCRIPTION AU TOURNOI SUR FC TOURNAMENT :\n\n` +
+          `Numéro : ${regNumber || 'En cours d’attribution'}\n` +
           `Tournoi : ${payload.tournamentName || tournamentId}\n` +
           `Joueur : ${payload.playerName}\n` +
           `Gamertag : ${payload.gamertag}\n` +
@@ -183,8 +185,10 @@ export const apiClient = {
         const data = await res.json();
         if (data.registration) {
           saveLocalRegistration(data.registration);
+          // Also persist directly into Supabase from client to guarantee cloud storage
+          saveRegistrationToSupabase(data.registration).catch(() => {});
         }
-        notifyFormBold();
+        notifyFormBold(data.registration?.registrationNumber);
         return {
           success: true,
           registration: data.registration,
@@ -200,9 +204,12 @@ export const apiClient = {
       // Server offline or unavailable on static deployment
     }
 
-    // Fallback: Save registration locally and notify FormBold
+    // Direct Cloud & Local Fallback (for static Netlify / Vercel hosting)
+    const localCount = getLocalRegistrations().length + 1;
+    const generatedNumber = `REG-2026-${String(localCount).padStart(4, '0')}`;
     const newReg: Registration = {
       id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      registrationNumber: generatedNumber,
       tournamentId,
       tournamentName: payload.tournamentName || 'Tournoi FC',
       userId: `user_${Date.now()}`,
@@ -218,7 +225,11 @@ export const apiClient = {
     };
 
     saveLocalRegistration(newReg);
-    notifyFormBold();
+    // Write directly to Supabase
+    saveRegistrationToSupabase(newReg).catch((err) => {
+      console.warn('[SUPABASE FALLBACK] Erreur enregistrement cloud:', err);
+    });
+    notifyFormBold(generatedNumber);
 
     return {
       success: true,

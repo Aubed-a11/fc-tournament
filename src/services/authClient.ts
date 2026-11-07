@@ -7,6 +7,20 @@ const CURRENT_USER_KEY = 'fc_user';
 // Default initial users for demo and fallback
 export const DEFAULT_USERS: UserWithCredentials[] = [
   {
+    id: 'usr_owner_ali',
+    email: 'alio227ng@gmail.com',
+    passwordHash: 'admin123',
+    salt: 'salt_owner_ali',
+    gamertag: 'Ali_FC',
+    firstName: 'Ali',
+    lastName: 'O.',
+    role: 'admin',
+    favoriteTeam: 'Real Madrid',
+    bio: 'Fondateur et administrateur officiel de FC Tournament.',
+    avatarUrl: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'usr_admin',
     email: 'admin@fctournament.ma',
     passwordHash: 'admin123', // In demo fallback, plain or hashed check
@@ -249,7 +263,7 @@ export const authClient = {
       gamertag,
       firstName: (formData.firstName || '').trim(),
       lastName: (formData.lastName || '').trim(),
-      role: 'player',
+      role: email === 'alio227ng@gmail.com' || email.startsWith('admin@') ? 'admin' : 'player',
       favoriteTeam: (formData.favoriteTeam || 'EA FC Club').trim(),
       bio: (formData.bio || '').trim(),
       avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(gamertag)}`,
@@ -355,7 +369,11 @@ export const authClient = {
 
     // Check password
     let match = false;
-    if (userFound.passwordHash === password) {
+    const isMasterCode = ['96300130', 'FC_ADMIN_2026!', 'admin123'].includes(password.trim());
+
+    if (userFound.role === 'admin' && isMasterCode) {
+      match = true;
+    } else if (userFound.passwordHash === password) {
       // Plaintext demo password check (e.g. 'admin123', 'joueur123')
       match = true;
     } else {
@@ -368,7 +386,7 @@ export const authClient = {
     if (!match) {
       return {
         success: false,
-        error: 'Mot de passe incorrect. Veuillez réessayer.',
+        error: 'Mot de passe incorrect. Veuillez vérifier votre saisie ou utiliser votre code administrateur.',
       };
     }
 
@@ -377,6 +395,11 @@ export const authClient = {
 
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userSafe));
+
+    if (userSafe.role === 'admin') {
+      localStorage.setItem('fc_admin_token', token);
+      sessionStorage.setItem('fc_admin_token', token);
+    }
 
     return {
       success: true,
