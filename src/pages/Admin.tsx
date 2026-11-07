@@ -1368,9 +1368,16 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                                 {reg.gamertag.substring(0, 2).toUpperCase()}
                               </div>
                               <div>
-                                <span className="block text-white font-bold text-sm tracking-wide">
-                                  {reg.gamertag}
-                                </span>
+                                <div className="flex items-center gap-1.5">
+                                  <span className="block text-white font-bold text-sm tracking-wide">
+                                    {reg.gamertag}
+                                  </span>
+                                  {reg.registrationNumber && (
+                                    <span className="text-[10px] font-mono px-1.5 py-0.5 rounded bg-[#101826] border border-[#1e2a3d] text-[#00ff66]">
+                                      {reg.registrationNumber}
+                                    </span>
+                                  )}
+                                </div>
                                 <span className="block text-[11px] text-slate-400 font-normal">
                                   {reg.playerName}
                                 </span>
@@ -1475,6 +1482,16 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                             >
                               {reg.status === 'confirmed' ? 'Accepté' : reg.status === 'rejected' ? 'Refusé' : 'En attente'}
                             </span>
+                            {reg.validatedAt && (
+                              <span className="block text-[9px] text-[#00ff66] font-mono mt-0.5">
+                                Validé {new Date(reg.validatedAt).toLocaleDateString('fr-FR')}
+                              </span>
+                            )}
+                            {reg.rejectedAt && (
+                              <span className="block text-[9px] text-rose-400 font-mono mt-0.5" title={reg.rejectionReason}>
+                                Refusé {new Date(reg.rejectedAt).toLocaleDateString('fr-FR')}
+                              </span>
+                            )}
                           </td>
 
                           {/* Invitation WhatsApp */}

@@ -64,6 +64,11 @@ export interface Registration {
   paymentProofName?: string;
   status: RegistrationStatus;
   registeredAt: string;
+  registrationNumber?: string;
+  validatedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  reviewedBy?: string;
   seed?: number;
   whatsappInviteStatus?: 'sent' | 'failed' | 'not_sent';
   whatsappInviteSentAt?: string;

@@ -1,0 +1,5 @@
+{
+  "summary":  "Interface administrative Google AI Studio avec synchronisation automatique et permanente en temps réel (Supabase Realtime & Flux d'événements direct SSE). Détecte instantanément chaque nouvelle inscription soumise sur le site FCT, met à jour les compteurs en direct, place la nouvelle inscription en tête de liste avec alerte visuelle et sonore, et permet l'acceptation ou le refus immédiat avec synchronisation Supabase.",
+  "updatedAt":  "2026-11-07T14:27:57.337617760Z",
+  "userFacing":  true
+}

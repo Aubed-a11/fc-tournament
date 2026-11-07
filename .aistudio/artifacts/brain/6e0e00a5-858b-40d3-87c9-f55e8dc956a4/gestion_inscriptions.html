@@ -1,0 +1,1008 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>Google AI Studio - Gestionnaire d'Inscriptions FC Tournament (Temps Réel)</title>
+  <link rel="preconnect" href="https://fonts.googleapis.com">
+  <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+  <link href="https://fonts.googleapis.com/css2?family=Barlow+Condensed:wght@600;700;800;900&family=JetBrains+Mono:wght@400;500;600;700&family=Plus+Jakarta+Sans:wght@400;500;600;700;800&display=swap" rel="stylesheet">
+  <!-- Supabase Realtime Client JS -->
+  <script src="https://cdn.jsdelivr.net/npm/@supabase/supabase-js@2"></script>
+  <style>
+    :root {
+      --bg: #07090e;
+      --card: #0e131d;
+      --card-hover: #141b29;
+      --border: #1c2638;
+      --border-focus: #00ff66;
+      --accent: #00ff66;
+      --accent-glow: rgba(0, 255, 102, 0.25);
+      --amber: #f59e0b;
+      --amber-bg: rgba(245, 158, 11, 0.12);
+      --rose: #f43f5e;
+      --rose-bg: rgba(244, 63, 94, 0.12);
+      --text: #e2e8f0;
+      --text-muted: #8e9bb0;
+    }
+
+    * { box-sizing: border-box; margin: 0; padding: 0; }
+    body {
+      background-color: var(--bg);
+      color: var(--text);
+      font-family: 'Plus Jakarta Sans', system-ui, sans-serif;
+      padding: 24px;
+      line-height: 1.5;
+      min-height: 100vh;
+    }
+
+    .font-display { font-family: 'Barlow Condensed', sans-serif; letter-spacing: 0.5px; }
+    .font-mono { font-family: 'JetBrains Mono', monospace; }
+
+    .header-banner {
+      background: linear-gradient(135deg, #0e1422 0%, #111a2d 100%);
+      border: 1px solid var(--border);
+      border-radius: 16px;
+      padding: 20px 24px;
+      margin-bottom: 24px;
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.4);
+    }
+
+    .header-title-box h1 {
+      font-size: 26px;
+      font-weight: 800;
+      color: #fff;
+      display: flex;
+      align-items: center;
+      gap: 10px;
+    }
+
+    .badge-studio {
+      background: rgba(0, 255, 102, 0.15);
+      color: var(--accent);
+      border: 1px solid rgba(0, 255, 102, 0.3);
+      padding: 3px 10px;
+      border-radius: 6px;
+      font-size: 11px;
+      font-weight: 700;
+      letter-spacing: 1px;
+      text-transform: uppercase;
+    }
+
+    /* Live Sync Indicator */
+    .live-status-pill {
+      display: inline-flex;
+      align-items: center;
+      gap: 8px;
+      background: rgba(0, 255, 102, 0.08);
+      border: 1px solid rgba(0, 255, 102, 0.3);
+      padding: 5px 12px;
+      border-radius: 20px;
+      font-size: 11px;
+      font-family: 'JetBrains Mono', monospace;
+      color: #00ff66;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+    }
+    .live-status-pill.connecting {
+      background: rgba(245, 158, 11, 0.08);
+      border-color: rgba(245, 158, 11, 0.3);
+      color: #fbbf24;
+    }
+
+    .pulsing-dot {
+      width: 8px;
+      height: 8px;
+      border-radius: 50%;
+      background-color: #00ff66;
+      box-shadow: 0 0 10px #00ff66;
+      animation: pulse 1.5s infinite;
+    }
+    .pulsing-dot.amber {
+      background-color: #fbbf24;
+      box-shadow: 0 0 10px #fbbf24;
+    }
+
+    @keyframes pulse {
+      0% { transform: scale(0.9); opacity: 0.7; }
+      50% { transform: scale(1.3); opacity: 1; }
+      100% { transform: scale(0.9); opacity: 0.7; }
+    }
+
+    .auth-box {
+      display: flex;
+      align-items: center;
+      gap: 10px;
+      background: #090d15;
+      border: 1px solid var(--border);
+      padding: 8px 14px;
+      border-radius: 10px;
+    }
+
+    .auth-box input {
+      background: transparent;
+      border: none;
+      color: #fff;
+      font-family: 'JetBrains Mono', monospace;
+      font-size: 13px;
+      outline: none;
+      width: 130px;
+    }
+
+    .btn {
+      background: #172030;
+      color: #fff;
+      border: 1px solid var(--border);
+      padding: 8px 16px;
+      border-radius: 8px;
+      cursor: pointer;
+      font-weight: 600;
+      font-size: 13px;
+      display: inline-flex;
+      align-items: center;
+      gap: 6px;
+      transition: all 0.2s ease;
+    }
+    .btn:hover { background: #202c42; border-color: #2e3e5c; }
+
+    .btn-accept {
+      background: #00ff66;
+      color: #07090e;
+      border: 1px solid #00ff66;
+      font-weight: 800;
+      letter-spacing: 0.5px;
+      box-shadow: 0 0 15px rgba(0, 255, 102, 0.3);
+    }
+    .btn-accept:hover {
+      background: #22ff77;
+      box-shadow: 0 0 22px rgba(0, 255, 102, 0.5);
+      transform: translateY(-1px);
+    }
+
+    .btn-reject {
+      background: rgba(244, 63, 94, 0.15);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.4);
+      font-weight: 700;
+    }
+    .btn-reject:hover {
+      background: #f43f5e;
+      color: #fff;
+      transform: translateY(-1px);
+    }
+
+    /* Stats Grid */
+    .stats-grid {
+      display: grid;
+      grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
+      gap: 16px;
+      margin-bottom: 24px;
+    }
+
+    .stat-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 16px 20px;
+      transition: transform 0.2s, border-color 0.2s;
+    }
+    .stat-card:hover { transform: translateY(-2px); border-color: #2b3952; }
+
+    .stat-card.pending {
+      border-color: rgba(245, 158, 11, 0.4);
+      background: linear-gradient(145deg, #0e131d 0%, #19140e 100%);
+    }
+
+    .stat-card.confirmed {
+      border-color: rgba(0, 255, 102, 0.3);
+      background: linear-gradient(145deg, #0e131d 0%, #0c1813 100%);
+    }
+
+    .stat-card.rejected {
+      border-color: rgba(244, 63, 94, 0.3);
+      background: linear-gradient(145deg, #0e131d 0%, #190e12 100%);
+    }
+
+    .stat-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      font-weight: 700;
+      letter-spacing: 0.5px;
+      color: var(--text-muted);
+      margin-bottom: 6px;
+    }
+
+    .stat-value {
+      font-size: 32px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    /* Filters & Search */
+    .toolbar {
+      display: flex;
+      flex-wrap: wrap;
+      justify-content: space-between;
+      align-items: center;
+      gap: 16px;
+      margin-bottom: 20px;
+    }
+
+    .filter-tabs {
+      display: flex;
+      gap: 8px;
+      background: #0c1017;
+      padding: 4px;
+      border-radius: 10px;
+      border: 1px solid var(--border);
+    }
+
+    .filter-btn {
+      background: transparent;
+      border: none;
+      color: var(--text-muted);
+      padding: 7px 14px;
+      border-radius: 8px;
+      font-size: 12px;
+      font-weight: 700;
+      cursor: pointer;
+      transition: all 0.2s;
+    }
+    .filter-btn.active {
+      background: #1c273a;
+      color: #fff;
+    }
+    .filter-btn.active.pending { background: rgba(245, 158, 11, 0.2); color: #fbbf24; }
+    .filter-btn.active.confirmed { background: rgba(0, 255, 102, 0.2); color: #00ff66; }
+    .filter-btn.active.rejected { background: rgba(244, 63, 94, 0.2); color: #f43f5e; }
+
+    .search-input {
+      background: #0c1017;
+      border: 1px solid var(--border);
+      border-radius: 10px;
+      padding: 8px 16px;
+      color: #fff;
+      font-size: 13px;
+      width: 260px;
+      outline: none;
+    }
+    .search-input:focus { border-color: var(--accent); }
+
+    /* Registrations List */
+    .reg-list {
+      display: flex;
+      flex-direction: column;
+      gap: 14px;
+    }
+
+    .reg-card {
+      background: var(--card);
+      border: 1px solid var(--border);
+      border-radius: 14px;
+      padding: 20px;
+      transition: all 0.3s ease;
+      display: grid;
+      grid-template-columns: auto 1fr auto;
+      align-items: center;
+      gap: 20px;
+    }
+    .reg-card:hover {
+      background: var(--card-hover);
+      border-color: #2b3952;
+    }
+    .reg-card.is-pending {
+      border-left: 4px solid var(--amber);
+      box-shadow: 0 4px 20px rgba(245, 158, 11, 0.08);
+    }
+    .reg-card.is-confirmed {
+      border-left: 4px solid var(--accent);
+    }
+    .reg-card.is-rejected {
+      border-left: 4px solid var(--rose);
+      opacity: 0.85;
+    }
+    .reg-card.is-newly-arrived {
+      animation: highlightNew 3s ease forwards;
+    }
+
+    @keyframes highlightNew {
+      0% {
+        border-color: #00ff66;
+        box-shadow: 0 0 30px rgba(0, 255, 102, 0.4);
+        transform: translateY(-4px);
+      }
+      100% {
+        border-color: var(--border);
+        box-shadow: none;
+        transform: translateY(0);
+      }
+    }
+
+    .reg-num-badge {
+      font-size: 12px;
+      font-weight: 800;
+      padding: 6px 12px;
+      border-radius: 8px;
+      background: #151d2a;
+      border: 1px solid #222f44;
+      color: #94a3b8;
+      text-align: center;
+      white-space: nowrap;
+    }
+
+    .reg-info {
+      display: flex;
+      flex-direction: column;
+      gap: 6px;
+    }
+
+    .reg-title-row {
+      display: flex;
+      align-items: center;
+      flex-wrap: wrap;
+      gap: 10px;
+    }
+
+    .reg-gamertag {
+      font-size: 18px;
+      font-weight: 800;
+      color: #fff;
+    }
+
+    .reg-name {
+      color: #94a3b8;
+      font-size: 14px;
+      font-weight: 500;
+    }
+
+    .status-tag {
+      font-size: 10px;
+      font-weight: 800;
+      text-transform: uppercase;
+      padding: 3px 8px;
+      border-radius: 6px;
+      letter-spacing: 0.5px;
+    }
+    .status-tag.pending {
+      background: var(--amber-bg);
+      color: #fbbf24;
+      border: 1px solid rgba(245, 158, 11, 0.3);
+    }
+    .status-tag.confirmed {
+      background: rgba(0, 255, 102, 0.12);
+      color: var(--accent);
+      border: 1px solid rgba(0, 255, 102, 0.3);
+    }
+    .status-tag.rejected {
+      background: var(--rose-bg);
+      color: #fb7185;
+      border: 1px solid rgba(244, 63, 94, 0.3);
+    }
+
+    .reg-details-row {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 16px;
+      font-size: 12px;
+      color: #8b99ad;
+    }
+
+    .reg-details-row span {
+      display: flex;
+      align-items: center;
+      gap: 5px;
+    }
+
+    .reg-details-row strong {
+      color: #cbd5e1;
+    }
+
+    .reg-actions {
+      display: flex;
+      flex-direction: column;
+      gap: 8px;
+      align-items: flex-end;
+    }
+
+    .actions-buttons {
+      display: flex;
+      gap: 8px;
+    }
+
+    /* Modal */
+    .modal-overlay {
+      display: none;
+      position: fixed;
+      inset: 0;
+      background: rgba(0, 0, 0, 0.85);
+      backdrop-filter: blur(4px);
+      z-index: 1000;
+      justify-content: center;
+      align-items: center;
+      padding: 20px;
+    }
+    .modal-overlay.active { display: flex; }
+
+    .modal-content {
+      background: #0e1422;
+      border: 1px solid #233148;
+      border-radius: 16px;
+      width: 100%;
+      max-width: 600px;
+      padding: 24px;
+      max-height: 90vh;
+      overflow-y: auto;
+      position: relative;
+    }
+
+    .modal-header {
+      display: flex;
+      justify-content: space-between;
+      align-items: center;
+      margin-bottom: 16px;
+    }
+    .modal-title { font-size: 18px; font-weight: 800; color: #fff; }
+
+    /* Live Notification Banner */
+    .live-alert-toast {
+      position: fixed;
+      top: 24px;
+      right: 24px;
+      background: #0d1a14;
+      border: 1px solid #00ff66;
+      box-shadow: 0 10px 35px rgba(0, 255, 102, 0.35);
+      padding: 16px 22px;
+      border-radius: 14px;
+      z-index: 3000;
+      display: none;
+      animation: slideIn 0.3s ease;
+      max-width: 420px;
+    }
+
+    @keyframes slideIn {
+      from { transform: translateX(100px); opacity: 0; }
+      to { transform: translateX(0); opacity: 1; }
+    }
+
+    .live-alert-toast.active { display: block; }
+    .toast-title { color: #00ff66; font-weight: 800; font-size: 14px; display: flex; align-items: center; gap: 8px; margin-bottom: 4px; }
+    .toast-desc { color: #cbd5e1; font-size: 12px; }
+
+    .toast {
+      position: fixed;
+      bottom: 24px;
+      right: 24px;
+      background: #0f172a;
+      border: 1px solid #334155;
+      padding: 14px 20px;
+      border-radius: 12px;
+      box-shadow: 0 10px 30px rgba(0,0,0,0.6);
+      z-index: 2000;
+      font-size: 13px;
+      font-weight: 600;
+      display: none;
+    }
+    .toast.success { border-color: #00ff66; color: #00ff66; display: block; }
+    .toast.error { border-color: #f43f5e; color: #f43f5e; display: block; }
+
+    @media (max-width: 800px) {
+      .reg-card { grid-template-columns: 1fr; }
+      .reg-actions { align-items: stretch; }
+      .actions-buttons { justify-content: stretch; }
+      .actions-buttons .btn { flex: 1; justify-content: center; }
+    }
+  </style>
+</head>
+<body>
+
+  <!-- Floating Realtime Alert Notification -->
+  <div id="liveAlert" class="live-alert-toast">
+    <div class="toast-title font-display">
+      <span>🔔 NOUVELLE INSCRIPTION REÇUE EN DIRECT</span>
+    </div>
+    <div class="toast-desc" id="liveAlertDesc">Un nouveau joueur vient de s'inscrire sur le site.</div>
+  </div>
+
+  <!-- Header Banner -->
+  <header class="header-banner">
+    <div class="header-title-box">
+      <div style="display: flex; align-items: center; gap: 10px; margin-bottom: 6px;">
+        <span class="badge-studio">Google AI Studio</span>
+        <div id="connectionPill" class="live-status-pill connecting">
+          <span id="connectionDot" class="pulsing-dot amber"></span>
+          <span id="connectionLabel">CONNEXION TEMPS RÉEL...</span>
+        </div>
+      </div>
+      <h1 class="font-display">GESTION DES INSCRIPTIONS EN DIRECT</h1>
+    </div>
+
+    <div style="display: flex; align-items: center; gap: 12px; flex-wrap: wrap;">
+      <div class="auth-box">
+        <span style="font-size: 11px; color: #64748b; font-weight: 700;">CODE ADMIN :</span>
+        <input type="password" id="adminCodeInput" value="96300130" title="Code d'accès secret administrateur">
+      </div>
+      <button class="btn" id="refreshBtn" onclick="loadRegistrations(true)">
+        <svg width="14" height="14" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2.5"><path d="M21 12a9 9 0 0 0-9-9 9.75 9.75 0 0 0-6.74 2.74L3 8"/><path d="M3 3v5h5"/><path d="M3 12a9 9 0 0 0 9 9 9.75 9.75 0 0 0 6.74-2.74L21 16"/><path d="M16 21h5v-5"/></svg>
+        Recharger
+      </button>
+    </div>
+  </header>
+
+  <!-- Stats Grid -->
+  <section class="stats-grid">
+    <div class="stat-card">
+      <div class="stat-label">Total Inscriptions</div>
+      <div class="stat-value font-mono" id="statTotal">-</div>
+    </div>
+    <div class="stat-card pending">
+      <div class="stat-label" style="color: #fbbf24;">⏳ En attente de validation</div>
+      <div class="stat-value font-mono" id="statPending" style="color: #fbbf24;">-</div>
+    </div>
+    <div class="stat-card confirmed">
+      <div class="stat-label" style="color: #00ff66;">✔ Validées (Confirmées)</div>
+      <div class="stat-value font-mono" id="statConfirmed" style="color: #00ff66;">-</div>
+    </div>
+    <div class="stat-card rejected">
+      <div class="stat-label" style="color: #fb7185;">✖ Refusées</div>
+      <div class="stat-value font-mono" id="statRejected" style="color: #fb7185;">-</div>
+    </div>
+  </section>
+
+  <!-- Filter & Search Toolbar -->
+  <div class="toolbar">
+    <div class="filter-tabs">
+      <button class="filter-btn active" onclick="setFilter('all', this)">Tous (<span id="countAll">0</span>)</button>
+      <button class="filter-btn pending" onclick="setFilter('pending', this)">En attente (<span id="countPending">0</span>)</button>
+      <button class="filter-btn confirmed" onclick="setFilter('confirmed', this)">Validées (<span id="countConfirmed">0</span>)</button>
+      <button class="filter-btn rejected" onclick="setFilter('rejected', this)">Refusées (<span id="countRejected">0</span>)</button>
+    </div>
+
+    <input type="text" id="searchInput" class="search-input" placeholder="Rechercher par pseudo, nom, N°..." oninput="filterRegistrations()">
+  </div>
+
+  <!-- Registrations List Container -->
+  <main id="registrationsContainer" class="reg-list">
+    <div style="text-align: center; padding: 40px; color: #64748b;">Initialisation de la synchronisation en temps réel...</div>
+  </main>
+
+  <!-- Modal Payment Proof Viewer -->
+  <div id="proofModal" class="modal-overlay" onclick="closeProofModal(event)">
+    <div class="modal-content" onclick="event.stopPropagation()">
+      <div class="modal-header">
+        <h3 class="modal-title font-display" id="proofModalTitle">Preuve de Paiement</h3>
+        <button class="btn" onclick="closeProofModal()" style="padding: 4px 10px;">Fermer ✕</button>
+      </div>
+      <div style="text-align: center; margin-top: 10px;">
+        <img id="proofModalImg" src="" alt="Preuve de paiement" style="max-width: 100%; max-height: 70vh; border-radius: 10px; border: 1px solid #1e293b; object-fit: contain;">
+      </div>
+    </div>
+  </div>
+
+  <div id="toast" class="toast"></div>
+
+  <script>
+    let allRegistrations = [];
+    let currentFilter = 'all';
+    let sseSource = null;
+    let supabaseClient = null;
+
+    function getAdminCode() {
+      return document.getElementById('adminCodeInput').value.trim() || '96300130';
+    }
+
+    // Audio chime notification synthesizer (Web Audio API)
+    function playChime() {
+      try {
+        const audioCtx = new (window.AudioContext || window.webkitAudioContext)();
+        const osc = audioCtx.createOscillator();
+        const gain = audioCtx.createGain();
+        osc.type = 'sine';
+        osc.frequency.setValueAtTime(587.33, audioCtx.currentTime); // D5
+        osc.frequency.setValueAtTime(880, audioCtx.currentTime + 0.1); // A5
+        gain.gain.setValueAtTime(0.15, audioCtx.currentTime);
+        gain.gain.exponentialRampToValueAtTime(0.001, audioCtx.currentTime + 0.6);
+        osc.connect(gain);
+        gain.connect(audioCtx.destination);
+        osc.start();
+        osc.stop(audioCtx.currentTime + 0.6);
+      } catch (e) {
+        // Audio context may be restricted before user gesture
+      }
+    }
+
+    function showLiveAlert(title, text) {
+      playChime();
+      const alertBox = document.getElementById('liveAlert');
+      const descBox = document.getElementById('liveAlertDesc');
+      descBox.textContent = text;
+      alertBox.classList.add('active');
+      setTimeout(() => {
+        alertBox.classList.remove('active');
+      }, 6000);
+    }
+
+    function showToast(msg, type = 'success') {
+      const toast = document.getElementById('toast');
+      toast.textContent = msg;
+      toast.className = `toast ${type}`;
+      setTimeout(() => {
+        toast.className = 'toast';
+      }, 4000);
+    }
+
+    function updateLiveStatus(status, text) {
+      const pill = document.getElementById('connectionPill');
+      const dot = document.getElementById('connectionDot');
+      const label = document.getElementById('connectionLabel');
+
+      if (status === 'connected') {
+        pill.className = 'live-status-pill';
+        dot.className = 'pulsing-dot';
+        label.textContent = text || 'TEMPS RÉEL ACTIF (AUTOMATIQUE)';
+      } else {
+        pill.className = 'live-status-pill connecting';
+        dot.className = 'pulsing-dot amber';
+        label.textContent = text || 'RECONNEXION...';
+      }
+    }
+
+    // Handle new incoming registration from real-time stream
+    function handleIncomingRegistration(reg, stats) {
+      if (!reg || !reg.id) return;
+
+      // Check existence to prevent duplicate cards
+      const existingIdx = allRegistrations.findIndex(r => r.id === reg.id || (r.registrationNumber && r.registrationNumber === reg.registrationNumber));
+
+      if (existingIdx >= 0) {
+        // Update existing record
+        allRegistrations[existingIdx] = { ...allRegistrations[existingIdx], ...reg };
+      } else {
+        // Insert at the VERY TOP of the list
+        allRegistrations.unshift(reg);
+        // Play notification
+        showLiveAlert('🔔 NOUVELLE INSCRIPTION REÇUE', `${reg.gamertag} (${reg.playerName}) s'est inscrit avec le N° ${reg.registrationNumber || reg.id} !`);
+      }
+
+      // Update counters
+      updateStatsCounters(stats);
+      renderList(reg.id);
+    }
+
+    function handleStatusUpdated(reg, stats) {
+      if (!reg || !reg.id) return;
+
+      const idx = allRegistrations.findIndex(r => r.id === reg.id || r.registrationNumber === reg.registrationNumber);
+      if (idx >= 0) {
+        allRegistrations[idx] = { ...allRegistrations[idx], ...reg };
+      }
+
+      updateStatsCounters(stats);
+      renderList();
+    }
+
+    function updateStatsCounters(stats) {
+      const total = stats?.total ?? allRegistrations.length;
+      const pending = stats?.pending ?? allRegistrations.filter(r => r.status === 'pending').length;
+      const confirmed = stats?.confirmed ?? allRegistrations.filter(r => r.status === 'confirmed').length;
+      const rejected = stats?.rejected ?? allRegistrations.filter(r => r.status === 'rejected').length;
+
+      document.getElementById('statTotal').textContent = total;
+      document.getElementById('statPending').textContent = pending;
+      document.getElementById('statConfirmed').textContent = confirmed;
+      document.getElementById('statRejected').textContent = rejected;
+
+      document.getElementById('countAll').textContent = total;
+      document.getElementById('countPending').textContent = pending;
+      document.getElementById('countConfirmed').textContent = confirmed;
+      document.getElementById('countRejected').textContent = rejected;
+    }
+
+    // Initialize Server-Sent Events (SSE) Live Stream
+    function initServerRealtime() {
+      if (sseSource) {
+        sseSource.close();
+      }
+
+      const code = getAdminCode();
+      const sseUrl = `/api/admin/studio/live-stream?code=${encodeURIComponent(code)}`;
+
+      try {
+        sseSource = new EventSource(sseUrl);
+
+        sseSource.addEventListener('connected', (e) => {
+          updateLiveStatus('connected', 'SYNCHRONISÉ EN TEMPS RÉEL (AUTOMATIQUE)');
+        });
+
+        sseSource.addEventListener('new_registration', (e) => {
+          try {
+            const payload = JSON.parse(e.data);
+            handleIncomingRegistration(payload.registration, payload.stats);
+          } catch (err) {
+            console.warn('Erreur lecture new_registration SSE:', err);
+          }
+        });
+
+        sseSource.addEventListener('status_updated', (e) => {
+          try {
+            const payload = JSON.parse(e.data);
+            handleStatusUpdated(payload.registration, payload.stats);
+          } catch (err) {
+            console.warn('Erreur lecture status_updated SSE:', err);
+          }
+        });
+
+        sseSource.onerror = () => {
+          updateLiveStatus('disconnected', 'RECONNEXION AU SERVEUR...');
+        };
+      } catch (err) {
+        console.warn('SSE initialisation error:', err);
+      }
+    }
+
+    // Initialize Supabase Realtime Channel
+    async function initSupabaseRealtime() {
+      try {
+        const code = getAdminCode();
+        const res = await fetch('/api/admin/studio/config', {
+          headers: { 'x-admin-code': code }
+        });
+
+        if (res.ok) {
+          const data = await res.json();
+          if (data.supabase?.configured && data.supabase.url && data.supabase.anonKey && window.supabase) {
+            supabaseClient = window.supabase.createClient(data.supabase.url, data.supabase.anonKey);
+
+            // Subscribe to postgres_changes on table registrations
+            supabaseClient
+              .channel('supabase-studio-registrations')
+              .on('postgres_changes', { event: '*', schema: 'public', table: 'registrations' }, (payload) => {
+                if (payload.eventType === 'INSERT') {
+                  const newRow = payload.new;
+                  const mappedReg = {
+                    id: newRow.id,
+                    registrationNumber: newRow.registration_number,
+                    tournamentId: newRow.tournament_id,
+                    tournamentName: newRow.tournament_name,
+                    userId: newRow.user_id,
+                    gamertag: newRow.gamertag,
+                    playerName: newRow.player_name,
+                    userEmail: newRow.user_email,
+                    phone: newRow.phone,
+                    teamSelected: newRow.team_selected,
+                    controllerPreference: newRow.controller_preference,
+                    notes: newRow.notes,
+                    paymentProof: newRow.payment_proof,
+                    paymentProofName: newRow.payment_proof_name,
+                    status: newRow.status,
+                    registeredAt: newRow.registered_at,
+                    seed: newRow.seed,
+                  };
+                  handleIncomingRegistration(mappedReg);
+                } else if (payload.eventType === 'UPDATE') {
+                  const updatedRow = payload.new;
+                  handleStatusUpdated({
+                    id: updatedRow.id,
+                    registrationNumber: updatedRow.registration_number,
+                    status: updatedRow.status,
+                    validatedAt: updatedRow.validated_at,
+                    rejectedAt: updatedRow.rejected_at,
+                    rejectionReason: updatedRow.rejection_reason,
+                    reviewedBy: updatedRow.reviewed_by,
+                  });
+                }
+              })
+              .subscribe((status) => {
+                if (status === 'SUBSCRIBED') {
+                  updateLiveStatus('connected', 'SUPABASE REALTIME CONNECTÉ (EN DIRECT)');
+                }
+              });
+          }
+        }
+      } catch (err) {
+        console.warn('Supabase Realtime bootstrap info:', err);
+      }
+    }
+
+    async function loadRegistrations(showLoading = false) {
+      const code = getAdminCode();
+      const container = document.getElementById('registrationsContainer');
+      if (showLoading && allRegistrations.length === 0) {
+        container.innerHTML = '<div style="text-align: center; padding: 40px; color: #64748b;">Chargement des données...</div>';
+      }
+
+      try {
+        const res = await fetch('/api/admin/studio/registrations', {
+          headers: { 'x-admin-code': code }
+        });
+
+        if (!res.ok) {
+          throw new Error('Erreur d\\'authentification');
+        }
+
+        const data = await res.json();
+        allRegistrations = data.registrations || [];
+        updateStatsCounters(data.stats);
+        renderList();
+      } catch (err) {
+        if (allRegistrations.length === 0) {
+          container.innerHTML = `
+            <div style="background: #140d12; border: 1px solid #f43f5e; border-radius: 12px; padding: 24px; text-align: center;">
+              <p style="color: #f43f5e; font-weight: 700; margin-bottom: 8px;">Connexion au serveur requise</p>
+              <p style="color: #94a3b8; font-size: 13px;">Veuillez vous assurer que le serveur Node est démarré sur le port 3000.</p>
+              <button class="btn" onclick="loadRegistrations(true)" style="margin-top: 14px;">Réessayer</button>
+            </div>
+          `;
+        }
+      }
+    }
+
+    function setFilter(filter, el) {
+      currentFilter = filter;
+      document.querySelectorAll('.filter-btn').forEach(b => b.classList.remove('active'));
+      el.classList.add('active');
+      renderList();
+    }
+
+    function filterRegistrations() {
+      renderList();
+    }
+
+    function renderList(highlightId = null) {
+      const container = document.getElementById('registrationsContainer');
+      const search = document.getElementById('searchInput').value.toLowerCase().trim();
+
+      let filtered = allRegistrations.filter(r => {
+        if (currentFilter !== 'all' && r.status !== currentFilter) return false;
+        if (!search) return true;
+        const num = (r.registrationNumber || '').toLowerCase();
+        const tag = (r.gamertag || '').toLowerCase();
+        const name = (r.playerName || '').toLowerCase();
+        const email = (r.userEmail || '').toLowerCase();
+        const tourn = (r.tournamentName || '').toLowerCase();
+        return num.includes(search) || tag.includes(search) || name.includes(search) || email.includes(search) || tourn.includes(search);
+      });
+
+      if (filtered.length === 0) {
+        container.innerHTML = `
+          <div style="text-align: center; padding: 40px; background: var(--card); border: 1px solid var(--border); border-radius: 14px; color: #64748b;">
+            Aucune inscription trouvée pour ce filtre.
+          </div>
+        `;
+        return;
+      }
+
+      container.innerHTML = filtered.map(r => {
+        const isPending = r.status === 'pending';
+        const isConfirmed = r.status === 'confirmed';
+        const isRejected = r.status === 'rejected';
+
+        const statusClass = isConfirmed ? 'confirmed' : isRejected ? 'rejected' : 'pending';
+        const statusText = isConfirmed ? '✔ Validé' : isRejected ? '✖ Refusé' : '⏳ En attente';
+
+        const dateReg = r.registeredAt ? new Date(r.registeredAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : 'N/A';
+        const dateVal = r.validatedAt ? new Date(r.validatedAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+        const dateRej = r.rejectedAt ? new Date(r.rejectedAt).toLocaleString('fr-FR', { day: '2-digit', month: 'short', hour: '2-digit', minute: '2-digit' }) : null;
+
+        const hasProof = Boolean(r.paymentProof);
+        const isHighlight = highlightId && r.id === highlightId;
+
+        return `
+          <div class="reg-card is-${statusClass} ${isHighlight ? 'is-newly-arrived' : ''}" id="card-${r.id}">
+            <div class="reg-num-badge font-mono">
+              ${r.registrationNumber || r.id}
+            </div>
+
+            <div class="reg-info">
+              <div class="reg-title-row">
+                <span class="reg-gamertag font-display">${escapeHtml(r.gamertag)}</span>
+                <span class="reg-name font-mono">(${escapeHtml(r.playerName)})</span>
+                <span class="status-tag ${statusClass}">${statusText}</span>
+                ${r.whatsappInviteStatus === 'sent' ? '<span class="status-tag confirmed" style="font-size: 9px;">WhatsApp Envoyé</span>' : ''}
+              </div>
+
+              <div class="reg-details-row">
+                <span>🏆 <strong>${escapeHtml(r.tournamentName || r.tournamentId)}</strong></span>
+                <span>📧 <strong>${escapeHtml(r.userEmail || 'N/A')}</strong></span>
+                <span>📱 <strong>${escapeHtml(r.phone || 'N/A')}</strong></span>
+                <span>🎮 Équipe: <strong>${escapeHtml(r.teamSelected || 'Défaut')}</strong></span>
+                <span>📅 Inscrit: <strong>${dateReg}</strong></span>
+              </div>
+
+              ${dateVal ? `<div style="font-size: 11px; color: #00ff66;">✔ Validé officiellement le ${dateVal}</div>` : ''}
+              ${dateRej ? `<div style="font-size: 11px; color: #f43f5e;">✖ Refusé le ${dateRej} (Motif : ${escapeHtml(r.rejectionReason || 'Non conforme')})</div>` : ''}
+              ${r.notes ? `<div style="font-size: 11px; color: #94a3b8; font-style: italic;">Note : « ${escapeHtml(r.notes)} »</div>` : ''}
+            </div>
+
+            <div class="reg-actions">
+              ${hasProof ? `
+                <button class="btn" style="font-size: 11px; padding: 4px 10px;" onclick="viewProof('${r.id}')">
+                  📷 Voir la preuve de paiement
+                </button>
+              ` : '<span style="font-size: 11px; color: #64748b;">Sans capture</span>'}
+
+              <div class="actions-buttons" style="margin-top: 4px;">
+                ${!isConfirmed ? `
+                  <button class="btn btn-accept" onclick="handleAction('${r.id}', 'accept')">
+                    ✔ ACCEPTER
+                  </button>
+                ` : ''}
+                ${!isRejected ? `
+                  <button class="btn btn-reject" onclick="handleAction('${r.id}', 'reject')">
+                    ✖ REFUSER
+                  </button>
+                ` : ''}
+              </div>
+            </div>
+          </div>
+        `;
+      }).join('');
+    }
+
+    async function handleAction(regId, action) {
+      let rejectionReason = '';
+      if (action === 'reject') {
+        const input = prompt('Veuillez indiquer le motif du refus (optionnel) :', 'Preuve de paiement non reçue ou non conforme');
+        if (input === null) return;
+        rejectionReason = input.trim() || 'Dossier ou paiement non conforme';
+      }
+
+      const code = getAdminCode();
+      try {
+        const res = await fetch(`/api/admin/studio/registrations/${encodeURIComponent(regId)}/action`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'x-admin-code': code,
+          },
+          body: JSON.stringify({ action, rejectionReason })
+        });
+
+        const data = await res.json();
+        if (res.ok && data.success) {
+          showToast(data.message || (action === 'accept' ? 'Inscription validée avec succès !' : 'Inscription refusée.'), 'success');
+          // Optimistic local update
+          handleStatusUpdated(data.registration);
+        } else {
+          showToast(data.error || 'Erreur lors de la mise à jour.', 'error');
+        }
+      } catch (err) {
+        showToast('Erreur de connexion au serveur.', 'error');
+      }
+    }
+
+    function viewProof(regId) {
+      const reg = allRegistrations.find(r => r.id === regId);
+      if (!reg || !reg.paymentProof) return;
+
+      document.getElementById('proofModalTitle').textContent = `Preuve de Paiement : ${reg.registrationNumber || reg.id} (${reg.gamertag})`;
+      document.getElementById('proofModalImg').src = reg.paymentProof;
+      document.getElementById('proofModal').classList.add('active');
+    }
+
+    function closeProofModal() {
+      document.getElementById('proofModal').classList.remove('active');
+    }
+
+    function escapeHtml(str) {
+      if (!str) return '';
+      return String(str)
+        .replace(/&/g, '&amp;')
+        .replace(/</g, '&lt;')
+        .replace(/>/g, '&gt;')
+        .replace(/"/g, '&quot;')
+        .replace(/'/g, '&#039;');
+    }
+
+    // Startup initialization
+    loadRegistrations(true).then(() => {
+      initServerRealtime();
+      initSupabaseRealtime();
+    });
+  </script>
+</body>
+</html>
