@@ -6,6 +6,7 @@ import crypto from 'crypto';
 import dotenv from 'dotenv';
 import { fileURLToPath } from 'url';
 import nodemailer from 'nodemailer';
+import pg from 'pg';
 import type {
   User,
   UserWithCredentials,
@@ -37,8 +38,147 @@ try {
   console.warn('Could not create data directory:', e);
 }
 
-// In-memory sessions store: token -> userId
-const sessions = new Map<string, { userId: string; expiresAt: number }>();
+
+// ==========================================
+// PERSISTANCE POSTGRES (Neon)
+// Si DATABASE_URL est defini, les donnees sont stockees dans Postgres
+// (table fc_kv). Sinon, on garde le fichier data/fc_database.json (dev local).
+// ==========================================
+const DATABASE_URL = process.env.DATABASE_URL || process.env.POSTGRES_URL || '';
+const USE_PG = Boolean(DATABASE_URL);
+const pgPool = USE_PG ? new pg.Pool({ connectionString: DATABASE_URL, max: 3 }) : null;
+
+const kvVersions = new Map<string, number>();
+const kvLoaders = new Map<string, (value: any) => void>();
+const queuedKeys = new Set<string>();
+let pendingWrites: Promise<void> = Promise.resolve();
+let schemaReady: Promise<void> | null = null;
+
+function ensureSchema(): Promise<void> {
+  if (!pgPool) return Promise.resolve();
+  if (!schemaReady) {
+    schemaReady = pgPool
+      .query(
+        `CREATE TABLE IF NOT EXISTS fc_kv (
+          key TEXT PRIMARY KEY,
+          value JSONB NOT NULL,
+          version BIGINT NOT NULL DEFAULT 1,
+          updated_at TIMESTAMPTZ NOT NULL DEFAULT now()
+        )`
+      )
+      .then(() => undefined)
+      .catch((err) => {
+        schemaReady = null;
+        throw err;
+      });
+  }
+  return schemaReady;
+}
+
+// Planifie l'ecriture d'une cle. Plusieurs appels rapproches sont regroupes en une seule ecriture.
+function scheduleKvSave(key: string, getValue: () => unknown): void {
+  if (!pgPool || queuedKeys.has(key)) return;
+  queuedKeys.add(key);
+  pendingWrites = pendingWrites
+    .then(async () => {
+      queuedKeys.delete(key);
+      await ensureSchema();
+      const value = JSON.stringify(getValue());
+      const result = await pgPool.query(
+        `INSERT INTO fc_kv (key, value) VALUES ($1, $2::jsonb)
+         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, version = fc_kv.version + 1, updated_at = now()
+         RETURNING version`,
+        [key, value]
+      );
+      kvVersions.set(key, Number(result.rows[0].version));
+    })
+    .catch((err) => {
+      queuedKeys.delete(key);
+      console.error(`[PG] Erreur lors de la sauvegarde de "${key}":`, err);
+    });
+}
+
+// Recharge depuis Postgres uniquement les cles modifiees ailleurs (autre instance serverless).
+async function refreshFromPg(): Promise<void> {
+  if (!pgPool) return;
+  await ensureSchema();
+  await pendingWrites;
+
+  let { rows } = await pgPool.query('SELECT key, version FROM fc_kv');
+  if (!rows.some((r: any) => r.key === 'db')) {
+    const seed = buildSeedDatabase();
+    await pgPool.query(
+      `INSERT INTO fc_kv (key, value) VALUES ('db', $1::jsonb) ON CONFLICT (key) DO NOTHING`,
+      [JSON.stringify(seed)]
+    );
+    console.log('[PG] Base initialisee a partir des donnees embarquees.');
+    ({ rows } = await pgPool.query('SELECT key, version FROM fc_kv'));
+  }
+
+  const stale = rows
+    .filter((r: any) => kvLoaders.has(r.key) && Number(r.version) !== kvVersions.get(r.key))
+    .map((r: any) => r.key);
+  if (stale.length === 0) return;
+
+  const fresh = await pgPool.query('SELECT key, value, version FROM fc_kv WHERE key = ANY($1)', [stale]);
+  for (const row of fresh.rows) {
+    kvLoaders.get(row.key)!(row.value);
+    kvVersions.set(row.key, Number(row.version));
+  }
+}
+
+// Map synchronisee avec Postgres (sessions joueurs et admin), pour survivre aux redemarrages serverless.
+class SyncedMap<V> extends Map<string, V> {
+  private loading = false;
+  private readonly kvKey: string;
+
+  constructor(kvKey: string) {
+    super();
+    this.kvKey = kvKey;
+    kvLoaders.set(kvKey, (value) => this.replaceAll(value));
+  }
+
+  replaceAll(value: Record<string, V> | null): void {
+    this.loading = true;
+    super.clear();
+    for (const [k, v] of Object.entries(value || {})) super.set(k, v);
+    this.loading = false;
+  }
+
+  set(key: string, value: V): this {
+    super.set(key, value);
+    this.persist();
+    return this;
+  }
+
+  delete(key: string): boolean {
+    const removed = super.delete(key);
+    if (removed) this.persist();
+    return removed;
+  }
+
+  clear(): void {
+    super.clear();
+    this.persist();
+  }
+
+  private persist(): void {
+    if (this.loading) return;
+    scheduleKvSave(this.kvKey, () => {
+      const now = Date.now();
+      const out: Record<string, V> = {};
+      for (const [k, v] of this.entries()) {
+        const exp = (v as any)?.expiresAt;
+        if (typeof exp === 'number' && exp < now) continue;
+        out[k] = v;
+      }
+      return out;
+    });
+  }
+}
+
+// Sessions store: token -> userId (persiste dans Postgres si DATABASE_URL est defini)
+const sessions = new SyncedMap<{ userId: string; expiresAt: number }>('sessions');
 
 // ==========================================
 // ADMIN REINFORCED SECURITY SYSTEM
@@ -60,7 +200,7 @@ interface RateLimitEntry {
   lockedUntil: number | null;
 }
 
-const adminSessions = new Map<string, AdminSession>();
+const adminSessions = new SyncedMap<AdminSession>('admin_sessions');
 const adminLoginAttempts = new Map<string, RateLimitEntry>();
 
 function verifyAdminCode(inputCode: string): boolean {
@@ -931,18 +1071,50 @@ function loadDatabase(): DatabaseSchema {
   return initial;
 }
 
-function saveDatabase(db: DatabaseSchema): void {
+function saveDatabase(data: DatabaseSchema): void {
+  if (USE_PG) {
+    scheduleKvSave('db', () => db);
+    return;
+  }
   try {
     if (!fs.existsSync(DATA_DIR)) {
       fs.mkdirSync(DATA_DIR, { recursive: true });
     }
-    fs.writeFileSync(DB_FILE, JSON.stringify(db, null, 2), 'utf-8');
+    fs.writeFileSync(DB_FILE, JSON.stringify(data, null, 2), 'utf-8');
   } catch (err) {
     console.error('Error saving database:', err);
   }
 }
 
-let db = loadDatabase();
+function normalizeDatabase(raw: any): DatabaseSchema {
+  const d = raw && typeof raw === 'object' ? raw : {};
+  return {
+    users: Array.isArray(d.users) ? d.users : [],
+    tournaments: Array.isArray(d.tournaments) ? d.tournaments : [],
+    registrations: Array.isArray(d.registrations) ? d.registrations : [],
+    matches: Array.isArray(d.matches) ? d.matches : [],
+    contacts: Array.isArray(d.contacts) ? d.contacts : [],
+    notifications: Array.isArray(d.notifications) ? d.notifications : [],
+  };
+}
+
+// Donnees utilisees pour initialiser Postgres la premiere fois (fichier embarque, sinon donnees de demo)
+function buildSeedDatabase(): DatabaseSchema {
+  try {
+    const bundledPath = path.join(__dirname, 'data', 'fc_database.json');
+    if (fs.existsSync(bundledPath)) {
+      return normalizeDatabase(JSON.parse(fs.readFileSync(bundledPath, 'utf-8')));
+    }
+  } catch (err) {
+    console.warn('[PG] Lecture du fichier embarque impossible, utilisation des donnees de demo:', err);
+  }
+  return getInitialDatabase();
+}
+
+let db: DatabaseSchema = USE_PG ? normalizeDatabase(null) : loadDatabase();
+kvLoaders.set('db', (value) => {
+  db = normalizeDatabase(value);
+});
 
 // ==========================================
 // WHATSAPP INVITATION & EMAIL DISPATCH LOGIC
@@ -1379,6 +1551,37 @@ app.use((req: Request, res: Response, next: NextFunction) => {
 
 app.use(express.json({ limit: '15mb' }));
 app.use(express.urlencoded({ extended: true, limit: '15mb' }));
+
+// Synchronisation Postgres : recharge les donnees avant chaque requete API,
+// et attend la fin des ecritures avant d'envoyer la reponse (indispensable sur Vercel).
+app.use(async (req: Request, res: Response, next: NextFunction) => {
+  if (!USE_PG || !/^\/(api|auth)(\/|$)/.test(req.path)) {
+    next();
+    return;
+  }
+
+  const originalJson = res.json.bind(res);
+  const originalSend = res.send.bind(res);
+  res.json = ((body?: any) => {
+    pendingWrites.then(() => originalJson(body));
+    return res;
+  }) as typeof res.json;
+  res.send = ((body?: any) => {
+    pendingWrites.then(() => originalSend(body));
+    return res;
+  }) as typeof res.send;
+
+  try {
+    await refreshFromPg();
+  } catch (err) {
+    console.error('[PG] Base de donnees indisponible:', err);
+    res.status(503);
+    originalJson({ error: 'Base de donnees temporairement indisponible. Veuillez reessayer.' });
+    return;
+  }
+  next();
+});
+
 app.use(authenticateToken);
 
 // Serve static assets from public folder
