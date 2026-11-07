@@ -23,8 +23,7 @@ dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
 
-const rawPort = process.env.PORT;
-const PORT: number | string = rawPort ? (isNaN(Number(rawPort)) ? rawPort : Number(rawPort)) : 3000;
+const PORT = Number(process.env.PORT) || 3000;
 const DATA_DIR = process.env.VERCEL ? path.join('/tmp', 'fc_data') : path.join(__dirname, 'data');
 const DB_FILE = path.join(DATA_DIR, 'fc_database.json');
 
