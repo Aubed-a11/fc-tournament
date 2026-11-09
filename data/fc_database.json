@@ -3,7 +3,7 @@
     {
       "id": "usr_owner_ali",
       "email": "alio227ng@gmail.com",
-      "passwordHash": "a6401e1032d825025d67e56ee7fba22f5963dce1232d345782cf011422a4c078340ee32559d2acdb51e8d68de8d505c0fe59ab3914c201f2765ae38abe6a3381",
+      "passwordHash": "97d5ef563037f57b4d8414665a987fa246901bab27c18fac68eb53e9e95ea60caa8a85be5e2a8abc668a15b02cfbd514c1e032e4ad955d0fede803777f5b6ae0",
       "salt": "9eaf2a3cd5a3f29b95d377117e8013db",
       "gamertag": "Ali_FC",
       "firstName": "Ali",
@@ -17,7 +17,7 @@
     {
       "id": "usr_admin",
       "email": "admin@fctournament.ma",
-      "passwordHash": "e15fbc0fef2d4c5a893994bf84cd7276efb46c0762a4a44414aca1d948e593a75574f21c7e1f989c50a6e4488f195076a6781d74698ff933bc678f39ca10a710",
+      "passwordHash": "528cb4ed233139b7cf6611ce34cba4268a9c92c0bf48b9e25d872ae91520dfd5f4300342456cd6b527129884d18f9f698ddd72d0b23d6344ca1e83899339b1b8",
       "salt": "d31c6fd8a0ef6cf6aa870523d2fcb1c2",
       "gamertag": "Admin_FC",
       "firstName": "Karim",

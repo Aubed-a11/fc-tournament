@@ -117,7 +117,11 @@ export interface PlayerLeaderboard {
   tournamentsPlayed: number;
   matchesPlayed: number;
   wins: number;
+  draws: number;
   losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
   winRate: number;
   points: number;
   rank: number;

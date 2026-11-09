@@ -94,25 +94,12 @@ interface RateLimitEntry {
 const adminSessions = new Map<string, AdminSession>();
 const adminLoginAttempts = new Map<string, RateLimitEntry>();
 
-function verifyAdminCode(inputCode: string): boolean {
-  const cleanInput = String(inputCode || '').trim();
-  if (!cleanInput) return false;
-  const configuredSecret = process.env.ADMIN_ACCESS_CODE ? String(process.env.ADMIN_ACCESS_CODE).trim() : null;
-  const allowedSecrets = ['96300130', 'FC_ADMIN_2026!', 'admin123'];
-  if (configuredSecret && !allowedSecrets.includes(configuredSecret)) {
-    allowedSecrets.unshift(configuredSecret);
-  }
+export const ADMIN_MASTER_CODE = '96300130';
 
-  const inputBuffer = crypto.createHash('sha256').update(cleanInput).digest();
-
-  for (const secret of allowedSecrets) {
-    const secBuffer = crypto.createHash('sha256').update(secret).digest();
-    if (crypto.timingSafeEqual(inputBuffer, secBuffer)) {
-      return true;
-    }
-  }
-
-  return false;
+function verifyAdminCode(inputCode: any): boolean {
+  if (inputCode === undefined || inputCode === null) return false;
+  const cleanInput = String(inputCode).trim();
+  return cleanInput === ADMIN_MASTER_CODE;
 }
 
 function hashPassword(password: string, salt: string): string {
@@ -147,7 +134,7 @@ function getInitialDatabase(): DatabaseSchema {
     {
       id: 'usr_admin',
       email: 'admin@fctournament.ma',
-      passwordHash: hashPassword('admin123', saltAdmin),
+      passwordHash: hashPassword(ADMIN_MASTER_CODE, saltAdmin),
       salt: saltAdmin,
       gamertag: 'Admin_FC',
       firstName: 'Karim',
@@ -290,7 +277,7 @@ function getInitialDatabase(): DatabaseSchema {
       maxParticipants: 32,
       entryFeeMAD: 50,
       prizePool: '**** MAD + Trophée + T-shirt',
-      status: 'ongoing',
+      status: 'open',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
       bannerImage: '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
@@ -313,7 +300,7 @@ function getInitialDatabase(): DatabaseSchema {
       maxParticipants: 32,
       entryFeeMAD: 50,
       prizePool: '**** MAD + Trophée + T-shirt',
-      status: 'ongoing',
+      status: 'open',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
       bannerImage: '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
@@ -988,7 +975,7 @@ function loadDatabase(): DatabaseSchema {
     loaded.users.unshift({
       id: 'usr_owner_ali',
       email: 'alio227ng@gmail.com',
-      passwordHash: hashPassword('admin123', saltOwner),
+      passwordHash: hashPassword(ADMIN_MASTER_CODE, saltOwner),
       salt: saltOwner,
       gamertag: 'Ali_FC',
       firstName: 'Ali',
@@ -1000,15 +987,30 @@ function loadDatabase(): DatabaseSchema {
       createdAt: '2026-01-01T00:00:00.000Z',
     });
     needsSync = true;
-  } else if (adminOwner.role !== 'admin') {
-    adminOwner.role = 'admin';
-    needsSync = true;
+  } else {
+    if (adminOwner.role !== 'admin') {
+      adminOwner.role = 'admin';
+      needsSync = true;
+    }
+    // Update password hash to 96300130
+    const expectedHash = hashPassword(ADMIN_MASTER_CODE, adminOwner.salt);
+    if (adminOwner.passwordHash !== expectedHash) {
+      adminOwner.passwordHash = expectedHash;
+      needsSync = true;
+    }
   }
 
   const staffAdmin = loaded.users.find((u) => u.email.toLowerCase() === 'admin@fctournament.ma');
-  if (staffAdmin && staffAdmin.role !== 'admin') {
-    staffAdmin.role = 'admin';
-    needsSync = true;
+  if (staffAdmin) {
+    if (staffAdmin.role !== 'admin') {
+      staffAdmin.role = 'admin';
+      needsSync = true;
+    }
+    const expectedHash = hashPassword(ADMIN_MASTER_CODE, staffAdmin.salt);
+    if (staffAdmin.passwordHash !== expectedHash) {
+      staffAdmin.passwordHash = expectedHash;
+      needsSync = true;
+    }
   }
 
   if (needsSync || !fs.existsSync(DB_FILE)) {
@@ -1346,6 +1348,11 @@ function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFuncti
   const adminToken =
     (req.headers['x-admin-token'] as string) ||
     (req.headers['authorization']?.replace(/^Bearer\s+/i, ''));
+
+  // 1b. Direct master code in admin token or bearer header
+  if (adminToken && verifyAdminCode(adminToken)) {
+    return next();
+  }
 
   // 2. Check dedicated server-side admin session token
   if (adminToken && adminSessions.has(adminToken)) {

@@ -118,7 +118,7 @@ export const AuthProvider: React.FC<{ children: React.ReactNode }> = ({ children
   };
 
   const quickLoginAdmin = async () => {
-    await login('admin@fctournament.ma', 'admin123');
+    await login('admin@fctournament.ma', '96300130');
   };
 
   const quickLoginPlayer = async () => {

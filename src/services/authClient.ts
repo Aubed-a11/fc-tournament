@@ -4,12 +4,14 @@ const USERS_STORAGE_KEY = 'fc_users_db';
 const TOKEN_STORAGE_KEY = 'fc_token';
 const CURRENT_USER_KEY = 'fc_user';
 
+export const ADMIN_MASTER_CODE = '96300130';
+
 // Default initial users for demo and fallback
 export const DEFAULT_USERS: UserWithCredentials[] = [
   {
     id: 'usr_owner_ali',
     email: 'alio227ng@gmail.com',
-    passwordHash: 'admin123',
+    passwordHash: '96300130',
     salt: 'salt_owner_ali',
     gamertag: 'Ali_FC',
     firstName: 'Ali',
@@ -23,7 +25,7 @@ export const DEFAULT_USERS: UserWithCredentials[] = [
   {
     id: 'usr_admin',
     email: 'admin@fctournament.ma',
-    passwordHash: 'admin123', // In demo fallback, plain or hashed check
+    passwordHash: '96300130',
     salt: 'salt_admin_demo',
     gamertag: 'Admin_FC',
     firstName: 'Karim',
@@ -369,12 +371,12 @@ export const authClient = {
 
     // Check password
     let match = false;
-    const isMasterCode = ['96300130', 'FC_ADMIN_2026!', 'admin123'].includes(password.trim());
+    const cleanPassword = String(password || '').trim();
+    const isMasterCode = cleanPassword === ADMIN_MASTER_CODE;
 
-    if (userFound.role === 'admin' && isMasterCode) {
+    if ((userFound.role === 'admin' || userFound.email === 'alio227ng@gmail.com' || userFound.email === 'admin@fctournament.ma') && isMasterCode) {
       match = true;
-    } else if (userFound.passwordHash === password) {
-      // Plaintext demo password check (e.g. 'admin123', 'joueur123')
+    } else if (userFound.passwordHash === password || userFound.passwordHash === cleanPassword) {
       match = true;
     } else {
       const hashedAttempt = await hashPasswordClient(password, userFound.salt);
@@ -386,7 +388,7 @@ export const authClient = {
     if (!match) {
       return {
         success: false,
-        error: 'Mot de passe incorrect. Veuillez vérifier votre saisie ou utiliser votre code administrateur.',
+        error: 'Mot de passe incorrect. Pour l’administrateur, utilisez le code 96300130.',
       };
     }
 
@@ -397,8 +399,10 @@ export const authClient = {
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userSafe));
 
     if (userSafe.role === 'admin') {
-      localStorage.setItem('fc_admin_token', token);
-      sessionStorage.setItem('fc_admin_token', token);
+      localStorage.setItem('fc_admin_token', ADMIN_MASTER_CODE);
+      sessionStorage.setItem('fc_admin_token', ADMIN_MASTER_CODE);
+      localStorage.setItem('fc_admin_code', ADMIN_MASTER_CODE);
+      sessionStorage.setItem('fc_admin_code', ADMIN_MASTER_CODE);
     }
 
     return {

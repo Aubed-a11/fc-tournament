@@ -119,7 +119,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigate }) => {
                 </label>
                 <button
                   type="button"
-                  onClick={() => setError("Pour la démo, utilisez 'admin123' pour l'admin ou 'joueur123' pour le joueur, ou créez un nouveau compte !")}
+                  onClick={() => setError("Pour la démo, utilisez '96300130' pour l'administrateur ou 'joueur123' pour le joueur, ou créez un nouveau compte !")}
                   className="text-[11px] text-slate-400 hover:text-[#00ff66]"
                 >
                   Mot de passe oublié ?
