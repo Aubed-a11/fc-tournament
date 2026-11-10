@@ -3499,9 +3499,27 @@ app.get('/auth/me', handleMe);
   // Supabase live connectivity check & status
   app.get('/api/admin/supabase/status', requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
     const connectivity = await checkSupabaseConnectivity();
+
+    // Etat de la base principale reellement utilisee (Neon/Postgres ou fichier local)
+    let primaryDatabase: { type: 'neon' | 'local'; connected: boolean; error?: string } = {
+      type: USE_PG ? 'neon' : 'local',
+      connected: !USE_PG,
+    };
+    if (USE_PG && pgPool) {
+      try {
+        await pgPool.query('SELECT 1');
+        primaryDatabase.connected = true;
+      } catch (err: any) {
+        primaryDatabase = { type: 'neon', connected: false, error: err?.message || 'Connexion impossible' };
+      }
+    }
+
     res.json({
       success: true,
       connectivity,
+      primaryDatabase,
+      usersCount: db.users.length,
+      paymentsCount: (db.paymentSubmissions || []).length,
       localTournamentsCount: db.tournaments.length,
       localRegistrationsCount: db.registrations.length,
       confirmedCount: db.registrations.filter((r) => r.status === 'confirmed').length,

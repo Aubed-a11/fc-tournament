@@ -120,6 +120,14 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     url?: string;
     error?: string;
   } | null>(null);
+  const [primaryDbStatus, setPrimaryDbStatus] = useState<{
+    type: 'neon' | 'local';
+    connected: boolean;
+    error?: string;
+    usersCount?: number;
+    registrationsCount?: number;
+    paymentsCount?: number;
+  } | null>(null);
   const [syncingSupabase, setSyncingSupabase] = useState<boolean>(false);
   const [downloadingSchema, setDownloadingSchema] = useState<boolean>(false);
   const [showSqlSchemaModal, setShowSqlSchemaModal] = useState<boolean>(false);
@@ -515,6 +523,14 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       if (res.ok) {
         const data = await res.json();
         setSupabaseLiveStatus(data.connectivity || null);
+        if (data.primaryDatabase) {
+          setPrimaryDbStatus({
+            ...data.primaryDatabase,
+            usersCount: data.usersCount,
+            registrationsCount: data.localRegistrationsCount,
+            paymentsCount: data.paymentsCount,
+          });
+        }
       }
     } catch {
       // Ignore
@@ -1839,7 +1855,60 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         {/* ======================================================== */}
         {adminTab === 'registrations' && (
           <div className="space-y-6 animate-in fade-in duration-200">
-            {/* Supabase Realtime & Cloud Database Status Card */}
+            {/* Etat de la base principale (Neon) quand Supabase n'est pas utilise */}
+            {!supabaseLiveStatus?.configured && (
+              <div className="p-4 rounded-2xl bg-[#0e1420] border border-[#1f2b40] flex items-center gap-3">
+                <div
+                  className={`w-3 h-3 rounded-full shrink-0 ${
+                    !primaryDbStatus
+                      ? 'bg-slate-500'
+                      : primaryDbStatus.type === 'neon' && primaryDbStatus.connected
+                      ? 'bg-[#00ff66] shadow-[0_0_12px_#00ff66]'
+                      : primaryDbStatus.type === 'neon'
+                      ? 'bg-rose-500 shadow-[0_0_12px_#f43f5e]'
+                      : 'bg-amber-400 shadow-[0_0_12px_#fbbf24]'
+                  }`}
+                />
+                <div>
+                  <div className="flex flex-wrap items-center gap-2">
+                    <span className="font-display font-bold text-xs tracking-wider uppercase text-white">
+                      {primaryDbStatus?.type === 'local' ? 'Stockage :' : 'Base de données Neon :'}
+                    </span>
+                    <span
+                      className={`text-xs font-mono font-bold ${
+                        !primaryDbStatus
+                          ? 'text-slate-400'
+                          : primaryDbStatus.type === 'neon' && primaryDbStatus.connected
+                          ? 'text-[#00ff66]'
+                          : primaryDbStatus.type === 'neon'
+                          ? 'text-rose-400'
+                          : 'text-amber-400'
+                      }`}
+                    >
+                      {!primaryDbStatus
+                        ? 'Vérification...'
+                        : primaryDbStatus.type === 'neon' && primaryDbStatus.connected
+                        ? 'Connectée'
+                        : primaryDbStatus.type === 'neon'
+                        ? 'Injoignable'
+                        : 'Fichier local (développement)'}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {primaryDbStatus?.type === 'neon' && primaryDbStatus.connected
+                      ? `Toutes les données sont enregistrées en permanence dans Postgres : ${primaryDbStatus.usersCount ?? 0} comptes, ${primaryDbStatus.registrationsCount ?? 0} inscriptions, ${primaryDbStatus.paymentsCount ?? 0} justificatifs de paiement.`
+                      : primaryDbStatus?.type === 'neon'
+                      ? `La base Neon ne répond pas pour le moment. Réessayez dans quelques instants ou vérifiez DATABASE_URL sur Vercel.`
+                      : primaryDbStatus?.type === 'local'
+                      ? `Les données sont dans data/fc_database.json. En production, définissez DATABASE_URL pour utiliser Neon.`
+                      : ''}
+                  </p>
+                </div>
+              </div>
+            )}
+
+            {/* Supabase Realtime & Cloud Database Status Card (affiche seulement si Supabase est configure) */}
+            {supabaseLiveStatus?.configured && (
             <div className="p-4 rounded-2xl bg-[#0e1420] border border-[#1f2b40] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
               <div className="flex items-center gap-3">
                 <div
@@ -1917,6 +1986,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                 </button>
               </div>
             </div>
+            )}
 
             {/* KPI Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">

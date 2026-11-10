@@ -2890,9 +2890,24 @@ app.get("/api/public/supabase-config", (_req, res) => {
 });
 app.get("/api/admin/supabase/status", requireAdmin, async (_req, res) => {
   const connectivity = await checkSupabaseConnectivity();
+  let primaryDatabase = {
+    type: USE_PG ? "neon" : "local",
+    connected: !USE_PG
+  };
+  if (USE_PG && pgPool) {
+    try {
+      await pgPool.query("SELECT 1");
+      primaryDatabase.connected = true;
+    } catch (err) {
+      primaryDatabase = { type: "neon", connected: false, error: err?.message || "Connexion impossible" };
+    }
+  }
   res.json({
     success: true,
     connectivity,
+    primaryDatabase,
+    usersCount: db.users.length,
+    paymentsCount: (db.paymentSubmissions || []).length,
     localTournamentsCount: db.tournaments.length,
     localRegistrationsCount: db.registrations.length,
     confirmedCount: db.registrations.filter((r) => r.status === "confirmed").length,
