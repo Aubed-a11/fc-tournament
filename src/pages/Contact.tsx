@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Mail, Send, CheckCircle2, AlertCircle, Phone } from 'lucide-react';
+import { Mail, Send, CheckCircle2, AlertCircle, Phone, MessageCircle } from 'lucide-react';
 
 interface ContactProps {
   onNavigate: (page: string) => void;
@@ -104,11 +104,28 @@ export const Contact: React.FC<ContactProps> = () => {
                   alio227ng@gmail.com
                 </a>
               </div>
-              <div className="flex items-center gap-3 text-xs text-slate-300">
-                <Phone className="w-4 h-4 text-[#00ff66] shrink-0" />
-                <a href="tel:+212681337566" className="hover:text-[#00ff66] transition-colors font-mono">
-                  +212681337566
-                </a>
+              <div className="flex items-start gap-3 text-xs text-slate-300">
+                <MessageCircle className="w-4 h-4 text-[#00ff66] shrink-0 mt-0.5" />
+                <div>
+                  <a
+                    href="https://wa.me/212681337566"
+                    target="_blank"
+                    rel="noopener noreferrer"
+                    className="hover:text-[#00ff66] transition-colors font-mono"
+                  >
+                    +212681337566
+                  </a>
+                  <span className="block text-[11px] text-slate-500">WhatsApp uniquement (messages, pas d'appels)</span>
+                </div>
+              </div>
+              <div className="flex items-start gap-3 text-xs text-slate-300">
+                <Phone className="w-4 h-4 text-[#00ff66] shrink-0 mt-0.5" />
+                <div>
+                  <a href="tel:+212635751646" className="hover:text-[#00ff66] transition-colors font-mono">
+                    +212635751646
+                  </a>
+                  <span className="block text-[11px] text-slate-500">Appel direct</span>
+                </div>
               </div>
             </div>
 

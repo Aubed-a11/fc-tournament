@@ -115,7 +115,7 @@ export const TermsPrivacy: React.FC<TermsPrivacyProps> = ({ onNavigate }) => {
             <div>
               <h3 className="font-bold text-white mb-1">2.3 Exercice de vos droits</h3>
               <p>
-                Vous pouvez à tout moment modifier vos informations depuis l'onglet « Mon profil » de votre espace personnel ou demander la suppression définitive de votre compte en écrivant à notre délégué communautaire à l'adresse suivante : <a href="mailto:alio227ng@gmail.com" className="text-white hover:text-[#00ff66] underline font-semibold">alio227ng@gmail.com</a> ou par contact téléphonique au <a href="tel:+212681337566" className="text-white hover:text-[#00ff66] underline font-mono">+212681337566</a>.
+                Vous pouvez à tout moment modifier vos informations depuis l'onglet « Mon profil » de votre espace personnel ou demander la suppression définitive de votre compte en écrivant à notre délégué communautaire à l'adresse suivante : <a href="mailto:alio227ng@gmail.com" className="text-white hover:text-[#00ff66] underline font-semibold">alio227ng@gmail.com</a> ou par téléphone au <a href="tel:+212635751646" className="text-white hover:text-[#00ff66] underline font-mono">+212635751646</a> (WhatsApp uniquement : <a href="https://wa.me/212681337566" target="_blank" rel="noopener noreferrer" className="text-white hover:text-[#00ff66] underline font-mono">+212681337566</a>).
               </p>
             </div>
           </div>

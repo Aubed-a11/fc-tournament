@@ -1,5 +1,5 @@
 import React from 'react';
-import { Mail, Phone, ShieldCheck } from 'lucide-react';
+import { Mail, Phone, ShieldCheck, MessageCircle } from 'lucide-react';
 
 interface FooterProps {
   onNavigate: (page: string) => void;
@@ -28,9 +28,21 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
                 <Mail className="w-3.5 h-3.5 text-[#00ff66]" />
                 <span>alio227ng@gmail.com</span>
               </a>
-              <a href="tel:+212681337566" className="flex items-center gap-1.5 hover:text-[#00ff66] transition-colors font-mono">
+              <a
+                href="https://wa.me/212681337566"
+                target="_blank"
+                rel="noopener noreferrer"
+                className="flex items-center gap-1.5 hover:text-[#00ff66] transition-colors"
+                title="Messages WhatsApp uniquement, pas d'appels"
+              >
+                <MessageCircle className="w-3.5 h-3.5 text-[#00ff66]" />
+                <span className="font-mono">+212681337566</span>
+                <span className="text-slate-500">(WhatsApp uniquement)</span>
+              </a>
+              <a href="tel:+212635751646" className="flex items-center gap-1.5 hover:text-[#00ff66] transition-colors" title="Appel direct">
                 <Phone className="w-3.5 h-3.5 text-[#00ff66]" />
-                <span>+212681337566</span>
+                <span className="font-mono">+212635751646</span>
+                <span className="text-slate-500">(Appels)</span>
               </a>
             </div>
           </div>
