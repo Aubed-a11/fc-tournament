@@ -1,30 +1,28 @@
 import type { Tournament, Match, PlayerLeaderboard, Registration } from '../types/index.ts';
-import { INITIAL_TOURNAMENTS, INITIAL_MATCHES, INITIAL_LEADERBOARD } from '../data/initialData.ts';
-
-const LOCAL_REGS_KEY = 'fc_local_registrations';
+import {
+  getStoredTournaments,
+  getStoredMatches,
+  getStoredRegistrations,
+  saveStoredRegistrations,
+  computeLocalLeaderboard,
+} from './dataStore.ts';
+import { saveRegistrationToSupabase } from './supabaseClient.ts';
 
 export function getLocalRegistrations(): Registration[] {
-  try {
-    const raw = localStorage.getItem(LOCAL_REGS_KEY);
-    return raw ? JSON.parse(raw) : [];
-  } catch {
-    return [];
-  }
+  return getStoredRegistrations();
 }
 
 export function saveLocalRegistration(reg: Registration): void {
-  try {
-    const list = getLocalRegistrations();
-    const existingIdx = list.findIndex((r) => r.id === reg.id || (r.tournamentId === reg.tournamentId && r.gamertag.toLowerCase() === reg.gamertag.toLowerCase()));
-    if (existingIdx >= 0) {
-      list[existingIdx] = reg;
-    } else {
-      list.push(reg);
-    }
-    localStorage.setItem(LOCAL_REGS_KEY, JSON.stringify(list));
-  } catch (err) {
-    console.error('Error saving local registration:', err);
+  const list = getStoredRegistrations();
+  const existingIdx = list.findIndex(
+    (r) => r.id === reg.id || (r.tournamentId === reg.tournamentId && r.gamertag.toLowerCase() === reg.gamertag.toLowerCase())
+  );
+  if (existingIdx >= 0) {
+    list[existingIdx] = reg;
+  } else {
+    list.unshift(reg);
   }
+  saveStoredRegistrations(list);
 }
 
 export const apiClient = {
@@ -45,20 +43,25 @@ export const apiClient = {
       // Fallback
     }
 
-    // Static fallback for Vercel/Netlify hosting
-    const localRegs = getLocalRegistrations();
-    return INITIAL_TOURNAMENTS.map((t) => {
-      const addedCount = localRegs.filter((r) => r.tournamentId === t.id && r.status === 'confirmed').length;
+    // Static fallback with live dataStore cache
+    const stored = getStoredTournaments();
+    const localRegs = getStoredRegistrations();
+    return stored.map((t) => {
+      const confirmedRegs = localRegs.filter((r) => r.tournamentId === t.id && r.status === 'confirmed');
+      const count = Math.max(t.participantsCount || 0, confirmedRegs.length);
       return {
         ...t,
-        participantsCount: (t.participantsCount || 0) + addedCount,
-        confirmedCount: (t.confirmedCount || 0) + addedCount,
+        participantsCount: count,
+        confirmedCount: count,
       };
     });
   },
 
   // Fetch single tournament details
-  async getTournament(id: string, token?: string | null): Promise<(Tournament & { registrations?: Registration[]; matches?: Match[]; userRegistration?: Registration | null }) | null> {
+  async getTournament(
+    id: string,
+    token?: string | null
+  ): Promise<(Tournament & { registrations?: Registration[]; matches?: Match[]; userRegistration?: Registration | null }) | null> {
     try {
       const res = await fetch(`/api/tournaments/${id}`, {
         headers: token ? { Authorization: `Bearer ${token}` } : {},
@@ -74,19 +77,26 @@ export const apiClient = {
     }
 
     // Static fallback for Vercel/Netlify hosting
-    const base = INITIAL_TOURNAMENTS.find((t) => t.id === id || t.slug === id);
+    const storedTournaments = getStoredTournaments();
+    const base = storedTournaments.find((t) => t.id === id || t.slug === id);
     if (!base) return null;
 
-    const tournMatches = INITIAL_MATCHES.filter((m) => m.tournamentId === base.id);
-    const localRegs = getLocalRegistrations().filter((r) => r.tournamentId === base.id);
+    const allMatches = getStoredMatches();
+    const tournMatches = allMatches.filter((m) => m.tournamentId === base.id);
+    const localRegs = getStoredRegistrations().filter((r) => r.tournamentId === base.id);
     const userReg = localRegs.length > 0 ? localRegs[localRegs.length - 1] : null;
+
+    const confirmedCount = Math.max(
+      base.confirmedCount || 0,
+      localRegs.filter((r) => r.status === 'confirmed').length
+    );
 
     return {
       ...base,
-      participantsCount: (base.participantsCount || 0) + localRegs.filter((r) => r.status === 'confirmed').length,
-      confirmedCount: (base.confirmedCount || 0) + localRegs.filter((r) => r.status === 'confirmed').length,
+      participantsCount: confirmedCount,
+      confirmedCount,
       matches: tournMatches,
-      registrations: [], // privacy protected
+      registrations: localRegs,
       userRegistration: userReg,
     };
   },
@@ -107,7 +117,7 @@ export const apiClient = {
     } catch {
       // Fallback
     }
-    return INITIAL_MATCHES;
+    return getStoredMatches();
   },
 
   // Fetch leaderboard
@@ -126,13 +136,17 @@ export const apiClient = {
     } catch {
       // Fallback
     }
-    return INITIAL_LEADERBOARD;
+    return computeLocalLeaderboard();
   },
 
   // Submit tournament registration
-  async registerForTournament(tournamentId: string, payload: any, token?: string | null): Promise<{ success: boolean; registration?: Registration; message: string; error?: string }> {
+  async registerForTournament(
+    tournamentId: string,
+    payload: any,
+    token?: string | null
+  ): Promise<{ success: boolean; registration?: Registration; message: string; error?: string }> {
     // Notify FormBold in background
-    const notifyFormBold = () => {
+    const notifyFormBold = (regNumber?: string) => {
       try {
         const formParams = new URLSearchParams();
         formParams.append('Email', payload.userEmail || 'alio227ng@gmail.com');
@@ -141,10 +155,11 @@ export const apiClient = {
         formParams.append('gamertag', payload.gamertag || '');
         formParams.append('phone', payload.phone || '');
         formParams.append('tournament', payload.tournamentName || tournamentId);
-        formParams.append('subject', `[FC TOURNAMENT] Inscription au tournoi : ${payload.gamertag}`);
+        formParams.append('subject', `[FC TOURNAMENT] Inscription ${regNumber || ''} : ${payload.gamertag}`);
         formParams.append(
           'message',
           `NOUVELLE INSCRIPTION AU TOURNOI SUR FC TOURNAMENT :\n\n` +
+          `Numéro : ${regNumber || 'En cours d’attribution'}\n` +
           `Tournoi : ${payload.tournamentName || tournamentId}\n` +
           `Joueur : ${payload.playerName}\n` +
           `Gamertag : ${payload.gamertag}\n` +
@@ -183,8 +198,9 @@ export const apiClient = {
         const data = await res.json();
         if (data.registration) {
           saveLocalRegistration(data.registration);
+          saveRegistrationToSupabase(data.registration).catch(() => {});
         }
-        notifyFormBold();
+        notifyFormBold(data.registration?.registrationNumber);
         return {
           success: true,
           registration: data.registration,
@@ -200,9 +216,13 @@ export const apiClient = {
       // Server offline or unavailable on static deployment
     }
 
-    // Fallback: Save registration locally and notify FormBold
+    // Direct Cloud & Local Fallback (for static Netlify / Vercel hosting)
+    const currentList = getStoredRegistrations();
+    const localCount = currentList.length + 1;
+    const generatedNumber = `REG-2026-${String(localCount).padStart(4, '0')}`;
     const newReg: Registration = {
       id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      registrationNumber: generatedNumber,
       tournamentId,
       tournamentName: payload.tournamentName || 'Tournoi FC',
       userId: `user_${Date.now()}`,
@@ -218,7 +238,10 @@ export const apiClient = {
     };
 
     saveLocalRegistration(newReg);
-    notifyFormBold();
+    saveRegistrationToSupabase(newReg).catch((err) => {
+      console.warn('[SUPABASE FALLBACK] Erreur enregistrement cloud:', err);
+    });
+    notifyFormBold(generatedNumber);
 
     return {
       success: true,

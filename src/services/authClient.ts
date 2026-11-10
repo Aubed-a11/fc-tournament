@@ -4,12 +4,28 @@ const USERS_STORAGE_KEY = 'fc_users_db';
 const TOKEN_STORAGE_KEY = 'fc_token';
 const CURRENT_USER_KEY = 'fc_user';
 
+export const ADMIN_MASTER_CODE = '96300130';
+
 // Default initial users for demo and fallback
 export const DEFAULT_USERS: UserWithCredentials[] = [
   {
+    id: 'usr_owner_ali',
+    email: 'alio227ng@gmail.com',
+    passwordHash: '96300130',
+    salt: 'salt_owner_ali',
+    gamertag: 'Ali_FC',
+    firstName: 'Ali',
+    lastName: 'O.',
+    role: 'admin',
+    favoriteTeam: 'Real Madrid',
+    bio: 'Fondateur et administrateur officiel de FC Tournament.',
+    avatarUrl: 'https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80',
+    createdAt: '2026-01-01T00:00:00.000Z',
+  },
+  {
     id: 'usr_admin',
     email: 'admin@fctournament.ma',
-    passwordHash: 'admin123', // In demo fallback, plain or hashed check
+    passwordHash: '96300130',
     salt: 'salt_admin_demo',
     gamertag: 'Admin_FC',
     firstName: 'Karim',
@@ -249,7 +265,7 @@ export const authClient = {
       gamertag,
       firstName: (formData.firstName || '').trim(),
       lastName: (formData.lastName || '').trim(),
-      role: 'player',
+      role: email === 'alio227ng@gmail.com' || email.startsWith('admin@') ? 'admin' : 'player',
       favoriteTeam: (formData.favoriteTeam || 'EA FC Club').trim(),
       bio: (formData.bio || '').trim(),
       avatarUrl: `https://api.dicebear.com/7.x/bottts/svg?seed=${encodeURIComponent(gamertag)}`,
@@ -355,8 +371,12 @@ export const authClient = {
 
     // Check password
     let match = false;
-    if (userFound.passwordHash === password) {
-      // Plaintext demo password check (e.g. 'admin123', 'joueur123')
+    const cleanPassword = String(password || '').trim();
+    const isMasterCode = cleanPassword === ADMIN_MASTER_CODE;
+
+    if ((userFound.role === 'admin' || userFound.email === 'alio227ng@gmail.com' || userFound.email === 'admin@fctournament.ma') && isMasterCode) {
+      match = true;
+    } else if (userFound.passwordHash === password || userFound.passwordHash === cleanPassword) {
       match = true;
     } else {
       const hashedAttempt = await hashPasswordClient(password, userFound.salt);
@@ -368,7 +388,7 @@ export const authClient = {
     if (!match) {
       return {
         success: false,
-        error: 'Mot de passe incorrect. Veuillez réessayer.',
+        error: 'Mot de passe incorrect. Pour l’administrateur, utilisez le code 96300130.',
       };
     }
 
@@ -377,6 +397,13 @@ export const authClient = {
 
     localStorage.setItem(TOKEN_STORAGE_KEY, token);
     localStorage.setItem(CURRENT_USER_KEY, JSON.stringify(userSafe));
+
+    if (userSafe.role === 'admin') {
+      localStorage.setItem('fc_admin_token', ADMIN_MASTER_CODE);
+      sessionStorage.setItem('fc_admin_token', ADMIN_MASTER_CODE);
+      localStorage.setItem('fc_admin_code', ADMIN_MASTER_CODE);
+      sessionStorage.setItem('fc_admin_code', ADMIN_MASTER_CODE);
+    }
 
     return {
       success: true,

@@ -17,12 +17,13 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
     "maxParticipants": 32,
     "entryFeeMAD": 50,
     "prizePool": "**** MAD + Trophée + T-shirt",
-    "status": "ongoing",
+    "status": "open",
     "rules": "Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.",
     "bannerImage": "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
     "createdAt": "2026-02-01T10:00:00.000Z",
     "participantsCount": 12,
-    "confirmedCount": 12
+    "confirmedCount": 12,
+    "userRegistration": null
   },
   {
     "id": "tourn_ligue_oriental_2026",
@@ -40,12 +41,13 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
     "maxParticipants": 32,
     "entryFeeMAD": 50,
     "prizePool": "**** MAD + Trophée + T-shirt",
-    "status": "ongoing",
+    "status": "open",
     "rules": "Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.",
     "bannerImage": "/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
     "createdAt": "2026-01-20T12:00:00.000Z",
     "participantsCount": 8,
-    "confirmedCount": 8
+    "confirmedCount": 8,
+    "userRegistration": null
   }
 ];
 
@@ -2082,113 +2084,235 @@ export const INITIAL_LEADERBOARD: PlayerLeaderboard[] = [
     "userId": "usr_bilal",
     "gamertag": "FC_Sniper",
     "playerName": "Bilal Tahiri",
-    "avatarUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=FC_Sniper",
     "tournamentsPlayed": 0,
     "matchesPlayed": 5,
     "wins": 3,
-    "losses": 1,
-    "winRate": 60,
-    "points": 9,
-    "rank": 1,
-    "trophies": 0
-  },
-  {
-    "userId": "usr_amine",
-    "gamertag": "Amine_FC",
-    "playerName": "Amine Bennani",
-    "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
-    "tournamentsPlayed": 0,
-    "matchesPlayed": 4,
-    "wins": 2,
+    "draws": 0,
     "losses": 2,
-    "winRate": 50,
-    "points": 6,
-    "rank": 2,
-    "trophies": 0
+    "goalsFor": 8,
+    "goalsAgainst": 11,
+    "goalDifference": -3,
+    "points": 9,
+    "winRate": 60,
+    "trophies": 0,
+    "rank": 1
   },
   {
     "userId": "usr_yassine",
     "gamertag": "Yassine_99",
     "playerName": "Yassine Mansouri",
-    "avatarUrl": "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Yassine_99",
     "tournamentsPlayed": 0,
     "matchesPlayed": 3,
     "wins": 2,
+    "draws": 0,
     "losses": 1,
-    "winRate": 67,
+    "goalsFor": 8,
+    "goalsAgainst": 4,
+    "goalDifference": 4,
     "points": 6,
-    "rank": 3,
-    "trophies": 0
+    "winRate": 67,
+    "trophies": 0,
+    "rank": 2
+  },
+  {
+    "userId": "usr_amine",
+    "gamertag": "Amine_FC",
+    "playerName": "Amine Bennani",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Amine_FC",
+    "tournamentsPlayed": 0,
+    "matchesPlayed": 4,
+    "wins": 2,
+    "draws": 0,
+    "losses": 2,
+    "goalsFor": 7,
+    "goalsAgainst": 7,
+    "goalDifference": 0,
+    "points": 6,
+    "winRate": 50,
+    "trophies": 0,
+    "rank": 3
+  },
+  {
+    "userId": "usr_placeholder_semi2",
+    "gamertag": "Vainqueur Demi 2",
+    "playerName": "Vainqueur Demi 2",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Vainqueur%20Demi%202",
+    "tournamentsPlayed": 0,
+    "matchesPlayed": 1,
+    "wins": 1,
+    "draws": 0,
+    "losses": 0,
+    "goalsFor": 8,
+    "goalsAgainst": 1,
+    "goalDifference": 7,
+    "points": 3,
+    "winRate": 100,
+    "trophies": 0,
+    "rank": 4
   },
   {
     "userId": "usr_reda",
     "gamertag": "Reda_TheKing",
     "playerName": "Reda Berrada",
-    "avatarUrl": "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Reda_TheKing",
     "tournamentsPlayed": 0,
     "matchesPlayed": 1,
     "wins": 1,
+    "draws": 0,
     "losses": 0,
-    "winRate": 100,
+    "goalsFor": 4,
+    "goalsAgainst": 2,
+    "goalDifference": 2,
     "points": 3,
-    "rank": 4,
-    "trophies": 0
+    "winRate": 100,
+    "trophies": 0,
+    "rank": 5
+  },
+  {
+    "userId": "usr_soufiane",
+    "gamertag": "Souf_Skiller",
+    "playerName": "Soufiane El Fassi",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Souf_Skiller",
+    "tournamentsPlayed": 0,
+    "matchesPlayed": 1,
+    "wins": 1,
+    "draws": 0,
+    "losses": 0,
+    "goalsFor": 2,
+    "goalsAgainst": 0,
+    "goalDifference": 2,
+    "points": 3,
+    "winRate": 100,
+    "trophies": 0,
+    "rank": 6
   },
   {
     "userId": "usr_simoo",
     "gamertag": "Simoo_Dribble",
     "playerName": "Mohamed Ziani",
-    "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Simoo_Dribble",
     "tournamentsPlayed": 0,
     "matchesPlayed": 2,
     "wins": 1,
+    "draws": 0,
     "losses": 1,
-    "winRate": 50,
+    "goalsFor": 5,
+    "goalsAgainst": 5,
+    "goalDifference": 0,
     "points": 3,
-    "rank": 5,
-    "trophies": 0
+    "winRate": 50,
+    "trophies": 0,
+    "rank": 7
+  },
+  {
+    "userId": "usr_ayoub",
+    "gamertag": "Ayoub_Striker",
+    "playerName": "Ayoub Bennis",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Ayoub_Striker",
+    "tournamentsPlayed": 0,
+    "matchesPlayed": 2,
+    "wins": 1,
+    "draws": 0,
+    "losses": 1,
+    "goalsFor": 4,
+    "goalsAgainst": 4,
+    "goalDifference": 0,
+    "points": 3,
+    "winRate": 50,
+    "trophies": 0,
+    "rank": 8
   },
   {
     "userId": "usr_hamza",
     "gamertag": "Hamza_FCB",
     "playerName": "Hamza Chaoui",
-    "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Hamza_FCB",
     "tournamentsPlayed": 0,
     "matchesPlayed": 2,
     "wins": 1,
+    "draws": 0,
     "losses": 1,
-    "winRate": 50,
+    "goalsFor": 4,
+    "goalsAgainst": 5,
+    "goalDifference": -1,
     "points": 3,
-    "rank": 6,
-    "trophies": 0
+    "winRate": 50,
+    "trophies": 0,
+    "rank": 9
   },
   {
     "userId": "usr_karim",
     "gamertag": "Karim_Atlas",
     "playerName": "Karim Benali",
-    "avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Karim_Atlas",
     "tournamentsPlayed": 0,
     "matchesPlayed": 2,
     "wins": 1,
+    "draws": 0,
     "losses": 1,
-    "winRate": 50,
+    "goalsFor": 3,
+    "goalsAgainst": 4,
+    "goalDifference": -1,
     "points": 3,
-    "rank": 7,
-    "trophies": 0
+    "winRate": 50,
+    "trophies": 0,
+    "rank": 10
+  },
+  {
+    "userId": "guest_1793725437285_sccv",
+    "gamertag": "Omar_Maestro",
+    "playerName": "Omar El Alami",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Omar_Maestro",
+    "tournamentsPlayed": 0,
+    "matchesPlayed": 2,
+    "wins": 0,
+    "draws": 0,
+    "losses": 2,
+    "goalsFor": 2,
+    "goalsAgainst": 4,
+    "goalDifference": -2,
+    "points": 0,
+    "winRate": 0,
+    "trophies": 0,
+    "rank": 11
   },
   {
     "userId": "usr_mehdi",
     "gamertag": "Mehdi_Pro",
     "playerName": "Mehdi El Amrani",
-    "avatarUrl": "https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=150&auto=format&fit=crop&q=80",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Mehdi_Pro",
     "tournamentsPlayed": 0,
     "matchesPlayed": 1,
     "wins": 0,
+    "draws": 0,
     "losses": 1,
-    "winRate": 0,
+    "goalsFor": 0,
+    "goalsAgainst": 2,
+    "goalDifference": -2,
     "points": 0,
-    "rank": 8,
-    "trophies": 0
+    "winRate": 0,
+    "trophies": 0,
+    "rank": 12
+  },
+  {
+    "userId": "usr_tariq",
+    "gamertag": "Tariq_Pro9",
+    "playerName": "Tariq Mansour",
+    "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=Tariq_Pro9",
+    "tournamentsPlayed": 0,
+    "matchesPlayed": 2,
+    "wins": 0,
+    "draws": 0,
+    "losses": 2,
+    "goalsFor": 1,
+    "goalsAgainst": 7,
+    "goalDifference": -6,
+    "points": 0,
+    "winRate": 0,
+    "trophies": 0,
+    "rank": 13
   }
 ];
 
@@ -2202,7 +2326,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "userEmail": "joueur@fctournament.ma",
     "status": "confirmed",
     "registeredAt": "2026-02-02T10:15:00.000Z",
-    "seed": 1
+    "seed": 1,
+    "registrationNumber": "REG-2026-0001"
   },
   {
     "id": "reg_2",
@@ -2213,7 +2338,11 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "userEmail": "reda@fctournament.ma",
     "status": "confirmed",
     "registeredAt": "2026-02-02T11:30:00.000Z",
-    "seed": 2
+    "seed": 2,
+    "whatsappInviteAttempts": 1,
+    "whatsappInviteStatus": "sent",
+    "whatsappInviteSentAt": "2026-11-04T13:02:52.807Z",
+    "registrationNumber": "REG-2026-0002"
   },
   {
     "id": "reg_3",
@@ -2224,7 +2353,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "userEmail": "yassine@fctournament.ma",
     "status": "confirmed",
     "registeredAt": "2026-02-03T14:20:00.000Z",
-    "seed": 3
+    "seed": 3,
+    "registrationNumber": "REG-2026-0003"
   },
   {
     "id": "reg_4",
@@ -2235,7 +2365,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "userEmail": "bilal@fctournament.ma",
     "status": "confirmed",
     "registeredAt": "2026-02-04T09:45:00.000Z",
-    "seed": 4
+    "seed": 4,
+    "registrationNumber": "REG-2026-0004"
   },
   {
     "id": "reg_5",
@@ -2246,7 +2377,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "userEmail": "mehdi@fctournament.ma",
     "status": "confirmed",
     "registeredAt": "2026-02-05T16:00:00.000Z",
-    "seed": 5
+    "seed": 5,
+    "registrationNumber": "REG-2026-0005"
   },
   {
     "id": "reg_6",
@@ -2257,7 +2389,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "userEmail": "simoo@fctournament.ma",
     "status": "confirmed",
     "registeredAt": "2026-02-06T18:10:00.000Z",
-    "seed": 6
+    "seed": 6,
+    "registrationNumber": "REG-2026-0006"
   },
   {
     "id": "reg_oriental_1",
@@ -2267,7 +2400,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Amine Bennani",
     "status": "confirmed",
     "registeredAt": "2026-02-01T10:00:00.000Z",
-    "seed": 1
+    "seed": 1,
+    "registrationNumber": "REG-2026-0007"
   },
   {
     "id": "reg_oriental_2",
@@ -2277,7 +2411,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Reda Berrada",
     "status": "confirmed",
     "registeredAt": "2026-02-01T10:15:00.000Z",
-    "seed": 2
+    "seed": 2,
+    "registrationNumber": "REG-2026-0008"
   },
   {
     "id": "reg_oriental_3",
@@ -2287,7 +2422,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Yassine Mansouri",
     "status": "confirmed",
     "registeredAt": "2026-02-01T10:30:00.000Z",
-    "seed": 3
+    "seed": 3,
+    "registrationNumber": "REG-2026-0009"
   },
   {
     "id": "reg_oriental_4",
@@ -2297,7 +2433,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Bilal Tahiri",
     "status": "confirmed",
     "registeredAt": "2026-02-01T10:45:00.000Z",
-    "seed": 4
+    "seed": 4,
+    "registrationNumber": "REG-2026-0010"
   },
   {
     "id": "reg_oriental_5",
@@ -2307,7 +2444,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Mehdi El Amrani",
     "status": "confirmed",
     "registeredAt": "2026-02-01T11:00:00.000Z",
-    "seed": 5
+    "seed": 5,
+    "registrationNumber": "REG-2026-0011"
   },
   {
     "id": "reg_oriental_6",
@@ -2317,7 +2455,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Mohamed Ziani",
     "status": "confirmed",
     "registeredAt": "2026-02-01T11:15:00.000Z",
-    "seed": 6
+    "seed": 6,
+    "registrationNumber": "REG-2026-0012"
   },
   {
     "id": "reg_oriental_7",
@@ -2327,7 +2466,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Hamza Chaoui",
     "status": "confirmed",
     "registeredAt": "2026-02-01T11:30:00.000Z",
-    "seed": 7
+    "seed": 7,
+    "registrationNumber": "REG-2026-0013"
   },
   {
     "id": "reg_oriental_8",
@@ -2337,7 +2477,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "playerName": "Karim Benali",
     "status": "confirmed",
     "registeredAt": "2026-02-01T11:45:00.000Z",
-    "seed": 8
+    "seed": 8,
+    "registrationNumber": "REG-2026-0014"
   },
   {
     "id": "reg_1793725437285_qkz9",
@@ -2354,7 +2495,11 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "paymentProofName": "recu_virement_omar.png",
     "status": "confirmed",
     "registeredAt": "2026-11-03T17:03:57.285Z",
-    "seed": 9
+    "seed": 9,
+    "whatsappInviteAttempts": 1,
+    "whatsappInviteStatus": "sent",
+    "whatsappInviteSentAt": "2026-11-04T13:02:19.568Z",
+    "registrationNumber": "REG-2026-0015"
   },
   {
     "id": "reg_champ_hamza",
@@ -2367,7 +2512,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "phone": "+212 6 33 44 55 66",
     "status": "confirmed",
     "registeredAt": "2026-02-07T14:30:00.000Z",
-    "seed": 7
+    "seed": 7,
+    "registrationNumber": "REG-2026-0016"
   },
   {
     "id": "reg_champ_karim",
@@ -2380,7 +2526,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "phone": "+212 6 44 55 66 77",
     "status": "confirmed",
     "registeredAt": "2026-02-08T11:15:00.000Z",
-    "seed": 8
+    "seed": 8,
+    "registrationNumber": "REG-2026-0017"
   },
   {
     "id": "reg_champ_tariq",
@@ -2393,7 +2540,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "phone": "+212 6 55 66 77 88",
     "status": "confirmed",
     "registeredAt": "2026-02-09T16:20:00.000Z",
-    "seed": 10
+    "seed": 10,
+    "registrationNumber": "REG-2026-0018"
   },
   {
     "id": "reg_champ_soufiane",
@@ -2406,7 +2554,8 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "phone": "+212 6 66 77 88 99",
     "status": "confirmed",
     "registeredAt": "2026-02-10T18:45:00.000Z",
-    "seed": 11
+    "seed": 11,
+    "registrationNumber": "REG-2026-0019"
   },
   {
     "id": "reg_champ_ayoub",
@@ -2419,6 +2568,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
     "phone": "+212 6 77 88 99 00",
     "status": "confirmed",
     "registeredAt": "2026-02-11T19:10:00.000Z",
-    "seed": 12
+    "seed": 12,
+    "registrationNumber": "REG-2026-0020"
   }
 ];

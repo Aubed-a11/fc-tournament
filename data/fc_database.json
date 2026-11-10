@@ -1,9 +1,23 @@
 {
   "users": [
     {
+      "id": "usr_owner_ali",
+      "email": "alio227ng@gmail.com",
+      "passwordHash": "97d5ef563037f57b4d8414665a987fa246901bab27c18fac68eb53e9e95ea60caa8a85be5e2a8abc668a15b02cfbd514c1e032e4ad955d0fede803777f5b6ae0",
+      "salt": "9eaf2a3cd5a3f29b95d377117e8013db",
+      "gamertag": "Ali_FC",
+      "firstName": "Ali",
+      "lastName": "O.",
+      "role": "admin",
+      "favoriteTeam": "Real Madrid",
+      "bio": "Fondateur et administrateur officiel de FC Tournament.",
+      "avatarUrl": "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
       "id": "usr_admin",
       "email": "admin@fctournament.ma",
-      "passwordHash": "e15fbc0fef2d4c5a893994bf84cd7276efb46c0762a4a44414aca1d948e593a75574f21c7e1f989c50a6e4488f195076a6781d74698ff933bc678f39ca10a710",
+      "passwordHash": "528cb4ed233139b7cf6611ce34cba4268a9c92c0bf48b9e25d872ae91520dfd5f4300342456cd6b527129884d18f9f698ddd72d0b23d6344ca1e83899339b1b8",
       "salt": "d31c6fd8a0ef6cf6aa870523d2fcb1c2",
       "gamertag": "Admin_FC",
       "firstName": "Karim",
@@ -201,7 +215,8 @@
       "userEmail": "joueur@fctournament.ma",
       "status": "confirmed",
       "registeredAt": "2026-02-02T10:15:00.000Z",
-      "seed": 1
+      "seed": 1,
+      "registrationNumber": "REG-2026-0001"
     },
     {
       "id": "reg_2",
@@ -215,7 +230,8 @@
       "seed": 2,
       "whatsappInviteAttempts": 1,
       "whatsappInviteStatus": "sent",
-      "whatsappInviteSentAt": "2026-11-04T13:02:52.807Z"
+      "whatsappInviteSentAt": "2026-11-04T13:02:52.807Z",
+      "registrationNumber": "REG-2026-0002"
     },
     {
       "id": "reg_3",
@@ -226,7 +242,8 @@
       "userEmail": "yassine@fctournament.ma",
       "status": "confirmed",
       "registeredAt": "2026-02-03T14:20:00.000Z",
-      "seed": 3
+      "seed": 3,
+      "registrationNumber": "REG-2026-0003"
     },
     {
       "id": "reg_4",
@@ -237,7 +254,8 @@
       "userEmail": "bilal@fctournament.ma",
       "status": "confirmed",
       "registeredAt": "2026-02-04T09:45:00.000Z",
-      "seed": 4
+      "seed": 4,
+      "registrationNumber": "REG-2026-0004"
     },
     {
       "id": "reg_5",
@@ -248,7 +266,8 @@
       "userEmail": "mehdi@fctournament.ma",
       "status": "confirmed",
       "registeredAt": "2026-02-05T16:00:00.000Z",
-      "seed": 5
+      "seed": 5,
+      "registrationNumber": "REG-2026-0005"
     },
     {
       "id": "reg_6",
@@ -259,7 +278,8 @@
       "userEmail": "simoo@fctournament.ma",
       "status": "confirmed",
       "registeredAt": "2026-02-06T18:10:00.000Z",
-      "seed": 6
+      "seed": 6,
+      "registrationNumber": "REG-2026-0006"
     },
     {
       "id": "reg_oriental_1",
@@ -269,7 +289,8 @@
       "playerName": "Amine Bennani",
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:00:00.000Z",
-      "seed": 1
+      "seed": 1,
+      "registrationNumber": "REG-2026-0007"
     },
     {
       "id": "reg_oriental_2",
@@ -279,7 +300,8 @@
       "playerName": "Reda Berrada",
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:15:00.000Z",
-      "seed": 2
+      "seed": 2,
+      "registrationNumber": "REG-2026-0008"
     },
     {
       "id": "reg_oriental_3",
@@ -289,7 +311,8 @@
       "playerName": "Yassine Mansouri",
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:30:00.000Z",
-      "seed": 3
+      "seed": 3,
+      "registrationNumber": "REG-2026-0009"
     },
     {
       "id": "reg_oriental_4",
@@ -299,7 +322,8 @@
       "playerName": "Bilal Tahiri",
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:45:00.000Z",
-      "seed": 4
+      "seed": 4,
+      "registrationNumber": "REG-2026-0010"
     },
     {
       "id": "reg_oriental_5",
@@ -309,7 +333,8 @@
       "playerName": "Mehdi El Amrani",
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:00:00.000Z",
-      "seed": 5
+      "seed": 5,
+      "registrationNumber": "REG-2026-0011"
     },
     {
       "id": "reg_oriental_6",
@@ -319,7 +344,8 @@
       "playerName": "Mohamed Ziani",
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:15:00.000Z",
-      "seed": 6
+      "seed": 6,
+      "registrationNumber": "REG-2026-0012"
     },
     {
       "id": "reg_oriental_7",
@@ -329,7 +355,8 @@
       "playerName": "Hamza Chaoui",
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:30:00.000Z",
-      "seed": 7
+      "seed": 7,
+      "registrationNumber": "REG-2026-0013"
     },
     {
       "id": "reg_oriental_8",
@@ -339,7 +366,8 @@
       "playerName": "Karim Benali",
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:45:00.000Z",
-      "seed": 8
+      "seed": 8,
+      "registrationNumber": "REG-2026-0014"
     },
     {
       "id": "reg_1793725437285_qkz9",
@@ -359,7 +387,8 @@
       "seed": 9,
       "whatsappInviteAttempts": 1,
       "whatsappInviteStatus": "sent",
-      "whatsappInviteSentAt": "2026-11-04T13:02:19.568Z"
+      "whatsappInviteSentAt": "2026-11-04T13:02:19.568Z",
+      "registrationNumber": "REG-2026-0015"
     },
     {
       "id": "reg_champ_hamza",
@@ -372,7 +401,8 @@
       "phone": "+212 6 33 44 55 66",
       "status": "confirmed",
       "registeredAt": "2026-02-07T14:30:00.000Z",
-      "seed": 7
+      "seed": 7,
+      "registrationNumber": "REG-2026-0016"
     },
     {
       "id": "reg_champ_karim",
@@ -385,7 +415,8 @@
       "phone": "+212 6 44 55 66 77",
       "status": "confirmed",
       "registeredAt": "2026-02-08T11:15:00.000Z",
-      "seed": 8
+      "seed": 8,
+      "registrationNumber": "REG-2026-0017"
     },
     {
       "id": "reg_champ_tariq",
@@ -398,7 +429,8 @@
       "phone": "+212 6 55 66 77 88",
       "status": "confirmed",
       "registeredAt": "2026-02-09T16:20:00.000Z",
-      "seed": 10
+      "seed": 10,
+      "registrationNumber": "REG-2026-0018"
     },
     {
       "id": "reg_champ_soufiane",
@@ -411,7 +443,8 @@
       "phone": "+212 6 66 77 88 99",
       "status": "confirmed",
       "registeredAt": "2026-02-10T18:45:00.000Z",
-      "seed": 11
+      "seed": 11,
+      "registrationNumber": "REG-2026-0019"
     },
     {
       "id": "reg_champ_ayoub",
@@ -424,7 +457,8 @@
       "phone": "+212 6 77 88 99 00",
       "status": "confirmed",
       "registeredAt": "2026-02-11T19:10:00.000Z",
-      "seed": 12
+      "seed": 12,
+      "registrationNumber": "REG-2026-0020"
     }
   ],
   "matches": [
@@ -2466,6 +2500,94 @@
     }
   ],
   "notifications": [
+    {
+      "id": "notif_1794072438745_nj4t",
+      "type": "system",
+      "title": "Inscription Validée (REG-2026-0021)",
+      "message": "L'inscription de Nassim Visiteur 1794072438185 (Nassim_1794072438185) [REG-2026-0021] a été passée à « Validé ».",
+      "registrationId": "reg_1794072438189_nv43",
+      "createdAt": "2026-11-07T17:27:18.745Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438189_nscb",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Nassim Visiteur 1794072438185 (Nassim_1794072438185) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Nassim Visiteur 1794072438185",
+      "gamertag": "Nassim_1794072438185",
+      "userEmail": "nassim.1794072438185@visiteur-fct.ma",
+      "phone": "+212 6 11 22 33 44",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794072438189_nv43",
+      "createdAt": "2026-11-07T17:27:18.189Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438179_uhwl",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 07/11/2026 17:27:18.",
+      "createdAt": "2026-11-07T17:27:18.179Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438154_pzkp",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 07/11/2026 17:27:18.",
+      "createdAt": "2026-11-07T17:27:18.173Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061839395_p26p",
+      "type": "system",
+      "title": "Inscription Refusée (REG-2026-0021)",
+      "message": "L'inscription de Tariq Test 1794061839179 (Tariq_1794061839179) a été refusée depuis Google AI Studio.",
+      "registrationId": "reg_1794061839322_e6r8",
+      "createdAt": "2026-11-07T14:30:39.395Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061839372_nvm5",
+      "type": "system",
+      "title": "Inscription Validée (REG-2026-0021)",
+      "message": "L'inscription de Tariq Test 1794061839179 (Tariq_1794061839179) a été validée depuis Google AI Studio.",
+      "registrationId": "reg_1794061839322_e6r8",
+      "createdAt": "2026-11-07T14:30:39.372Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061839322_8njf",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Tariq Test 1794061839179 (Tariq_1794061839179) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Tariq Test 1794061839179",
+      "gamertag": "Tariq_1794061839179",
+      "userEmail": "tariq.1794061839179@fctournament.ma",
+      "phone": "+212 6 99 88 77 66",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794061839322_e6r8",
+      "createdAt": "2026-11-07T14:30:39.322Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061781146_pf1b",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Tariq Test Realtime (TariqAtlas99) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Tariq Test Realtime",
+      "gamertag": "TariqAtlas99",
+      "userEmail": "tariq.test@fctournament.ma",
+      "phone": "+212 6 99 88 77 66",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794061781146_sazj",
+      "createdAt": "2026-11-07T14:29:41.146Z",
+      "read": false
+    },
     {
       "id": "notif_1793803369358_ml84",
       "type": "system",

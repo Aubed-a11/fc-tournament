@@ -64,6 +64,11 @@ export interface Registration {
   paymentProofName?: string;
   status: RegistrationStatus;
   registeredAt: string;
+  registrationNumber?: string;
+  validatedAt?: string;
+  rejectedAt?: string;
+  rejectionReason?: string;
+  reviewedBy?: string;
   seed?: number;
   whatsappInviteStatus?: 'sent' | 'failed' | 'not_sent';
   whatsappInviteSentAt?: string;
@@ -112,7 +117,11 @@ export interface PlayerLeaderboard {
   tournamentsPlayed: number;
   matchesPlayed: number;
   wins: number;
+  draws: number;
   losses: number;
+  goalsFor: number;
+  goalsAgainst: number;
+  goalDifference: number;
   winRate: number;
   points: number;
   rank: number;
