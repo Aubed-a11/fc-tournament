@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import type { Tournament, Registration, Match, PlayerLeaderboard, ScoreSubmission } from '../types/index.ts';
 import { ScoreSubmitModal } from '../components/ScoreSubmitModal.tsx';
+import { buildMatchesIcs, downloadIcs, casablancaToday } from '../utils/calendar.ts';
 import { formatDateFrench, formatMAD } from '../utils/format.ts';
 import {
   Trophy,
@@ -15,6 +16,8 @@ import {
   Award,
   Camera,
   XCircle,
+  CalendarPlus,
+  Bell,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -83,6 +86,20 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
   const pastMatches = userMatches.filter((m) => m.status === 'completed');
   // Matchs a jouer d'abord, puis les derniers matchs termines
   const displayedMatches = [...upcomingMatches, ...pastMatches].slice(0, 6);
+  // Calendrier personnel : tous les matchs a venir du joueur, tries par date
+  const todayStr = casablancaToday(0);
+  const tomorrowStr = casablancaToday(1);
+  const myCalendar = [...upcomingMatches].sort((a, b) =>
+    `${a.scheduledDate} ${a.scheduledTime}`.localeCompare(`${b.scheduledDate} ${b.scheduledTime}`)
+  );
+  const tournamentNames: Record<string, string> = Object.fromEntries(userTournaments.map((t) => [t.id, t.name]));
+  const matchesToday = myCalendar.filter((m) => m.scheduledDate === todayStr);
+  const opponentOf = (m: Match) => (m.player1Id === user.id ? m.player2Gamertag : m.player1Gamertag);
+  const dayLabel = (date: string) =>
+    date === todayStr ? "Aujourd'hui" : date === tomorrowStr ? 'Demain' : formatDateFrench(date);
+  const exportCalendar = (list: Match[], filename: string) =>
+    downloadIcs(buildMatchesIcs(list, user.id, tournamentNames), filename);
+
   const latestSubmissionFor = (matchId: string) =>
     scoreSubmissions
       .filter((s) => s.matchId === matchId)
@@ -164,6 +181,86 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
             </span>
             <span className="text-[10px] text-slate-500 block">Compétitions officielles</span>
           </div>
+        </div>
+
+        {/* Rappel du jour */}
+        {matchesToday.length > 0 && (
+          <div className="p-4 rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/40 flex items-start gap-3">
+            <Bell className="w-5 h-5 text-[#00ff66] shrink-0 mt-0.5" />
+            <div className="text-sm text-white">
+              <span className="font-bold">Vous jouez aujourd'hui : </span>
+              {matchesToday.map((m, i) => (
+                <span key={m.id}>
+                  {i > 0 && ', '}
+                  {m.scheduledTime} contre <strong>{opponentOf(m)}</strong>
+                </span>
+              ))}
+              <span className="block text-xs text-slate-300 mt-1">Soyez à l'heure : plus de 10 minutes de retard entraîne un forfait.</span>
+            </div>
+          </div>
+        )}
+
+        {/* Mon calendrier personnel */}
+        <div className="p-6 rounded-3xl bg-[#0b0f16] border border-[#1c2435] space-y-4">
+          <div className="flex flex-col sm:flex-row sm:items-center justify-between gap-3">
+            <div>
+              <h3 className="font-display text-2xl font-bold text-white uppercase tracking-wide">Mon calendrier</h3>
+              <p className="text-xs text-slate-400 mt-1">
+                Vos matchs à venir (heure du Maroc). Vous recevez aussi un rappel par e-mail la veille et le jour de chaque match.
+              </p>
+            </div>
+            {myCalendar.length > 0 && (
+              <button
+                onClick={() => exportCalendar(myCalendar, 'mes-matchs-fc-tournament.ics')}
+                className="px-4 py-2.5 rounded-xl bg-[#00ff66] text-black font-bold text-xs flex items-center gap-2 hover:bg-[#00e65c] transition-colors cursor-pointer shrink-0"
+                title="Ajouter tous vos matchs à l'agenda de votre téléphone, avec rappels"
+              >
+                <CalendarPlus className="w-4 h-4" />
+                <span>Tout ajouter à mon agenda</span>
+              </button>
+            )}
+          </div>
+
+          {myCalendar.length === 0 ? (
+            <div className="p-6 text-center rounded-2xl bg-[#0e131d] border border-[#1b2333] text-slate-400 text-xs">
+              Aucun match programmé pour le moment. Votre calendrier se remplira dès le tirage au sort.
+            </div>
+          ) : (
+            <div className="divide-y divide-[#161f2e] rounded-2xl border border-[#1b2333] overflow-hidden">
+              {myCalendar.map((m) => (
+                <div
+                  key={m.id}
+                  className={`p-4 flex flex-col sm:flex-row sm:items-center gap-3 sm:gap-6 text-xs ${
+                    m.scheduledDate === todayStr ? 'bg-[#00ff66]/5' : 'bg-[#0e131d]'
+                  }`}
+                >
+                  <div className="sm:w-40 shrink-0">
+                    <span className={`block font-bold ${m.scheduledDate === todayStr ? 'text-[#00ff66]' : 'text-white'}`}>
+                      {dayLabel(m.scheduledDate)}
+                    </span>
+                    <span className="font-mono text-slate-400">{m.scheduledTime}</span>
+                  </div>
+                  <div className="flex-1">
+                    <span className="text-white">
+                      contre <strong>{opponentOf(m) || 'adversaire à définir'}</strong>
+                    </span>
+                    <span className="block text-[11px] text-slate-500">
+                      {m.stageName}
+                      {tournamentNames[m.tournamentId] ? ` · ${tournamentNames[m.tournamentId]}` : ''}
+                    </span>
+                  </div>
+                  <button
+                    onClick={() => exportCalendar([m], `match-${m.id}.ics`)}
+                    className="self-start sm:self-auto px-3 py-1.5 rounded-lg bg-[#151f2d] text-slate-200 hover:text-white hover:bg-[#1d2b3f] font-semibold text-[11px] flex items-center gap-1.5 cursor-pointer"
+                    title="Ajouter ce match à mon agenda avec rappels"
+                  >
+                    <CalendarPlus className="w-3.5 h-3.5 text-[#00ff66]" />
+                    <span>Ajouter à mon agenda</span>
+                  </button>
+                </div>
+              ))}
+            </div>
+          )}
         </div>
 
         {/* 2-Columns Content: Inscriptions & Matchs */}

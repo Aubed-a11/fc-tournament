@@ -321,6 +321,8 @@ interface DatabaseSchema {
   notifications: AdminNotification[];
   paymentSubmissions: PaymentSubmission[];
   scoreSubmissions: ScoreSubmission[];
+  // Rappels de match deja envoyes (cle : matchId|userId|jour)
+  reminderLog?: string[];
 }
 
 function getInitialDatabase(): DatabaseSchema {
@@ -1770,6 +1772,133 @@ async function applyMatchScore(
         ? `Score officiellement validé ! Match nul : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}.`
         : `Score officiellement validé ! Vainqueur qualifié : ${winnerGamertag}.`,
     };
+}
+
+// ==========================================
+// RAPPELS DE MATCH PAR E-MAIL
+// ==========================================
+const MATCH_TIMEZONE = 'Africa/Casablanca';
+
+// Date du jour (AAAA-MM-JJ) a l'heure du Maroc, decalee de `offsetDays` jours
+function casablancaDate(offsetDays = 0): string {
+  const d = new Date(Date.now() + offsetDays * 24 * 60 * 60 * 1000);
+  return new Intl.DateTimeFormat('en-CA', { timeZone: MATCH_TIMEZONE, year: 'numeric', month: '2-digit', day: '2-digit' }).format(d);
+}
+
+function escapeHtml(value: string): string {
+  return String(value || '').replace(/[&<>"']/g, (c) => ({ '&': '&amp;', '<': '&lt;', '>': '&gt;', '"': '&quot;', "'": '&#39;' }[c] as string));
+}
+
+async function sendPlainEmail(to: string, subject: string, text: string, html: string): Promise<{ success: boolean; error?: string }> {
+  if (!process.env.SMTP_HOST || !process.env.SMTP_USER || !process.env.SMTP_PASS) {
+    return { success: false, error: 'SMTP non configuré' };
+  }
+  try {
+    const port = Number(process.env.SMTP_PORT) || 587;
+    const transporter = nodemailer.createTransport({
+      host: process.env.SMTP_HOST,
+      port,
+      secure: process.env.SMTP_SECURE === 'true' || port === 465,
+      auth: { user: process.env.SMTP_USER, pass: process.env.SMTP_PASS },
+    });
+    await transporter.sendMail({
+      from: process.env.SMTP_FROM || `"FC TOURNAMENT" <${process.env.SMTP_USER}>`,
+      to,
+      subject,
+      text,
+      html,
+    });
+    return { success: true };
+  } catch (err: any) {
+    return { success: false, error: err?.message || String(err) };
+  }
+}
+
+// Envoie a chaque joueur un rappel pour ses matchs du jour et du lendemain (une seule fois par match et par jour)
+async function runMatchReminders(): Promise<{ sent: number; skipped: number; errors: string[] }> {
+  const today = casablancaDate(0);
+  const tomorrow = casablancaDate(1);
+  if (!Array.isArray(db.reminderLog)) db.reminderLog = [];
+  const log = new Set(db.reminderLog);
+
+  const upcoming = db.matches.filter(
+    (m) =>
+      m.status !== 'completed' &&
+      m.player1Id &&
+      m.player2Id &&
+      (m.scheduledDate === today || m.scheduledDate === tomorrow)
+  );
+
+  // Regroupe par joueur
+  const byUser = new Map<string, Match[]>();
+  for (const m of upcoming) {
+    for (const uid of [m.player1Id!, m.player2Id!]) {
+      const key = `${m.id}|${uid}|${today}`;
+      if (log.has(key)) continue;
+      if (!byUser.has(uid)) byUser.set(uid, []);
+      byUser.get(uid)!.push(m);
+    }
+  }
+
+  let sent = 0;
+  let skipped = 0;
+  const errors: string[] = [];
+  const siteUrl = process.env.PUBLIC_SITE_URL || 'https://www.fc-tournament.com';
+
+  for (const [uid, matches] of byUser) {
+    const user = db.users.find((u) => u.id === uid);
+    if (!user?.email) {
+      skipped += matches.length;
+      continue;
+    }
+    matches.sort((a, b) => `${a.scheduledDate} ${a.scheduledTime}`.localeCompare(`${b.scheduledDate} ${b.scheduledTime}`));
+
+    const lines = matches.map((m) => {
+      const opponent = m.player1Id === uid ? m.player2Gamertag : m.player1Gamertag;
+      const tournament = db.tournaments.find((t) => t.id === m.tournamentId);
+      const when = m.scheduledDate === today ? "Aujourd'hui" : 'Demain';
+      return { when, time: m.scheduledTime, opponent, stage: m.stageName, tournament: tournament?.name || '' };
+    });
+    const hasToday = lines.some((l) => l.when === "Aujourd'hui");
+    const subject = hasToday ? 'Rappel FC Tournament : vous jouez aujourd’hui' : 'Rappel FC Tournament : vous jouez demain';
+
+    const text =
+      `Bonjour ${user.gamertag},\n\nRappel de vos prochains matchs :\n\n` +
+      lines.map((l) => `- ${l.when} à ${l.time} : contre ${l.opponent} (${l.stage}, ${l.tournament})`).join('\n') +
+      `\n\nSoyez à l'heure : un retard de plus de 10 minutes entraîne un forfait.\n` +
+      `Après le match, envoyez la capture du score depuis votre espace : ${siteUrl}/#dashboard\n\nL'équipe FC Tournament`;
+
+    const rows = lines
+      .map(
+        (l) => `<tr>
+          <td style="padding:10px;border-bottom:1px solid #1c2435;color:#00ff66;font-weight:bold;white-space:nowrap">${escapeHtml(l.when)}<br>${escapeHtml(l.time)}</td>
+          <td style="padding:10px;border-bottom:1px solid #1c2435;color:#ffffff">contre <strong>${escapeHtml(l.opponent)}</strong><br><span style="color:#94a3b8;font-size:12px">${escapeHtml(l.stage)} &middot; ${escapeHtml(l.tournament)}</span></td>
+        </tr>`
+      )
+      .join('');
+    const html = `<!DOCTYPE html><html><body style="margin:0;padding:24px;background:#07090e;font-family:Arial,sans-serif">
+      <table width="100%" style="max-width:560px;margin:0 auto;background:#0b0f16;border:1px solid #1c2435;border-radius:16px;padding:24px">
+        <tr><td style="color:#ffffff;font-size:20px;font-weight:bold;padding-bottom:8px">Rappel de match</td></tr>
+        <tr><td style="color:#cbd5e1;font-size:14px;padding-bottom:16px">Bonjour ${escapeHtml(user.gamertag)}, voici vos prochains matchs :</td></tr>
+        <tr><td><table width="100%" cellspacing="0" style="font-size:14px">${rows}</table></td></tr>
+        <tr><td style="color:#94a3b8;font-size:12px;padding-top:16px">Soyez à l'heure : un retard de plus de 10 minutes entraîne un forfait. Après le match, envoyez la capture du score depuis votre espace joueur.</td></tr>
+        <tr><td style="padding-top:20px"><a href="${siteUrl}/#dashboard" style="display:inline-block;background:#00ff66;color:#000;text-decoration:none;font-weight:bold;padding:12px 20px;border-radius:10px">Voir mon calendrier</a></td></tr>
+      </table></body></html>`;
+
+    const result = await sendPlainEmail(user.email, subject, text, html);
+    if (result.success) {
+      sent += 1;
+      for (const m of matches) log.add(`${m.id}|${uid}|${today}`);
+    } else {
+      errors.push(`${user.email}: ${result.error}`);
+    }
+  }
+
+  // Garde seulement les cles des 7 derniers jours
+  const minDate = casablancaDate(-7);
+  db.reminderLog = Array.from(log).filter((k) => (k.split('|')[2] || '') >= minDate);
+  saveDatabase(db);
+  return { sent, skipped, errors };
 }
 
 function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
@@ -4339,6 +4468,23 @@ app.get('/auth/me', handleMe);
       console.error('[SCORES] Erreur envoi score joueur:', err);
       res.status(500).json({ error: 'Erreur lors de l’envoi du score. Veuillez réessayer.' });
     }
+  });
+
+  // Tache planifiee (Vercel Cron, chaque matin) : rappels par e-mail des matchs du jour et du lendemain.
+  // Protegee par CRON_SECRET (envoye automatiquement par Vercel) ou par l'acces admin.
+  app.get('/api/cron/match-reminders', async (req: AuthenticatedRequest, res: Response, next: NextFunction) => {
+    const secret = process.env.CRON_SECRET;
+    const auth = req.headers['authorization'] || '';
+    if (secret && auth === `Bearer ${secret}`) {
+      const result = await runMatchReminders();
+      console.log('[RAPPELS] Envoi automatique :', JSON.stringify(result));
+      res.json({ success: true, ...result });
+      return;
+    }
+    requireAdmin(req, res, async () => {
+      const result = await runMatchReminders();
+      res.json({ success: true, ...result });
+    });
   });
 
   app.get('/api/player/score-submissions', requireAuth, (req: AuthenticatedRequest, res: Response) => {
