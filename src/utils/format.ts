@@ -32,6 +32,11 @@ export function formatDateTimeFrench(dateString?: string, timeString?: string): 
   return `${formattedDate} à ${timeString}`;
 }
 
-export function formatMAD(_amount?: number): string {
-  return '****';
+export function formatMAD(amount?: number): string {
+  if (amount === undefined || amount === null || isNaN(amount)) {
+    return '49.99 MAD';
+  }
+  const num = Number(amount);
+  const formatted = Number.isInteger(num) ? num.toString() : num.toFixed(2);
+  return `${formatted} MAD`;
 }

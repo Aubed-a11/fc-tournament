@@ -37,7 +37,7 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
     time TEXT,
     registration_deadline TIMESTAMPTZ,
     max_participants INT NOT NULL DEFAULT 32,
-    entry_fee_mad INT NOT NULL DEFAULT 50,
+    entry_fee_mad NUMERIC(10,2) NOT NULL DEFAULT 49.99,
     prize_pool TEXT,
     status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('upcoming', 'open', 'ongoing', 'completed', 'cancelled')),
     rules TEXT,
@@ -58,7 +58,7 @@ ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS start_date DATE;
 ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS time TEXT;
 ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS registration_deadline TIMESTAMPTZ;
 ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS max_participants INT DEFAULT 32;
-ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS entry_fee_mad INT DEFAULT 50;
+ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS entry_fee_mad NUMERIC(10,2) DEFAULT 49.99;
 ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS prize_pool TEXT;
 ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS status TEXT DEFAULT 'open';
 ALTER TABLE public.tournaments ADD COLUMN IF NOT EXISTS rules TEXT;

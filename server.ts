@@ -280,7 +280,7 @@ function getInitialDatabase(): DatabaseSchema {
       time: '14:00',
       registrationDeadline: '2027-04-23T23:59:00.000Z',
       maxParticipants: 32,
-      entryFeeMAD: 50,
+      entryFeeMAD: 49.99,
       prizePool: '**** MAD + Trophée + T-shirt',
       status: 'open',
       rules:
@@ -303,7 +303,7 @@ function getInitialDatabase(): DatabaseSchema {
       time: '16:00',
       registrationDeadline: '2026-03-12T18:00:00.000Z',
       maxParticipants: 32,
-      entryFeeMAD: 50,
+      entryFeeMAD: 49.99,
       prizePool: '**** MAD + Trophée + T-shirt',
       status: 'completed',
       rules:
@@ -973,18 +973,30 @@ function loadDatabase(): DatabaseSchema {
     }
   });
 
-  // Ensure tournament names are migrated to official names
+  // Ensure tournament names and entry fees are migrated to official names
   loaded.tournaments?.forEach((t) => {
-    if (t.id === 'tourn_spring_2026' && t.name !== 'Championnat sur téléphone') {
-      t.name = 'Championnat sur téléphone';
-      t.slug = 'championnat-sur-telephone';
-      t.platform = 'Téléphone (Mobile)';
-      needsSync = true;
-    } else if (t.id === 'tourn_ligue_oriental_2026' && t.name !== 'Championnat sur PC') {
-      t.name = 'Championnat sur PC';
-      t.slug = 'championnat-sur-pc';
-      t.platform = 'PC';
-      needsSync = true;
+    if (t.id === 'tourn_spring_2026') {
+      if (t.name !== 'Championnat sur téléphone') {
+        t.name = 'Championnat sur téléphone';
+        t.slug = 'championnat-sur-telephone';
+        t.platform = 'Téléphone (Mobile)';
+        needsSync = true;
+      }
+      if (t.entryFeeMAD !== 49.99) {
+        t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+    } else if (t.id === 'tourn_ligue_oriental_2026') {
+      if (t.name !== 'Championnat sur PC') {
+        t.name = 'Championnat sur PC';
+        t.slug = 'championnat-sur-pc';
+        t.platform = 'PC';
+        needsSync = true;
+      }
+      if (t.entryFeeMAD !== 49.99) {
+        t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
     }
   });
 

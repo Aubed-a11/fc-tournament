@@ -7,7 +7,7 @@ import {
 } from '../data/initialData.ts';
 
 // Increment this version whenever code source defaults change to purge/refresh stale browser cache
-export const CURRENT_DATA_VERSION = '2026-11-10-v3';
+export const CURRENT_DATA_VERSION = '2026-11-10-v4';
 
 const KEY_DATA_VERSION = 'fc_data_version';
 const KEY_TOURNAMENTS = 'fc_store_tournaments';
@@ -28,8 +28,12 @@ export function ensureDataVersionSynced(): void {
       console.log(`[FC DataStore] Synchronisation nouvelle version du code (${savedVersion} -> ${CURRENT_DATA_VERSION})`);
       localStorage.setItem(KEY_DATA_VERSION, CURRENT_DATA_VERSION);
 
-      // Initialize / Update tournaments with new official names
-      localStorage.setItem(KEY_TOURNAMENTS, JSON.stringify(INITIAL_TOURNAMENTS));
+      // Initialize / Update tournaments with new official names & entryFeeMAD 49.99
+      const freshTournaments = INITIAL_TOURNAMENTS.map(t => ({
+        ...t,
+        entryFeeMAD: 49.99
+      }));
+      localStorage.setItem(KEY_TOURNAMENTS, JSON.stringify(freshTournaments));
 
       // Initialize / Update matches
       localStorage.setItem(KEY_MATCHES, JSON.stringify(INITIAL_MATCHES));
