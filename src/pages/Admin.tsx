@@ -2200,12 +2200,12 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                         <th className="px-5 py-3.5">Date Inscription</th>
                         <th className="px-5 py-3.5 text-center">Statut</th>
                         <th className="px-5 py-3.5 text-center">Invitation WhatsApp</th>
-                        <th className="px-5 py-3.5 text-right">Actions Gestion</th>
+                        <th className="px-5 py-3.5 text-right sticky right-0 z-10 bg-[#101622] shadow-[-8px_0_12px_-6px_rgba(0,0,0,0.6)]">Actions Gestion</th>
                       </tr>
                     </thead>
                     <tbody className="divide-y divide-[#151e2b]">
                       {allRegistrations.map((reg) => (
-                        <tr key={reg.id} className="hover:bg-[#111724] transition-colors">
+                        <tr key={reg.id} className="group hover:bg-[#111724] transition-colors">
                           {/* Seed / Dossard */}
                           <td className="px-5 py-3.5 font-mono text-slate-400 font-bold">
                             <span className="px-2 py-1 rounded bg-[#151e2b] text-[#00ff66]">
@@ -2334,6 +2334,26 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                             >
                               {reg.status === 'confirmed' ? 'Accepté' : reg.status === 'rejected' ? 'Refusé' : 'En attente'}
                             </span>
+                            {reg.status === 'pending' && (
+                              <div className="flex items-center justify-center gap-1 mt-1.5">
+                                <button
+                                  onClick={() => handleUpdateRegStatus(reg.id, 'confirmed')}
+                                  className="px-2 py-1 rounded-md bg-[#00ff66]/15 text-[#00ff66] hover:bg-[#00ff66] hover:text-black font-semibold text-[10px] transition-all cursor-pointer flex items-center gap-1"
+                                  title="Accepter l'inscription (envoie l'invitation WhatsApp)"
+                                >
+                                  <Check className="w-3 h-3" />
+                                  <span>Accepter</span>
+                                </button>
+                                <button
+                                  onClick={() => handleUpdateRegStatus(reg.id, 'rejected')}
+                                  className="px-2 py-1 rounded-md bg-rose-500/15 text-rose-400 hover:bg-rose-500 hover:text-white font-semibold text-[10px] transition-all cursor-pointer flex items-center gap-1"
+                                  title="Refuser l'inscription"
+                                >
+                                  <X className="w-3 h-3" />
+                                  <span>Refuser</span>
+                                </button>
+                              </div>
+                            )}
                             {reg.validatedAt && (
                               <span className="block text-[9px] text-[#00ff66] font-mono mt-0.5">
                                 Validé {new Date(reg.validatedAt).toLocaleDateString('fr-FR')}
@@ -2401,8 +2421,8 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                             )}
                           </td>
 
-                          {/* Actions */}
-                          <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                          {/* Actions (colonne figee a droite) */}
+                          <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5 sticky right-0 z-10 bg-[#0c1017] group-hover:bg-[#111724] transition-colors shadow-[-8px_0_12px_-6px_rgba(0,0,0,0.6)]">
                             {/* Bouton Accepter */}
                             {reg.status !== 'confirmed' && (
                               <button
