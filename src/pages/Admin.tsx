@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
-import type { Tournament, Registration, Match, AdminNotification, User } from '../types/index.ts';
+import type { Tournament, Registration, Match, AdminNotification, User, PaymentSubmission } from '../types/index.ts';
 import { ScoreModal } from '../components/ScoreModal.tsx';
 import { formatDateFrench, formatMAD } from '../utils/format.ts';
 import { apiClient, getLocalRegistrations } from '../services/apiClient.ts';
@@ -51,6 +51,10 @@ import {
   Send,
   MessageSquare,
   Share2,
+  Copy,
+  FileCode,
+  CreditCard,
+  FileText,
 } from 'lucide-react';
 
 interface AdminProps {
@@ -70,13 +74,20 @@ interface TournamentsStatsItem {
 
 export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const { user, token } = useAuth();
-  const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'users' | 'matches'>('registrations');
+  const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'payments' | 'users' | 'matches'>('registrations');
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Payments state (Effectuer mon paiement - Justificatifs)
+  const [allPayments, setAllPayments] = useState<PaymentSubmission[]>([]);
+  const [paymentsFilterStatus, setPaymentsFilterStatus] = useState<string>('all');
+  const [paymentsFilterMethod, setPaymentsFilterMethod] = useState<string>('all');
+  const [paymentsSearch, setPaymentsSearch] = useState<string>('');
+  const [selectedPaymentForDetail, setSelectedPaymentForDetail] = useState<PaymentSubmission | null>(null);
 
   // Users state (Registered player accounts)
   const [allUsers, setAllUsers] = useState<
@@ -99,6 +110,22 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [unreadCount, setUnreadCount] = useState<number>(0);
   const [showNotificationsPanel, setShowNotificationsPanel] = useState<boolean>(false);
   const [showHostingerModal, setShowHostingerModal] = useState<boolean>(false);
+
+  // Supabase live status and sync state
+  const [supabaseLiveStatus, setSupabaseLiveStatus] = useState<{
+    configured: boolean;
+    connected: boolean;
+    tableExists: boolean;
+    rowCount: number;
+    url?: string;
+    error?: string;
+  } | null>(null);
+  const [syncingSupabase, setSyncingSupabase] = useState<boolean>(false);
+  const [downloadingSchema, setDownloadingSchema] = useState<boolean>(false);
+  const [showSqlSchemaModal, setShowSqlSchemaModal] = useState<boolean>(false);
+  const [sqlSchemaCode, setSqlSchemaCode] = useState<string>('');
+  const [copiedSql, setCopiedSql] = useState<boolean>(false);
+  const [activeSqlScript, setActiveSqlScript] = useState<'schema' | 'audit' | 'migration' | 'seeding' | 'verification'>('schema');
 
   // Create tournament modal state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -450,6 +477,165 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
+  const fetchSupabaseLiveStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/supabase/status', {
+        headers: getAdminHeaders(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSupabaseLiveStatus(data.connectivity || null);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleSyncAllToSupabase = async () => {
+    setSyncingSupabase(true);
+    try {
+      const res = await fetch('/api/admin/supabase/sync-all', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({
+          type: 'success',
+          text: data.message || 'Toutes les données ont été synchronisées vers Supabase avec succès !',
+        });
+        await fetchSupabaseLiveStatus();
+        await fetchRegistrations();
+      } else {
+        setMessage({
+          type: 'error',
+          text: data.error || 'Erreur lors de la synchronisation vers Supabase. Assurez-vous d’avoir exécuté le script SQL.',
+        });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Impossible de joindre le serveur pour la synchronisation Supabase.' });
+    } finally {
+      setSyncingSupabase(false);
+    }
+  };
+
+  const loadSqlScript = async (fileKey: 'schema' | 'audit' | 'migration' | 'seeding' | 'verification') => {
+    setActiveSqlScript(fileKey);
+    try {
+      const res = await fetch(`/api/admin/download-schema?file=${fileKey}`, {
+        headers: getAdminHeaders(),
+      });
+      if (res.ok) {
+        const text = await res.text();
+        if (!text.trim().startsWith('<')) {
+          setSqlSchemaCode(text);
+        }
+      }
+    } catch (e) {
+      console.warn('Erreur chargement script SQL:', e);
+    }
+  };
+
+  const handleDownloadSqlSchema = async (targetFile?: 'schema' | 'audit' | 'migration' | 'seeding' | 'verification') => {
+    const fileToDownload = targetFile || activeSqlScript || 'schema';
+    const fileNames: Record<string, string> = {
+      schema: 'supabase_schema.sql',
+      audit: 'audit_pre_migration.sql',
+      migration: 'migration_colonnes_contraintes.sql',
+      seeding: 'seeding_donnees_securisees.sql',
+      verification: 'verification_post_migration.sql',
+    };
+    const downloadFileName = fileNames[fileToDownload] || 'supabase_schema.sql';
+
+    try {
+      setDownloadingSchema(true);
+      setMessage(null);
+
+      // Fetch directly from the dedicated server route with admin headers
+      const res = await fetch(`/api/admin/download-schema?file=${fileToDownload}`, {
+        headers: getAdminHeaders(),
+      });
+
+      if (!res.ok) {
+        let errMessage = `Erreur HTTP ${res.status}`;
+        try {
+          const errData = await res.json();
+          if (errData.error) errMessage = errData.error;
+        } catch {}
+        throw new Error(errMessage);
+      }
+
+      // Read the full SQL text
+      const sqlText = await res.text();
+      const trimmed = sqlText.trim();
+
+      // Strict verification: ensure it contains valid SQL and NEVER HTML / Cookie check
+      if (
+        trimmed.startsWith('<!doctype') ||
+        trimmed.startsWith('<!DOCTYPE') ||
+        trimmed.startsWith('<html') ||
+        trimmed.includes('<title>Cookie check</title>')
+      ) {
+        throw new Error(
+          'La réponse reçue contient du HTML (« Cookie check ») au lieu du code SQL. Utilisez le bouton "Copier le SQL" pour coller directement le schéma dans Supabase.'
+        );
+      }
+
+      // Client-side native file download with exact MIME type and filename
+      const blob = new Blob([sqlText], { type: 'application/sql; charset=utf-8' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const tempLink = document.createElement('a');
+      tempLink.href = downloadUrl;
+      tempLink.setAttribute('download', downloadFileName);
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      document.body.removeChild(tempLink);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSqlSchemaCode(sqlText);
+      setMessage({
+        type: 'success',
+        text: `Fichier « ${downloadFileName} » téléchargé avec succès (100% SQL PostgreSQL authentique, 0% HTML) !`,
+      });
+    } catch (err: any) {
+      console.error('Erreur téléchargement schéma SQL:', err);
+      setMessage({
+        type: 'error',
+        text: `Échec du téléchargement SQL : ${err?.message || err}`,
+      });
+    } finally {
+      setDownloadingSchema(false);
+    }
+  };
+
+  const handleOpenSqlModal = async (initialTab: 'schema' | 'audit' | 'migration' | 'seeding' | 'verification' = 'schema') => {
+    setActiveSqlScript(initialTab);
+    await loadSqlScript(initialTab);
+    setShowSqlSchemaModal(true);
+  };
+
+  const handleCopySqlToClipboard = async () => {
+    try {
+      let codeToCopy = sqlSchemaCode;
+      if (!codeToCopy) {
+        const res = await fetch(`/api/admin/download-schema?file=${activeSqlScript}`, {
+          headers: getAdminHeaders(),
+        });
+        if (res.ok) {
+          codeToCopy = await res.text();
+          setSqlSchemaCode(codeToCopy);
+        }
+      }
+      if (codeToCopy && !codeToCopy.trim().startsWith('<')) {
+        await navigator.clipboard.writeText(codeToCopy);
+        setCopiedSql(true);
+        setTimeout(() => setCopiedSql(false), 3000);
+      }
+    } catch (err: any) {
+      console.error('Erreur lors de la copie du SQL:', err);
+    }
+  };
+
   const fetchAdminData = async () => {
     try {
       const [tRes, mRes] = await Promise.all([
@@ -513,6 +699,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
       let serverRegs: Registration[] = [];
       let statsList: TournamentsStatsItem[] = [];
+      let serverOk = false;
 
       try {
         const res = await fetch(`/api/admin/registrations?${params.toString()}`, {
@@ -522,6 +709,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
           const data = await res.json();
           serverRegs = data.registrations || [];
           statsList = data.tournamentsStats || [];
+          serverOk = true;
         } else if (res.status === 401 || res.status === 403) {
           const isMaster = (sessionStorage.getItem('fc_admin_code') === ADMIN_MASTER_CODE) || (adminToken === ADMIN_MASTER_CODE);
           if (!isMaster && (!user || user.role !== 'admin')) {
@@ -535,7 +723,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         // Server might be unreachable on static deployment
       }
 
-      if (serverRegs.length === 0) {
+      if (!serverOk) {
         const local = getLocalRegistrations();
         const mergedInitial = [...INITIAL_REGISTRATIONS];
         for (const loc of local) {
@@ -654,12 +842,63 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
+  const fetchPayments = async () => {
+    if (!adminVerified) return;
+    try {
+      const list = await apiClient.getAdminPayments(adminToken);
+      setAllPayments(list);
+    } catch (err) {
+      console.error('Error fetching admin payments:', err);
+    }
+  };
+
+  const handleUpdatePaymentStatus = async (
+    id: string,
+    status: 'accepted' | 'rejected',
+    rejectionReason?: string
+  ) => {
+    try {
+      let reason = rejectionReason;
+      if (status === 'rejected' && !reason) {
+        const inputReason = prompt('Motif du refus du justificatif (ex: Reçu illisible, montant incorrect, etc.) :');
+        if (inputReason === null) return; // User cancelled
+        reason = inputReason || 'Justificatif non conforme';
+      }
+
+      const res = await apiClient.updatePaymentStatus(id, status, reason, adminToken);
+      if (res.success) {
+        setMessage({
+          type: 'success',
+          text: `Justificatif ${status === 'accepted' ? 'accepté' : 'refusé'} avec succès.`,
+        });
+        await fetchPayments();
+        await fetchRegistrations();
+      } else {
+        setMessage({ type: 'error', text: res.message || 'Erreur lors de la mise à jour.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Impossible de joindre le serveur.' });
+    }
+  };
+
+  const handleDownloadPaymentProofFile = (payment: PaymentSubmission) => {
+    if (!payment.proofData) return;
+    const a = document.createElement('a');
+    a.href = payment.proofData;
+    a.download = payment.proofName || `justificatif-${payment.gamertag}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   useEffect(() => {
     if (adminVerified) {
       fetchAdminData();
       fetchRegistrations();
       fetchNotifications();
       fetchUsers();
+      fetchPayments();
+      fetchSupabaseLiveStatus();
     }
   }, [adminVerified]);
 
@@ -1437,6 +1676,12 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               icon: UserCheck,
             },
             {
+              id: 'payments',
+              label: 'Justificatifs de Paiement',
+              badge: allPayments.length,
+              icon: CreditCard,
+            },
+            {
               id: 'users',
               label: 'Comptes Joueurs Inscrits',
               badge: allUsers.length,
@@ -1486,6 +1731,85 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         {/* ======================================================== */}
         {adminTab === 'registrations' && (
           <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Supabase Realtime & Cloud Database Status Card */}
+            <div className="p-4 rounded-2xl bg-[#0e1420] border border-[#1f2b40] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-3 h-3 rounded-full shrink-0 ${
+                    supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                      ? 'bg-[#00ff66] shadow-[0_0_12px_#00ff66]'
+                      : supabaseLiveStatus?.configured
+                      ? 'bg-amber-400 shadow-[0_0_12px_#fbbf24]'
+                      : 'bg-rose-500 shadow-[0_0_12px_#f43f5e]'
+                  }`}
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-display font-bold text-xs tracking-wider uppercase text-white">
+                      Base de Données Supabase :
+                    </span>
+                    <span
+                      className={`text-xs font-mono font-bold ${
+                        supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                          ? 'text-[#00ff66]'
+                          : supabaseLiveStatus?.configured
+                          ? 'text-amber-400'
+                          : 'text-rose-400'
+                      }`}
+                    >
+                      {supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                        ? `Connecté en Direct (${supabaseLiveStatus.rowCount} inscriptions dans Supabase)`
+                        : supabaseLiveStatus?.configured && !supabaseLiveStatus.tableExists
+                        ? `Connecté mais Table "registrations" Manquante (Exécuter SQL ci-contre)`
+                        : `Non configuré (Stockage local actif - Configurer Hostinger)`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                      ? `Base cloud principale active. Synchronisation automatique bidirectionnelle et Realtime opérationnels.`
+                      : `Pour activer la persistance sur Hostinger, ajoutez vos variables SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+                <button
+                  type="button"
+                  onClick={() => handleDownloadSqlSchema('schema')}
+                  disabled={downloadingSchema}
+                  className="px-3 py-2 rounded-xl bg-[#162032] hover:bg-[#1d2a42] border border-[#2a3a54] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  title="Télécharger le véritable fichier supabase_schema.sql v3.0 (100% SQL, garanti sans HTML)"
+                >
+                  {downloadingSchema ? (
+                    <RefreshCw className="w-3.5 h-3.5 text-[#00ff66] animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5 text-[#00ff66]" />
+                  )}
+                  <span>{downloadingSchema ? 'Téléchargement...' : 'Télécharger SQL'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={() => handleOpenSqlModal('schema')}
+                  className="px-3 py-2 rounded-xl bg-[#121927] hover:bg-[#192336] border border-[#23324a] text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Afficher, examiner et copier les scripts SQL prêts à l'emploi"
+                >
+                  <Copy className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span>Scripts SQL</span>
+                </button>
+
+                <button
+                  onClick={handleSyncAllToSupabase}
+                  disabled={syncingSupabase}
+                  className="px-3.5 py-2 rounded-xl bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 text-[#00ff66] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                  title="Transférer toutes les données actuelles vers Supabase en 1 clic"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncingSupabase ? 'animate-spin' : ''}`} />
+                  <span>{syncingSupabase ? 'Synchronisation...' : 'Synchroniser vers Supabase'}</span>
+                </button>
+              </div>
+            </div>
+
             {/* KPI Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               <div
@@ -1963,6 +2287,277 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         )}
 
         {/* ======================================================== */}
+        {/* TAB: JUSTIFICATIFS DE PAIEMENT (Effectuer mon paiement)   */}
+        {/* ======================================================== */}
+        {adminTab === 'payments' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="p-6 rounded-3xl bg-[#0c1017] border border-[#1b2538] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#00ff66] uppercase">
+                  <CreditCard className="w-4 h-4 text-[#00ff66]" />
+                  <span>GESTION DES VIREMENTS & MOBILE MONEY</span>
+                </div>
+                <h2 className="font-display text-2xl font-black text-white uppercase tracking-tight">
+                  Justificatifs de Paiement ({allPayments.length})
+                </h2>
+                <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+                  Consultez les preuves de virement (CIH Bank, BMCE Bank, MTN MoMo) déposées par les joueurs. Vous pouvez prévisualiser la capture ou le PDF, accepter ou refuser chaque justificatif et notifier automatiquement le compétiteur.
+                </p>
+              </div>
+
+              <button
+                onClick={fetchPayments}
+                className="px-4 py-2.5 rounded-xl bg-[#141b27] hover:bg-[#1a2333] border border-[#222e44] text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-2 shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Actualiser les paiements</span>
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="p-4 rounded-2xl bg-[#0d121c] border border-[#1a2334] flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-slate-400 font-mono">Statut :</span>
+                  <select
+                    value={paymentsFilterStatus}
+                    onChange={(e) => setPaymentsFilterStatus(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-[#111722] border border-[#222e44] text-white focus:outline-none focus:border-[#00ff66]"
+                  >
+                    <option value="all">Tous les statuts ({allPayments.length})</option>
+                    <option value="pending">
+                      En attente ({allPayments.filter((p) => p.status === 'pending').length})
+                    </option>
+                    <option value="accepted">
+                      Acceptés ({allPayments.filter((p) => p.status === 'accepted').length})
+                    </option>
+                    <option value="rejected">
+                      Refusés ({allPayments.filter((p) => p.status === 'rejected').length})
+                    </option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 font-mono">Moyen :</span>
+                  <select
+                    value={paymentsFilterMethod}
+                    onChange={(e) => setPaymentsFilterMethod(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-[#111722] border border-[#222e44] text-white focus:outline-none focus:border-[#00ff66]"
+                  >
+                    <option value="all">Tous les moyens</option>
+                    <option value="cih">CIH BANK</option>
+                    <option value="bmce">BMCE BANK</option>
+                    <option value="mtn_momo">MTN MOMO</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />
+                <input
+                  type="text"
+                  value={paymentsSearch}
+                  onChange={(e) => setPaymentsSearch(e.target.value)}
+                  placeholder="Rechercher par pseudo, email..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-[#111722] border border-[#222e44] text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#00ff66]"
+                />
+              </div>
+            </div>
+
+            {/* Payments Table */}
+            {(() => {
+              let filtered = [...allPayments];
+              if (paymentsFilterStatus !== 'all') {
+                filtered = filtered.filter((p) => p.status === paymentsFilterStatus);
+              }
+              if (paymentsFilterMethod !== 'all') {
+                filtered = filtered.filter((p) => p.paymentMethod === paymentsFilterMethod);
+              }
+              if (paymentsSearch.trim()) {
+                const q = paymentsSearch.trim().toLowerCase();
+                filtered = filtered.filter(
+                  (p) =>
+                    p.gamertag.toLowerCase().includes(q) ||
+                    p.playerName.toLowerCase().includes(q) ||
+                    p.userEmail.toLowerCase().includes(q) ||
+                    (p.phone && p.phone.includes(q))
+                );
+              }
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="p-12 text-center rounded-3xl bg-[#0c1017] border border-[#1b2538] space-y-3">
+                    <CreditCard className="w-10 h-10 text-slate-600 mx-auto" />
+                    <p className="text-sm text-slate-400">Aucun justificatif de paiement ne correspond aux critères.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="rounded-3xl bg-[#0b0f16] border border-[#1c2538] overflow-hidden shadow-xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#0e1420] text-slate-400 font-mono text-[11px] uppercase border-b border-[#1b2538]">
+                        <tr>
+                          <th className="px-5 py-3.5">Date & Heure</th>
+                          <th className="px-5 py-3.5">Joueur (Gamertag)</th>
+                          <th className="px-5 py-3.5">Moyen & Montant</th>
+                          <th className="px-5 py-3.5">Tournoi</th>
+                          <th className="px-5 py-3.5">Justificatif</th>
+                          <th className="px-5 py-3.5">Statut</th>
+                          <th className="px-5 py-3.5 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#172030] text-slate-300">
+                        {filtered.map((item) => {
+                          const isPdf = item.proofType?.includes('pdf') || item.proofName?.toLowerCase().endsWith('.pdf');
+                          return (
+                            <tr key={item.id} className="hover:bg-[#0f1522] transition-colors">
+                              {/* Date */}
+                              <td className="px-5 py-3.5 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                                <div>{new Date(item.createdAt).toLocaleDateString('fr-FR')}</div>
+                                <div className="text-[10px] text-slate-500">
+                                  {new Date(item.createdAt).toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </div>
+                              </td>
+
+                              {/* Joueur */}
+                              <td className="px-5 py-3.5">
+                                <div className="font-bold text-white text-xs">{item.gamertag}</div>
+                                <div className="text-[11px] text-slate-400">{item.playerName}</div>
+                                <div className="text-[10px] text-slate-500 font-mono">{item.userEmail}</div>
+                              </td>
+
+                              {/* Moyen & Montant */}
+                              <td className="px-5 py-3.5">
+                                <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-[#141d2c] text-[#00ff66] border border-[#222e42] mb-1">
+                                  {item.paymentMethod.toUpperCase()}
+                                </span>
+                                <div className="text-white font-mono font-bold text-xs">
+                                  {item.amountMAD || 49.99} MAD
+                                </div>
+                              </td>
+
+                              {/* Tournoi */}
+                              <td className="px-5 py-3.5 text-slate-300">
+                                <span className="block font-semibold text-white truncate max-w-[170px]">
+                                  {item.tournamentName || 'Tournoi FC'}
+                                </span>
+                              </td>
+
+                              {/* Justificatif */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex items-center gap-2">
+                                  {isPdf ? (
+                                    <button
+                                      onClick={() => handleDownloadPaymentProofFile(item)}
+                                      className="w-10 h-10 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 hover:scale-105 transition-transform cursor-pointer"
+                                      title="Télécharger le reçu PDF"
+                                    >
+                                      <FileText className="w-5 h-5" />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setPreviewScreenshotUrl({
+                                          url: item.proofData,
+                                          title: `Justificatif de ${item.gamertag} (${item.paymentMethodName})`,
+                                        })
+                                      }
+                                      className="relative w-10 h-10 rounded-lg overflow-hidden border border-[#233149] hover:border-[#00ff66] transition-colors group cursor-pointer bg-black"
+                                      title="Agrandir la capture du paiement"
+                                    >
+                                      <img
+                                        src={item.proofData}
+                                        alt="Reçu"
+                                        className="w-full h-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 flex items-center justify-center transition-colors">
+                                        <Eye className="w-3.5 h-3.5 text-white opacity-80 group-hover:opacity-100" />
+                                      </div>
+                                    </button>
+                                  )}
+
+                                  <button
+                                    onClick={() => handleDownloadPaymentProofFile(item)}
+                                    className="p-1.5 rounded-lg bg-[#141d2c] hover:bg-[#1f2b3e] text-slate-300 hover:text-[#00ff66] transition-colors cursor-pointer"
+                                    title="Télécharger le fichier justificatif"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+
+                              {/* Statut */}
+                              <td className="px-5 py-3.5 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold ${
+                                    item.status === 'accepted'
+                                      ? 'bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30'
+                                      : item.status === 'rejected'
+                                      ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                      : 'bg-amber-400/15 text-amber-400 border border-amber-400/30'
+                                  }`}
+                                >
+                                  {item.status === 'accepted' ? (
+                                    <>
+                                      <CheckCircle2 className="w-3 h-3 text-[#00ff66]" />
+                                      <span>Accepté</span>
+                                    </>
+                                  ) : item.status === 'rejected' ? (
+                                    <>
+                                      <XCircle className="w-3 h-3 text-rose-400" />
+                                      <span>Refusé</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="w-3 h-3 text-amber-400" />
+                                      <span>En attente</span>
+                                    </>
+                                  )}
+                                </span>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                                {item.status !== 'accepted' && (
+                                  <button
+                                    onClick={() => handleUpdatePaymentStatus(item.id, 'accepted')}
+                                    className="px-2.5 py-1.5 rounded-lg bg-[#00ff66]/15 text-[#00ff66] hover:bg-[#00ff66] hover:text-black font-semibold text-[11px] transition-all cursor-pointer"
+                                    title="Accepter ce justificatif de paiement"
+                                  >
+                                    Accepter
+                                  </button>
+                                )}
+
+                                {item.status !== 'rejected' && (
+                                  <button
+                                    onClick={() => handleUpdatePaymentStatus(item.id, 'rejected')}
+                                    className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500 hover:text-black font-semibold text-[11px] transition-all cursor-pointer"
+                                    title="Refuser ce justificatif de paiement"
+                                  >
+                                    Refuser
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
+          </div>
+        )}
+
+        {/* ======================================================== */}
         {/* TAB: COMPTES JOUEURS INSCRITS SUR LA PLATEFORME          */}
         {/* ======================================================== */}
         {adminTab === 'users' && (
@@ -2316,58 +2911,159 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentTournMatches.map((m) => (
-                  <div
-                    key={m.id}
-                    className="p-5 rounded-2xl bg-[#0c1017] border border-[#1b2538] space-y-4 shadow-xl"
-                  >
-                    <div className="flex items-center justify-between text-xs border-b border-[#161f2c] pb-2">
-                      <span className="font-mono text-slate-400">{m.stageName}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold border ${
-                          m.status === 'completed'
-                            ? 'bg-[#00ff66]/15 text-[#00ff66] border-[#00ff66]/30'
-                            : m.status === 'live'
-                            ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                            : 'bg-slate-800 text-slate-400 border-slate-700'
-                        }`}
-                      >
-                        {m.status === 'completed' ? 'Validé' : m.status === 'live' ? 'En Direct' : 'Programmé'}
-                      </span>
-                    </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {currentTournMatches.map((m) => {
+                  const isCompleted = m.status === 'completed' && m.player1Score !== null && m.player2Score !== null;
+                  const isLive = m.status === 'live';
+                  const s1 = m.player1Score;
+                  const s2 = m.player2Score;
+                  const p1Won = isCompleted && s1! > s2!;
+                  const p2Won = isCompleted && s2! > s1!;
+                  const isDraw = isCompleted && s1! === s2!;
 
-                    <div className="flex items-center justify-between gap-4 py-2">
-                      <div className="flex-1 text-center">
-                        <span className="font-display text-lg font-bold text-white block truncate">
-                          {m.player1Gamertag}
-                        </span>
+                  return (
+                    <div
+                      key={m.id}
+                      className="p-5 rounded-2xl bg-[#0c1017] border border-[#1b2538] hover:border-[#2a374d] transition-all duration-200 shadow-xl flex flex-col justify-between gap-4"
+                    >
+                      {/* Top: Stage & Date */}
+                      <div className="flex items-center justify-between text-xs border-b border-[#161f2e] pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-white bg-[#151c2b] px-2.5 py-0.5 rounded-lg border border-[#222e42]">
+                            {m.stageName}
+                          </span>
+                          <span className="text-slate-400 font-mono text-[11px]">
+                            Match #{m.matchNumber || 1}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 font-mono text-[11px]">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-slate-300">
+                            {m.scheduledDate} · {m.scheduledTime || '15:00'}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="px-4 py-2 rounded-xl bg-[#121824] border border-[#222e44] font-mono text-xl font-black text-[#00ff66]">
-                        {m.player1Score !== null ? m.player1Score : '-'} : {m.player2Score !== null ? m.player2Score : '-'}
+                      {/* Middle: Face to Face */}
+                      <div className="flex items-center justify-between gap-3 py-1">
+                        {/* Player 1 */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-[#151c2b] border border-[#232f45] flex items-center justify-center font-bold text-xs text-[#00ff66] shrink-0">
+                            {(m.player1Gamertag || 'P1').substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="truncate">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`font-bold text-sm truncate ${
+                                  p1Won ? 'text-[#00ff66]' : 'text-white'
+                                }`}
+                              >
+                                {m.player1Gamertag}
+                              </span>
+                              {p1Won && <Trophy className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />}
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              Joueur 1
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Score or VS Badge */}
+                        <div className="shrink-0 px-3 text-center">
+                          {isCompleted ? (
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`font-mono text-xl sm:text-2xl font-black tabular-nums px-3 py-1 rounded-xl border ${
+                                  p1Won
+                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                    : isDraw
+                                    ? 'bg-amber-400/10 border-amber-400/30 text-amber-300'
+                                    : 'bg-[#151c2b] border-[#222e42] text-slate-300'
+                                }`}
+                              >
+                                {s1}
+                              </span>
+                              <span className="font-mono text-slate-500 font-bold">:</span>
+                              <span
+                                className={`font-mono text-xl sm:text-2xl font-black tabular-nums px-3 py-1 rounded-xl border ${
+                                  p2Won
+                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                    : isDraw
+                                    ? 'bg-amber-400/10 border-amber-400/30 text-amber-300'
+                                    : 'bg-[#151c2b] border-[#222e42] text-slate-300'
+                                }`}
+                              >
+                                {s2}
+                              </span>
+                            </div>
+                          ) : isLive ? (
+                            <span className="px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 font-mono font-bold text-xs flex items-center gap-1.5 animate-pulse">
+                              <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
+                              EN DIRECT
+                            </span>
+                          ) : (
+                            <div className="px-3.5 py-1.5 rounded-xl bg-[#121824] border border-[#222e42] font-mono text-xs font-bold text-slate-400">
+                              VS
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Player 2 */}
+                        <div className="flex items-center justify-end gap-3 flex-1 min-w-0 text-right">
+                          <div className="truncate">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {p2Won && <Trophy className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />}
+                              <span
+                                className={`font-bold text-sm truncate ${
+                                  p2Won ? 'text-[#00ff66]' : 'text-white'
+                                }`}
+                              >
+                                {m.player2Gamertag}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              Joueur 2
+                            </span>
+                          </div>
+                          <div className="w-10 h-10 rounded-full bg-[#151c2b] border border-[#232f45] flex items-center justify-center font-bold text-xs text-cyan-400 shrink-0">
+                            {(m.player2Gamertag || 'P2').substring(0, 2).toUpperCase()}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex-1 text-center">
-                        <span className="font-display text-lg font-bold text-white block truncate">
-                          {m.player2Gamertag}
-                        </span>
+                      {/* Bottom: Status & Action Button */}
+                      <div className="flex items-center justify-between text-xs pt-2.5 border-t border-[#161f2e]">
+                        <div>
+                          {isCompleted ? (
+                            <span className="text-[11px] font-mono text-[#00ff66] flex items-center gap-1 font-semibold">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Score officiel homologué</span>
+                            </span>
+                          ) : isLive ? (
+                            <span className="text-[11px] font-mono text-rose-400 flex items-center gap-1 font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping inline-block" />
+                              <span>En direct</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Programmé</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => setScoreModalMatch(m)}
+                          className="px-3.5 py-1.5 rounded-xl bg-[#141b27] hover:bg-[#00ff66] hover:text-black border border-[#222e44] text-xs font-semibold text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Shield className="w-3.5 h-3.5" />
+                          <span>{isCompleted ? 'Modifier le score' : 'Homologuer le score'}</span>
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-[#161f2c]">
-                      <span className="text-slate-500 font-mono">
-                        {m.scheduledDate} · {m.scheduledTime}
-                      </span>
-                      <button
-                        onClick={() => setScoreModalMatch(m)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#141b27] hover:bg-[#00ff66] hover:text-black border border-[#222e44] text-xs font-semibold text-white transition-all cursor-pointer"
-                      >
-                        {m.status === 'completed' ? 'Modifier le score' : 'Homologuer le score'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>
@@ -3105,13 +3801,184 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
+                {/* Info Supabase Variables */}
+                <div className="p-4 rounded-xl bg-[#090d14] border border-[#192231] text-xs text-slate-300 space-y-2">
+                  <div className="flex items-center gap-2 font-display font-bold text-white uppercase tracking-wider">
+                    <CheckCircle2 className="w-4 h-4 text-[#00ff66]" />
+                    <span>Variables Supabase indispensables pour Hostinger (Node.js)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Dans votre panneau Hostinger (hPanel &gt; Node.js App &gt; Variables d'environnement, ou fichier <code className="text-[#00ff66]">.env</code>) :
+                  </p>
+                  <pre className="p-3 bg-[#05080d] border border-[#141c28] rounded-xl text-[10px] font-mono text-slate-300 overflow-x-auto space-y-1">
+                    <div>SUPABASE_URL=https://votre-projet.supabase.co</div>
+                    <div>SUPABASE_ANON_KEY=votre_cle_anon_publique</div>
+                    <div>SUPABASE_SERVICE_ROLE_KEY=votre_cle_secrete_service_role</div>
+                    <div>PORT=3000</div>
+                  </pre>
+                  <p className="text-[10px] text-slate-500">
+                    ⚠️ Après avoir enregistré les variables sur Hostinger, cliquez sur <strong>Redémarrer (Restart)</strong> pour que le serveur prenne en compte la connexion à Supabase.
+                  </p>
+                </div>
+
                 {/* Info aide */}
                 <div className="p-3.5 rounded-xl bg-[#090d14] border border-[#192231] text-[11px] text-slate-400 flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-[#00ff66] shrink-0 mt-0.5" />
                   <p>
-                    Les deux archives intègrent toutes les corrections récentes : l'adresse de contact <strong className="text-white">alio227ng@gmail.com</strong>, le numéro <strong className="text-white">+212681337566</strong>, et l'alerte instantanée des inscriptions visiteurs.
+                    Toutes les inscriptions soumises sur le site Hostinger seront écrites directement dans la table <strong className="text-white">registrations</strong> de Supabase et récupérables en temps réel dans votre panneau administrateur.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* MODAL: SUPABASE SQL SCHEMA VIEWER & INSTANT COPIER       */}
+        {/* ======================================================== */}
+        {showSqlSchemaModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setShowSqlSchemaModal(false)}
+          >
+            <div
+              className="relative w-full max-w-4xl bg-[#0b0f17] border border-[#1f2b3f] rounded-3xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-5 bg-[#101725] border-b border-[#1c2638] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/30 flex items-center justify-center text-[#00ff66]">
+                    <FileCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-white uppercase tracking-tight">
+                      {activeSqlScript === 'schema' && 'Schéma Supabase v3.0 Officiel (supabase_schema.sql)'}
+                      {activeSqlScript === 'audit' && 'Audit Préalable Supabase (audit_pre_migration.sql)'}
+                      {activeSqlScript === 'migration' && 'Migration Sécurisée des Colonnes (migration_colonnes_contraintes.sql)'}
+                      {activeSqlScript === 'seeding' && 'Peuplement Sécurisé des Données (seeding_donnees_securisees.sql)'}
+                      {activeSqlScript === 'verification' && 'Vérification Post-Migration (verification_post_migration.sql)'}
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      {activeSqlScript === 'schema' && 'DDL pur, contraintes intègres et RLS stricte sans écrasement de données'}
+                      {activeSqlScript === 'audit' && 'Inspection en lecture seule : colonnes, contraintes, doublons et orphelins'}
+                      {activeSqlScript === 'migration' && 'Ajout non destructif des colonnes manquantes (ADD COLUMN IF NOT EXISTS)'}
+                      {activeSqlScript === 'seeding' && 'Insertion conditionnelle triple vérification (WHERE NOT EXISTS)'}
+                      {activeSqlScript === 'verification' && 'Requêtes de contrôle des statuts et d’intégrité après exécution'}
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSqlSchemaModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#1a2333] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Script Selector Tabs */}
+              <div className="px-6 py-2.5 bg-[#0b1018] border-b border-[#182234] flex items-center gap-1.5 overflow-x-auto text-xs">
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('schema')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'schema'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  1. Schéma DDL v3.0
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('audit')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'audit'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  2. Audit Préalable
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('migration')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'migration'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  3. Migration Colonnes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('seeding')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'seeding'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  4. Peuplement Protégé
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('verification')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'verification'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  5. Vérification
+                </button>
+              </div>
+
+              {/* Instructions banner */}
+              <div className="px-6 py-3 bg-[#0d1420] border-b border-[#1b2537] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
+                  <span><strong>Action recommandée :</strong> Exécutez d'abord l'<strong>Audit préalable</strong> pour examiner votre base Supabase sans modifier de données.</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCopySqlToClipboard}
+                    className="px-3 py-1.5 rounded-lg bg-[#00ff66] hover:bg-[#00dd55] text-black font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedSql ? 'Copié !' : 'Copier ce script'}</span>
+                  </button>
+                  <button
+                    onClick={() => handleDownloadSqlSchema()}
+                    disabled={downloadingSchema}
+                    className="px-3 py-1.5 rounded-lg bg-[#182335] hover:bg-[#202e46] border border-[#2c3d59] text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#00ff66]" />
+                    <span>Télécharger</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto flex-1 font-mono text-xs">
+                <div className="p-4 rounded-xl bg-[#06090e] border border-[#162030] text-slate-300 overflow-x-auto whitespace-pre leading-relaxed select-all">
+                  {sqlSchemaCode || 'Chargement du script SQL officiel en cours...'}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-4 bg-[#0e1420] border-t border-[#1a2436] flex items-center justify-between text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#00ff66]" />
+                  <span>Script garanti 100% SQL PostgreSQL (aucun DROP TABLE, aucun TRUNCATE).</span>
+                </div>
+                <button
+                  onClick={() => setShowSqlSchemaModal(false)}
+                  className="px-4 py-2 rounded-xl bg-[#172132] hover:bg-[#202d44] text-white font-semibold transition-colors cursor-pointer"
+                >
+                  Fermer
+                </button>
               </div>
             </div>
           </div>

@@ -17,13 +17,19 @@ import type {
   ContactSubmission,
   MatchAuditEntry,
   AdminNotification,
+  PaymentSubmission,
 } from './src/types/index.ts';
 import {
+  checkSupabaseConnectivity,
+  insertRegistrationToSupabase,
   syncRegistrationToSupabase,
   updateRegistrationStatusInSupabase,
+  deleteRegistrationFromSupabase,
   fetchRegistrationsFromSupabase,
+  migrateAllToSupabase,
   getPublicSupabaseConfig,
   isSupabaseConfigured,
+  getSupabaseServerClient,
 } from './src/services/supabaseServer.js';
 
 dotenv.config();
@@ -259,6 +265,7 @@ interface DatabaseSchema {
   matches: Match[];
   contacts: ContactSubmission[];
   notifications: AdminNotification[];
+  paymentSubmissions: PaymentSubmission[];
 }
 
 function getInitialDatabase(): DatabaseSchema {
@@ -404,12 +411,12 @@ function getInitialDatabase(): DatabaseSchema {
   const tournaments: Tournament[] = [
     {
       id: 'tourn_spring_2026',
-      name: 'Championnat',
-      slug: 'championnat-fc-2026',
+      name: 'Championnat sur téléphone',
+      slug: 'championnat-sur-telephone',
       description:
-        'Le tournoi e-sport incontournable de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
+        'Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
       gameVersion: 'EA SPORTS 27',
-      platform: 'e-Football',
+      platform: 'Téléphone (Mobile)',
       format: 'aller_retour',
       location: 'Gaming Arena',
       city: 'Maroc',
@@ -417,7 +424,7 @@ function getInitialDatabase(): DatabaseSchema {
       time: '14:00',
       registrationDeadline: '2027-04-23T23:59:00.000Z',
       maxParticipants: 32,
-      entryFeeMAD: 50,
+      entryFeeMAD: 49.99,
       prizePool: '**** MAD + Trophée + T-shirt',
       status: 'open',
       rules:
@@ -427,12 +434,12 @@ function getInitialDatabase(): DatabaseSchema {
     },
     {
       id: 'tourn_ligue_oriental_2026',
-      name: 'Ligue des champions',
-      slug: 'ligue-des-champions',
+      name: 'Championnat sur PC',
+      slug: 'championnat-sur-pc',
       description:
-        'La compétition d’élite qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
+        'La compétition d’élite sur PC qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
       gameVersion: 'EA SPORTS 27',
-      platform: 'e-Football',
+      platform: 'PC',
       format: 'aller_retour',
       location: 'Gaming Arena',
       city: 'Maroc',
@@ -440,9 +447,9 @@ function getInitialDatabase(): DatabaseSchema {
       time: '16:00',
       registrationDeadline: '2026-03-12T18:00:00.000Z',
       maxParticipants: 32,
-      entryFeeMAD: 50,
+      entryFeeMAD: 49.99,
       prizePool: '**** MAD + Trophée + T-shirt',
-      status: 'open',
+      status: 'completed',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
       bannerImage: '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
@@ -1071,7 +1078,7 @@ function getInitialDatabase(): DatabaseSchema {
     },
   ];
 
-  return { users, tournaments, registrations, matches, contacts, notifications };
+  return { users, tournaments, registrations, matches, contacts, notifications, paymentSubmissions: [] };
 }
 
 function loadDatabase(): DatabaseSchema {
@@ -1100,12 +1107,52 @@ function loadDatabase(): DatabaseSchema {
   if (!Array.isArray(loaded.registrations)) {
     loaded.registrations = [];
   }
+  if (!Array.isArray(loaded.paymentSubmissions)) {
+    loaded.paymentSubmissions = [];
+  }
 
   // Ensure all registrations have a unique registrationNumber (e.g. REG-2026-0001)
   let needsSync = false;
   loaded.registrations.forEach((r, idx) => {
     if (!r.registrationNumber) {
       r.registrationNumber = `REG-2026-${String(idx + 1).padStart(4, '0')}`;
+      needsSync = true;
+    }
+  });
+
+  // Ensure tournament names and entry fees are migrated to official names
+  loaded.tournaments?.forEach((t) => {
+    if (t.id === 'tourn_spring_2026') {
+      if (t.name !== 'Championnat sur téléphone') {
+        t.name = 'Championnat sur téléphone';
+        t.slug = 'championnat-sur-telephone';
+        t.platform = 'Téléphone (Mobile)';
+        needsSync = true;
+      }
+      if (t.entryFeeMAD !== 49.99) {
+        t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+    } else if (t.id === 'tourn_ligue_oriental_2026') {
+      if (t.name !== 'Championnat sur PC') {
+        t.name = 'Championnat sur PC';
+        t.slug = 'championnat-sur-pc';
+        t.platform = 'PC';
+        needsSync = true;
+      }
+      if (t.entryFeeMAD !== 49.99) {
+        t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+    }
+  });
+
+  loaded.registrations?.forEach((r) => {
+    if (r.tournamentId === 'tourn_spring_2026' && r.tournamentName !== 'Championnat sur téléphone') {
+      r.tournamentName = 'Championnat sur téléphone';
+      needsSync = true;
+    } else if (r.tournamentId === 'tourn_ligue_oriental_2026' && r.tournamentName !== 'Championnat sur PC') {
+      r.tournamentName = 'Championnat sur PC';
       needsSync = true;
     }
   });
@@ -1180,13 +1227,45 @@ function saveDatabase(data: DatabaseSchema): void {
 function normalizeDatabase(raw: any): DatabaseSchema {
   const d = raw && typeof raw === 'object' ? raw : {};
   return {
+    ...d,
     users: Array.isArray(d.users) ? d.users : [],
     tournaments: Array.isArray(d.tournaments) ? d.tournaments : [],
     registrations: Array.isArray(d.registrations) ? d.registrations : [],
     matches: Array.isArray(d.matches) ? d.matches : [],
     contacts: Array.isArray(d.contacts) ? d.contacts : [],
     notifications: Array.isArray(d.notifications) ? d.notifications : [],
+    paymentSubmissions: Array.isArray(d.paymentSubmissions) ? d.paymentSubmissions : [],
   };
+}
+
+// Migrations de donnees appliquees aussi en mode Postgres (noms et frais officiels des tournois).
+// Retourne true si quelque chose a change.
+function applyTournamentMigrations(data: DatabaseSchema): boolean {
+  const official: Record<string, { name: string; slug: string; platform: string }> = {
+    tourn_spring_2026: { name: 'Championnat sur téléphone', slug: 'championnat-sur-telephone', platform: 'Téléphone (Mobile)' },
+    tourn_ligue_oriental_2026: { name: 'Championnat sur PC', slug: 'championnat-sur-pc', platform: 'PC' },
+  };
+  let changed = false;
+  for (const t of data.tournaments as any[]) {
+    const o = official[t.id];
+    if (!o) continue;
+    if (t.name !== o.name) {
+      Object.assign(t, o);
+      changed = true;
+    }
+    if (t.entryFeeMAD !== 49.99) {
+      t.entryFeeMAD = 49.99;
+      changed = true;
+    }
+  }
+  for (const r of data.registrations as any[]) {
+    const o = official[r.tournamentId];
+    if (o && r.tournamentName !== o.name) {
+      r.tournamentName = o.name;
+      changed = true;
+    }
+  }
+  return changed;
 }
 
 // Numero d'inscription unique (REG-2026-0001) pour les inscriptions qui n'en ont pas encore
@@ -1221,7 +1300,13 @@ function buildSeedDatabase(): DatabaseSchema {
 
 let db: DatabaseSchema = USE_PG ? normalizeDatabase(null) : loadDatabase();
 kvLoaders.set('db', (value) => {
+  const raw = value as any;
+  const hadAllNumbers = Array.isArray(raw?.registrations) && raw.registrations.every((r: any) => r.registrationNumber);
   db = backfillRegistrationNumbers(normalizeDatabase(value));
+  const migrated = applyTournamentMigrations(db);
+  if (migrated || !hadAllNumbers || !Array.isArray(raw?.paymentSubmissions)) {
+    saveDatabase(db);
+  }
 });
 
 function getRegistrationStats() {
@@ -1354,43 +1439,52 @@ L'équipe FC TOURNAMENT.`;
 
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const port = Number(process.env.SMTP_PORT) || 587;
+      const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
+        port,
+        secure,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
       });
 
+      // Verify SMTP connection and credentials with provider before sending
+      await transporter.verify();
+
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"FC TOURNAMENT" <alio227ng@gmail.com>',
+        from: process.env.SMTP_FROM || `"FC TOURNAMENT" <${process.env.SMTP_USER}>`,
         to: cleanEmail,
         subject,
         text: plainTextMessage,
         html: htmlMessage,
       });
 
-      console.log(`[SMTP] Invitation WhatsApp envoyée avec succès à ${cleanEmail} (ID: ${info.messageId})`);
+      console.log(`[SMTP ACCEPTÉ] E-mail officiel accepté par le fournisseur pour ${cleanEmail} (ID: ${info.messageId}, Réponse: ${info.response})`);
       return { success: true, messageId: info.messageId };
     } else {
-      // In development / preview mode: simulated transactional dispatch
-      const simulatedMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      console.log(`[EMAIL DISPATCH] Invitation WhatsApp envoyée à ${cleanEmail} pour ${gamertag}`);
-      console.log(`[EMAIL LINK] ${WHATSAPP_GROUP_LINK}`);
-      console.log(`[EMAIL ID] ${simulatedMessageId}`);
+      const missingVars = [
+        !process.env.SMTP_HOST && 'SMTP_HOST',
+        !process.env.SMTP_USER && 'SMTP_USER',
+        !process.env.SMTP_PASS && 'SMTP_PASS',
+      ].filter(Boolean).join(', ');
+
+      const errorMsg = `Serveur SMTP non configuré (${missingVars} manquants dans l'environnement). Aucun email n'a pu être expédié au fournisseur.`;
+      console.warn(`[SMTP NON CONFIGURÉ] ${errorMsg} (Destinataire: ${cleanEmail})`);
 
       return {
-        success: true,
-        messageId: simulatedMessageId,
+        success: false,
+        error: errorMsg,
       };
     }
   } catch (err: any) {
-    console.error(`[EMAIL ERROR] Erreur lors de l'envoi de l'invitation WhatsApp à ${cleanEmail}:`, err);
+    console.error(`[SMTP ERROR] Échec de l'envoi de l'invitation à ${cleanEmail}:`, err?.message || err);
     return {
       success: false,
-      error: err?.message || 'Erreur lors de l’envoi du courriel transactionnel.',
+      error: `Erreur fournisseur SMTP : ${err?.message || 'Connexion refusée ou identifiants SMTP invalides.'}`,
     };
   }
 }
@@ -1402,7 +1496,7 @@ const ADMIN_NOTIFICATION_EMAIL = 'alio227ng@gmail.com';
 const FORMBOLD_ENDPOINT = 'https://formbold.com/s/oWp4p';
 
 async function notifyAdminAndFormBold(event: {
-  type: 'tournament_registration' | 'user_account' | 'contact_message';
+  type: 'tournament_registration' | 'user_account' | 'contact_message' | 'payment_submission';
   title: string;
   senderEmail: string;
   senderName: string;
@@ -1416,6 +1510,8 @@ async function notifyAdminAndFormBold(event: {
       ? 'CRÉATION DE COMPTE JOUEUR'
       : event.type === 'tournament_registration'
       ? 'NOUVELLE INSCRIPTION AU TOURNOI'
+      : event.type === 'payment_submission'
+      ? 'DÉPÔT DE JUSTIFICATIF DE PAIEMENT'
       : 'NOUVEAU MESSAGE DE CONTACT';
 
   // 1. Relay to FormBold so alio227ng@gmail.com receives the email alert immediately
@@ -1530,18 +1626,48 @@ function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunctio
 }
 
 function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  function attachAdminUser() {
+    if (!req.user) {
+      const adminUser = db.users.find((u) => u.role === 'admin');
+      if (adminUser) {
+        const { passwordHash: _, salt: __, ...userSafe } = adminUser;
+        req.user = userSafe;
+      } else {
+        req.user = {
+          id: 'usr_owner_ali',
+          email: 'alio227ng@gmail.com',
+          gamertag: 'Ali_FC',
+          role: 'admin',
+          firstName: 'Ali',
+          lastName: 'O.',
+          createdAt: new Date().toISOString(),
+        };
+      }
+    }
+  }
+
   // 1. Direct authorization from Google AI Studio / programmatic tools via server-side ADMIN_ACCESS_CODE
-  const directCode = (req.headers['x-admin-code'] as string) || (req.headers['x-admin-key'] as string);
+  const directCode =
+    (req.headers['x-admin-code'] as string) ||
+    (req.headers['x-admin-key'] as string) ||
+    (req.query?.code as string) ||
+    (req.query?.adminCode as string) ||
+    (req.query?.admin_code as string);
+
   if (directCode && verifyAdminCode(directCode)) {
+    attachAdminUser();
     return next();
   }
 
   const adminToken =
     (req.headers['x-admin-token'] as string) ||
-    (req.headers['authorization']?.replace(/^Bearer\s+/i, ''));
+    (req.headers['authorization']?.replace(/^Bearer\s+/i, '')) ||
+    (req.query?.token as string) ||
+    (req.query?.adminToken as string);
 
   // 1b. Direct master code in admin token or bearer header
   if (adminToken && verifyAdminCode(adminToken)) {
+    attachAdminUser();
     return next();
   }
 
@@ -1549,6 +1675,7 @@ function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFuncti
   if (adminToken && adminSessions.has(adminToken)) {
     const session = adminSessions.get(adminToken)!;
     if (Date.now() < session.expiresAt) {
+      attachAdminUser();
       return next();
     } else {
       adminSessions.delete(adminToken);
@@ -1580,7 +1707,11 @@ function computeLeaderboard(): PlayerLeaderboard[] {
         tournamentsPlayed: 0,
         matchesPlayed: 0,
         wins: 0,
+        draws: 0,
         losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
         winRate: 0,
         points: 0,
         rank: 0,
@@ -1610,15 +1741,23 @@ function computeLeaderboard(): PlayerLeaderboard[] {
   // Count matches
   for (const m of db.matches) {
     if (m.status === 'completed' && m.validatedByAdmin) {
+      const p1Score = typeof m.player1Score === 'number' ? m.player1Score : 0;
+      const p2Score = typeof m.player2Score === 'number' ? m.player2Score : 0;
+
       if (m.player1Id && statsMap.has(m.player1Id)) {
         const s1 = statsMap.get(m.player1Id)!;
         s1.matchesPlayed += 1;
+        s1.goalsFor += p1Score;
+        s1.goalsAgainst += p2Score;
+        s1.goalDifference = s1.goalsFor - s1.goalsAgainst;
+
         if (m.winnerId === m.player1Id) {
           s1.wins += 1;
           s1.points += 3; // 3 pts per win
         } else if (m.winnerId) {
           s1.losses += 1; // 0 pt per loss
         } else {
+          s1.draws += 1;
           s1.points += 1; // Match nul = +1 pt
         }
       }
@@ -1626,12 +1765,17 @@ function computeLeaderboard(): PlayerLeaderboard[] {
       if (m.player2Id && statsMap.has(m.player2Id)) {
         const s2 = statsMap.get(m.player2Id)!;
         s2.matchesPlayed += 1;
+        s2.goalsFor += p2Score;
+        s2.goalsAgainst += p1Score;
+        s2.goalDifference = s2.goalsFor - s2.goalsAgainst;
+
         if (m.winnerId === m.player2Id) {
           s2.wins += 1;
           s2.points += 3; // 3 pts per win
         } else if (m.winnerId) {
           s2.losses += 1; // 0 pt per loss
         } else {
+          s2.draws += 1;
           s2.points += 1; // Match nul = +1 pt
         }
       }
@@ -1957,7 +2101,13 @@ app.get('/auth/me', handleMe);
 
   // Get single tournament detail
   app.get('/api/tournaments/:id', (req: AuthenticatedRequest, res: Response) => {
-    const tournament = db.tournaments.find((t) => t.id === req.params.id || t.slug === req.params.id);
+    const tournament = db.tournaments.find(
+      (t) =>
+        t.id === req.params.id ||
+        t.slug === req.params.id ||
+        (req.params.id === 'championnat-fc-2026' && t.id === 'tourn_spring_2026') ||
+        (req.params.id === 'ligue-des-champions' && t.id === 'tourn_ligue_oriental_2026')
+    );
     if (!tournament) {
       res.status(404).json({ error: 'Tournoi introuvable.' });
       return;
@@ -1987,7 +2137,7 @@ app.get('/auth/me', handleMe);
   });
 
   // Player register to tournament (supports both authenticated users and direct registration)
-  app.post('/api/tournaments/:id/register', (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/tournaments/:id/register', async (req: AuthenticatedRequest, res: Response) => {
     const tournament = db.tournaments.find((t) => t.id === req.params.id);
     if (!tournament) {
       res.status(404).json({ error: 'Tournoi introuvable.' });
@@ -2119,6 +2269,23 @@ app.get('/auth/me', handleMe);
       seed: confirmedCount + 1,
     };
 
+    // Exigence FCT : Supabase est la base principale
+    const isConfigured = isSupabaseConfigured();
+    if (isConfigured) {
+      const insertResult = await insertRegistrationToSupabase(newRegistration);
+      if (!insertResult.success) {
+        console.error(`[SUPABASE] Échec insertion inscription ${registrationNumber}:`, insertResult.error);
+        res.status(500).json({
+          error: `Échec de l'enregistrement dans la base de données Supabase (${insertResult.error}). L'inscription n'a pas pu être validée. Veuillez réessayer.`,
+        });
+        return;
+      }
+      console.log(`[SUPABASE] Inscription ${registrationNumber} (${cleanGamertag}) enregistrée avec succès dans Supabase.`);
+    } else {
+      console.warn(`[SUPABASE AVERTISSEMENT] Supabase non configuré sur ce serveur. Sauvegarde locale dans data/fc_database.json.`);
+    }
+
+    // Mise à jour de la mémoire et sauvegarde locale
     db.registrations.push(newRegistration);
 
     // Create real Admin Notification
@@ -2141,12 +2308,7 @@ app.get('/auth/me', handleMe);
 
     saveDatabase(db);
 
-    // 1. Sync immediately to Supabase
-    syncRegistrationToSupabase(newRegistration).catch((err) =>
-      console.warn('[SUPABASE] Échec synchronisation nouvelle inscription:', err)
-    );
-
-    // 2. Broadcast immediately in Realtime to Google AI Studio
+    // Broadcast immediately in Realtime to Google AI Studio
     broadcastStudioEvent('new_registration', {
       registration: newRegistration,
       stats: getRegistrationStats(),
@@ -2197,6 +2359,265 @@ app.get('/auth/me', handleMe);
     saveDatabase(db);
 
     res.json({ message: 'Votre inscription a bien été annulée.' });
+  });
+
+  // ==========================================
+  // PAYMENT PROOF SUBMISSIONS (Effectuer mon paiement)
+  // ==========================================
+
+  // Submit payment proof (User or Guest with account information)
+  app.post('/api/payments/submit', (req: Request, res: Response) => {
+    try {
+      const {
+        paymentMethod,
+        proofData,
+        proofName,
+        proofType,
+        proofSize,
+        tournamentId,
+        gamertag,
+        playerName,
+        userEmail,
+        phone,
+        notes,
+      } = req.body;
+
+      if (!paymentMethod || !['cih', 'bmce', 'mtn_momo'].includes(paymentMethod)) {
+        res.status(400).json({ error: 'Moyen de paiement non reconnu (CIH Bank, BMCE Bank ou MTN MoMo attendu).' });
+        return;
+      }
+
+      if (!proofData || typeof proofData !== 'string') {
+        res.status(400).json({ error: 'Veuillez joindre le justificatif de paiement (capture d’écran ou fichier PDF).' });
+        return;
+      }
+
+      const isDataUrl = proofData.startsWith('data:');
+      if (!isDataUrl) {
+        res.status(400).json({ error: 'Format de fichier justificatif invalide.' });
+        return;
+      }
+
+      // Check mime type (images or application/pdf)
+      const isImage = proofData.startsWith('data:image/');
+      const isPdf = proofData.startsWith('data:application/pdf');
+      if (!isImage && !isPdf) {
+        res.status(400).json({ error: 'Format de fichier non supporté. Veuillez joindre une image (JPG, PNG) ou un PDF.' });
+        return;
+      }
+
+      // Extract user from token if available
+      let authUser: User | undefined;
+      const authHeader = req.headers.authorization;
+      if (authHeader && authHeader.startsWith('Bearer ')) {
+        const token = authHeader.split(' ')[1];
+        if (token && token !== 'null' && token !== 'undefined') {
+          const session = sessions.get(token);
+          if (session && session.expiresAt > Date.now()) {
+            authUser = db.users.find((u) => u.id === session.userId);
+          }
+        }
+      }
+
+      const finalGamertag = (authUser?.gamertag || gamertag || '').trim();
+      const finalPlayerName = (authUser ? `${authUser.firstName} ${authUser.lastName}` : playerName || '').trim();
+      const finalEmail = (authUser?.email || userEmail || '').trim();
+      const finalUserId = authUser?.id || `usr_guest_${Date.now()}`;
+
+      if (!finalGamertag || finalGamertag.length < 2) {
+        res.status(400).json({ error: 'Veuillez préciser votre Gamertag (pseudo).' });
+        return;
+      }
+
+      if (!finalEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalEmail)) {
+        res.status(400).json({ error: 'Veuillez préciser une adresse e-mail valide pour le suivi.' });
+        return;
+      }
+
+      const paymentMethodNames: Record<string, string> = {
+        cih: 'CIH BANK (RIB: 6046878211016200)',
+        bmce: 'BMCE BANK (RIB: 011570000007200000447220)',
+        mtn_momo: 'MTN MOMO (Numéro: 0162403071)',
+      };
+
+      const tourn = tournamentId ? db.tournaments.find((t) => t.id === tournamentId) : undefined;
+
+      const submission: PaymentSubmission = {
+        id: `pay_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+        userId: finalUserId,
+        gamertag: finalGamertag,
+        playerName: finalPlayerName || finalGamertag,
+        userEmail: finalEmail,
+        phone: phone || '',
+        tournamentId: tourn?.id || tournamentId || undefined,
+        tournamentName: tourn?.name || undefined,
+        paymentMethod: paymentMethod as any,
+        paymentMethodName: paymentMethodNames[paymentMethod] || paymentMethod,
+        amountMAD: tourn?.entryFeeMAD || 49.99,
+        proofData,
+        proofName: (proofName || 'justificatif_paiement').slice(0, 100),
+        proofType: proofType || (isPdf ? 'application/pdf' : 'image/jpeg'),
+        proofSize: proofSize || undefined,
+        notes: (notes || '').slice(0, 500),
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+
+      db.paymentSubmissions.unshift(submission);
+
+      // Create admin notification
+      db.notifications.unshift({
+        id: `notif_pay_${Date.now()}`,
+        type: 'new_registration',
+        title: `Nouveau justificatif de paiement reçu : ${finalGamertag}`,
+        message: `${finalPlayerName || finalGamertag} a soumis un justificatif de paiement via ${paymentMethodNames[paymentMethod] || paymentMethod}. Montant : ${submission.amountMAD} MAD.`,
+        playerName: finalPlayerName,
+        gamertag: finalGamertag,
+        userEmail: finalEmail,
+        phone: phone || '',
+        tournamentId: tourn?.id,
+        tournamentName: tourn?.name,
+        createdAt: new Date().toISOString(),
+        read: false,
+      });
+
+      saveDatabase(db);
+
+      // Notify external channel if configured
+      notifyAdminAndFormBold({
+        type: 'payment_submission',
+        title: `[FC TOURNAMENT] Justificatif de Paiement : ${finalGamertag}`,
+        senderEmail: finalEmail,
+        senderName: finalPlayerName || finalGamertag,
+        gamertag: finalGamertag,
+        phone: phone || '',
+        tournamentName: tourn?.name || 'Paiement direct',
+        details: `Justificatif de paiement déposé par ${finalPlayerName} (${finalGamertag}). Moyen : ${paymentMethodNames[paymentMethod]}. Fichier : ${submission.proofName}. Statut : En attente de validation manuelle par l'administrateur.`,
+      }).catch(() => {});
+
+      res.json({
+        success: true,
+        message: 'Votre justificatif de paiement a été soumis avec succès ! Il sera examiné par l’administrateur sous 24h.',
+        submission,
+      });
+    } catch (err: any) {
+      console.error('Erreur submission justificatif:', err);
+      res.status(500).json({ error: 'Une erreur est survenue lors de l’envoi de votre justificatif.' });
+    }
+  });
+
+  // Get user payments (Connected user)
+  app.get('/api/payments/my-submissions', requireAuth, (req: AuthenticatedRequest, res: Response) => {
+    const userPayments = db.paymentSubmissions.filter(
+      (p) =>
+        p.userId === req.user!.id ||
+        p.userEmail.toLowerCase() === req.user!.email.toLowerCase() ||
+        p.gamertag.toLowerCase() === req.user!.gamertag.toLowerCase()
+    );
+    res.json(userPayments);
+  });
+
+  // Admin list all payment submissions
+  app.get('/api/admin/payments', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+    res.json(db.paymentSubmissions || []);
+  });
+
+  // Admin update payment status (accept or reject)
+  app.patch('/api/admin/payments/:id/status', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+    const { id } = req.params;
+    const { status, rejectionReason } = req.body;
+
+    if (!['pending', 'accepted', 'rejected'].includes(status)) {
+      res.status(400).json({ error: 'Statut invalide.' });
+      return;
+    }
+
+    const submission = db.paymentSubmissions.find((p) => p.id === id);
+    if (!submission) {
+      res.status(404).json({ error: 'Justificatif de paiement introuvable.' });
+      return;
+    }
+
+    submission.status = status;
+    submission.reviewedAt = new Date().toISOString();
+    submission.reviewedBy = req.user?.gamertag || 'Admin_Staff';
+    if (status === 'rejected') {
+      submission.rejectionReason = rejectionReason || 'Justificatif non conforme ou illisible';
+    } else {
+      submission.rejectionReason = undefined;
+    }
+
+    // If associated with a registration in pending state, update registration status too
+    if (submission.tournamentId) {
+      const reg = db.registrations.find(
+        (r) =>
+          r.tournamentId === submission.tournamentId &&
+          (r.userId === submission.userId ||
+            r.gamertag.toLowerCase() === submission.gamertag.toLowerCase() ||
+            (r.userEmail && r.userEmail.toLowerCase() === submission.userEmail.toLowerCase()))
+      );
+      if (reg) {
+        if (status === 'accepted' && reg.status !== 'confirmed') {
+          reg.status = 'confirmed';
+          reg.validatedAt = new Date().toISOString();
+          reg.reviewedBy = req.user?.gamertag || 'Admin_Staff';
+        } else if (status === 'rejected' && reg.status !== 'rejected') {
+          reg.status = 'rejected';
+          reg.rejectedAt = new Date().toISOString();
+          reg.rejectionReason = submission.rejectionReason;
+        }
+      }
+    }
+
+    saveDatabase(db);
+
+    res.json({
+      success: true,
+      message: `Justificatif ${status === 'accepted' ? 'accepté' : 'refusé'} avec succès.`,
+      submission,
+    });
+  });
+
+  // Admin download payment proof file (Image or PDF)
+  app.get('/api/admin/payments/:id/download-proof', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+    const submission = db.paymentSubmissions.find((p) => p.id === req.params.id);
+    if (!submission || !submission.proofData) {
+      res.status(404).json({ error: 'Fichier justificatif introuvable.' });
+      return;
+    }
+
+    const matches = submission.proofData.match(/^data:([a-zA-Z0-9/+-]+);base64,(.+)$/);
+    if (!matches || matches.length < 3) {
+      res.status(400).json({ error: 'Format de fichier corrompu.' });
+      return;
+    }
+
+    const mimeType = matches[1].toLowerCase();
+    let ext = 'bin';
+    if (mimeType.includes('pdf')) ext = 'pdf';
+    else if (mimeType.includes('jpeg') || mimeType.includes('jpg')) ext = 'jpg';
+    else if (mimeType.includes('png')) ext = 'png';
+
+    const buffer = Buffer.from(matches[2], 'base64');
+    const safeName = submission.gamertag.replace(/[^a-zA-Z0-9_-]/g, '_') || 'justificatif';
+    const filename = `justificatif-${submission.paymentMethod}-${safeName}-${submission.id}.${ext}`;
+
+    res.setHeader('Content-Type', mimeType);
+    res.setHeader('Content-Disposition', `attachment; filename="${filename}"`);
+    res.setHeader('Content-Length', buffer.length.toString());
+    res.send(buffer);
+  });
+
+  // Admin delete payment submission
+  app.delete('/api/admin/payments/:id', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+    const idx = db.paymentSubmissions.findIndex((p) => p.id === req.params.id);
+    if (idx === -1) {
+      res.status(404).json({ error: 'Justificatif introuvable.' });
+      return;
+    }
+    db.paymentSubmissions.splice(idx, 1);
+    saveDatabase(db);
+    res.json({ success: true, message: 'Justificatif supprimé avec succès.' });
   });
 
   // ==========================================
@@ -2876,18 +3297,30 @@ app.get('/auth/me', handleMe);
       read: false,
     });
 
-    saveDatabase(db);
+    // Exigence FCT : Synchronisation prioritaire et vérifiée dans Supabase
+    if (isSupabaseConfigured()) {
+      const updateResult = await updateRegistrationStatusInSupabase(reg.id, {
+        status: reg.status,
+        validatedAt: reg.validatedAt,
+        rejectedAt: reg.rejectedAt,
+        rejectionReason: reg.rejectionReason,
+        reviewedBy: reg.reviewedBy,
+        whatsappInviteStatus: reg.whatsappInviteStatus,
+        whatsappInviteSentAt: reg.whatsappInviteSentAt,
+        whatsappInviteError: reg.whatsappInviteError,
+        whatsappInviteAttempts: reg.whatsappInviteAttempts,
+      });
 
-    // Sync status change to Supabase
-    updateRegistrationStatusInSupabase(reg.id, {
-      status: reg.status,
-      validatedAt: reg.validatedAt,
-      rejectedAt: reg.rejectedAt,
-      rejectionReason: reg.rejectionReason,
-      reviewedBy: reg.reviewedBy,
-      whatsappInviteStatus: reg.whatsappInviteStatus,
-      whatsappInviteSentAt: reg.whatsappInviteSentAt,
-    }).catch((err) => console.warn('[SUPABASE] Échec sync statut:', err));
+      if (!updateResult.success) {
+        console.error(`[SUPABASE] Échec mise à jour statut dans Supabase pour ${reg.id}:`, updateResult.error);
+        res.status(500).json({
+          error: `Échec de la mise à jour du statut dans la base Supabase (${updateResult.error}).`,
+        });
+        return;
+      }
+    }
+
+    saveDatabase(db);
 
     // Broadcast status change in Realtime to Google AI Studio
     broadcastStudioEvent('status_updated', {
@@ -3058,6 +3491,122 @@ app.get('/auth/me', handleMe);
     });
   });
 
+  // Public Supabase configuration for realtime listener
+  app.get('/api/public/supabase-config', (_req: Request, res: Response) => {
+    res.json(getPublicSupabaseConfig());
+  });
+
+  // Supabase live connectivity check & status
+  app.get('/api/admin/supabase/status', requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
+    const connectivity = await checkSupabaseConnectivity();
+    res.json({
+      success: true,
+      connectivity,
+      localTournamentsCount: db.tournaments.length,
+      localRegistrationsCount: db.registrations.length,
+      confirmedCount: db.registrations.filter((r) => r.status === 'confirmed').length,
+      pendingCount: db.registrations.filter((r) => r.status === 'pending').length,
+      rejectedCount: db.registrations.filter((r) => r.status === 'rejected').length,
+    });
+  });
+
+  // Synchronize / Migrate all existing data to Supabase in one click
+  app.post('/api/admin/supabase/sync-all', requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
+    if (!isSupabaseConfigured()) {
+      res.status(400).json({
+        error: 'Supabase n’est pas configuré. Veuillez renseigner SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY dans les variables d’environnement.',
+      });
+      return;
+    }
+    const result = await migrateAllToSupabase(db.tournaments, db.registrations);
+    if (!result.success) {
+      res.status(500).json({ error: result.error });
+      return;
+    }
+    res.json({
+      success: true,
+      message: `Migration réussie vers Supabase : ${result.tournamentsCount} tournois et ${result.registrationsCount} inscriptions synchronisés.`,
+      result,
+    });
+  });
+
+  // Dedicated route to serve and download the official Supabase SQL Schema
+  // Complies with requirements:
+  // - Reads actual file on server
+  // - Protected with requireAdmin
+  // - Returns Content-Type: application/sql; charset=utf-8
+  // - Adds Content-Disposition: attachment; filename="supabase_schema.sql"
+  // - Verifies that the response contains valid SQL and NEVER HTML / Cookie check
+  // - Returns explicit error if missing
+  // Dedicated route to serve and download the official Supabase SQL Schema and Migration Scripts
+  // Supports query parameter ?file=schema | audit | migration | seeding | verification
+  const handleDownloadSchema = (req: AuthenticatedRequest, res: Response) => {
+    const requestedFile = ((req.query?.file as string) || 'schema').toLowerCase();
+    let targetFileName = 'supabase_schema.sql';
+    if (requestedFile === 'audit') targetFileName = 'audit_pre_migration.sql';
+    else if (requestedFile === 'migration') targetFileName = 'migration_colonnes_contraintes.sql';
+    else if (requestedFile === 'seeding') targetFileName = 'seeding_donnees_securisees.sql';
+    else if (requestedFile === 'verification') targetFileName = 'verification_post_migration.sql';
+
+    const candidatePaths = [
+      path.resolve(__dirname, targetFileName),
+      path.resolve(process.cwd(), targetFileName),
+      path.resolve(__dirname, '..', targetFileName),
+    ];
+
+    let foundPath: string | null = null;
+    for (const p of candidatePaths) {
+      if (fs.existsSync(p)) {
+        foundPath = p;
+        break;
+      }
+    }
+
+    if (!foundPath) {
+      res.status(404).json({
+        error: `Fichier ${targetFileName} introuvable sur le serveur.`,
+        searchedPaths: candidatePaths,
+      });
+      return;
+    }
+
+    try {
+      const sqlContent = fs.readFileSync(foundPath, 'utf-8');
+      const trimmed = sqlContent.trim();
+
+      // Strict validation: guarantee it contains SQL and NEVER HTML
+      if (
+        trimmed.startsWith('<!doctype') ||
+        trimmed.startsWith('<!DOCTYPE') ||
+        trimmed.startsWith('<html') ||
+        trimmed.includes('<title>Cookie check</title>')
+      ) {
+        console.error(`[SQL DOWNLOAD] Erreur critique : contenu HTML détecté dans ${targetFileName} :`, trimmed.slice(0, 150));
+        res.status(500).json({
+          error: 'Erreur critique : le fichier détecté contient du code HTML au lieu du SQL PostgreSQL.',
+        });
+        return;
+      }
+
+      res.setHeader('Content-Type', 'application/sql; charset=utf-8');
+      res.setHeader('Content-Disposition', `attachment; filename="${targetFileName}"`);
+      res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
+      res.setHeader('Pragma', 'no-cache');
+      res.setHeader('Expires', '0');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+
+      res.status(200).send(sqlContent);
+    } catch (err: any) {
+      console.error(`[SQL DOWNLOAD] Erreur lors de la lecture de ${targetFileName} :`, err);
+      res.status(500).json({
+        error: `Impossible de lire le fichier ${targetFileName} : ${err?.message || err}`,
+      });
+    }
+  };
+
+  app.get('/api/admin/download-schema', requireAdmin, handleDownloadSchema);
+  app.get('/api/admin/supabase/schema.sql', requireAdmin, handleDownloadSchema);
+
   // Real-time Server-Sent Events (SSE) stream for Google AI Studio
   app.get('/api/admin/studio/live-stream', (req: Request, res: Response) => {
     const code = (req.query.code as string) || (req.headers['x-admin-code'] as string);
@@ -3134,11 +3683,15 @@ app.get('/auth/me', handleMe);
   });
 
   // Admin delete registration
-  app.delete('/api/admin/registrations/:id', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.delete('/api/admin/registrations/:id', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     const regIndex = db.registrations.findIndex((r) => r.id === req.params.id);
     if (regIndex === -1) {
       res.status(404).json({ error: 'Inscription introuvable.' });
       return;
+    }
+
+    if (isSupabaseConfigured()) {
+      await deleteRegistrationFromSupabase(req.params.id);
     }
 
     db.registrations.splice(regIndex, 1);
@@ -3507,7 +4060,7 @@ app.get('/auth/me', handleMe);
   });
 
   // Enter / Validate match score (Server-verified admin validation with audit log)
-  app.put('/api/admin/matches/:id/score', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.put('/api/admin/matches/:id/score', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     const { score1, score2, note } = req.body;
     const matchIndex = db.matches.findIndex((m) => m.id === req.params.id);
 
@@ -3525,13 +4078,20 @@ app.get('/auth/me', handleMe);
       return;
     }
 
-    if (s1 === s2) {
-      res.status(400).json({ error: 'En phase éliminatoire, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but).' });
+    const isKnockout =
+      match.stage === 'quarter_final' ||
+      match.stage === 'semi_final' ||
+      match.stage === 'final' ||
+      (match.stageName && match.stageName.toLowerCase().includes('finale'));
+
+    if (isKnockout && s1 === s2) {
+      res.status(400).json({ error: 'En phase éliminatoire directe, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but).' });
       return;
     }
 
-    const winnerId = s1 > s2 ? match.player1Id : match.player2Id;
-    const winnerGamertag = s1 > s2 ? match.player1Gamertag : match.player2Gamertag;
+    const winnerId = s1 > s2 ? match.player1Id : s2 > s1 ? match.player2Id : null;
+    const winnerGamertag = s1 > s2 ? match.player1Gamertag : s2 > s1 ? match.player2Gamertag : null;
+    const isDraw = s1 === s2;
 
     match.player1Score = s1;
     match.player2Score = s2;
@@ -3541,14 +4101,18 @@ app.get('/auth/me', handleMe);
 
     const auditEntry: MatchAuditEntry = {
       timestamp: new Date().toISOString(),
-      adminName: req.user!.gamertag,
+      adminName: req.user?.gamertag || 'Admin_Staff',
       action: 'SCORE_UPDATE_AND_VALIDATION',
-      note: note || `Score validé : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`,
+      note:
+        note ||
+        (isDraw
+          ? `Score validé : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag} (Match nul).`
+          : `Score validé : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`),
     };
     match.auditLog.push(auditEntry);
 
     // Propagate winner to next match if configured
-    if (match.nextMatchId && winnerId) {
+    if (match.nextMatchId && winnerId && winnerGamertag) {
       const nextMatch = db.matches.find((m) => m.id === match.nextMatchId);
       if (nextMatch) {
         if (match.nextMatchSlot === 1) {
@@ -3563,7 +4127,29 @@ app.get('/auth/me', handleMe);
 
     saveDatabase(db);
 
-    res.json({ match, message: `Score officiellement validé ! Vainqueur qualifié : ${winnerGamertag}.` });
+    // Synchronisation en temps réel vers Supabase bracket_data si configuré
+    try {
+      const client = getSupabaseServerClient();
+      if (client && match.tournamentId) {
+        const tournMatches = db.matches.filter((m) => m.tournamentId === match.tournamentId);
+        const { error: sbErr } = await client
+          .from('tournaments')
+          .update({ bracket_data: tournMatches, updated_at: new Date().toISOString() })
+          .eq('id', match.tournamentId);
+        if (sbErr) {
+          console.warn('[SUPABASE] Synchro bracket_data match score:', sbErr.message);
+        }
+      }
+    } catch (e: any) {
+      console.warn('[SUPABASE] Exception client:', e?.message || e);
+    }
+
+    res.json({
+      match,
+      message: isDraw
+        ? `Score officiellement validé ! Match nul : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}.`
+        : `Score officiellement validé ! Vainqueur qualifié : ${winnerGamertag}.`,
+    });
   });
 
   // Admin dashboard summary stats
@@ -3657,6 +4243,33 @@ async function startServer() {
     }
   } else {
     serveStaticProduction();
+  }
+
+  // Supabase startup audit & synchronization
+  try {
+    const supabaseStatus = await checkSupabaseConnectivity();
+    if (supabaseStatus.configured) {
+      if (supabaseStatus.tableExists) {
+        console.log(`[SUPABASE] Connexion active vers ${supabaseStatus.url}. Table 'registrations' détectée (${supabaseStatus.rowCount} enregistrements).`);
+        const cloudRegs = await fetchRegistrationsFromSupabase();
+        if (cloudRegs && cloudRegs.length > 0) {
+          const map = new Map<string, Registration>();
+          for (const r of cloudRegs) map.set(r.id, r);
+          for (const localReg of db.registrations) {
+            if (!map.has(localReg.id)) map.set(localReg.id, localReg);
+          }
+          db.registrations = Array.from(map.values());
+          saveDatabase(db);
+          console.log(`[SUPABASE] Synchronisation terminée : ${db.registrations.length} inscriptions actives chargées.`);
+        }
+      } else {
+        console.warn(`[SUPABASE AVERTISSEMENT] Base connectée mais la table 'registrations' n'existe pas encore. Veuillez exécuter le script 'supabase_schema.sql' dans l'Éditeur SQL Supabase.`);
+      }
+    } else {
+      console.warn(`[SUPABASE NOTICE] Variables SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY non détectées. Sur Hostinger, configurez ces variables dans les paramètres d'application Node.js ou dans votre fichier .env.`);
+    }
+  } catch (err: any) {
+    console.warn('[SUPABASE] Erreur vérification démarrage:', err?.message || err);
   }
 
   if (typeof PORT === 'number') {

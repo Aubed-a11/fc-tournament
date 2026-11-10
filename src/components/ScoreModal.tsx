@@ -45,13 +45,19 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({ match, token, adminToken
       ],
     };
 
+    const effectiveAdminToken =
+      adminToken ||
+      (typeof window !== 'undefined'
+        ? localStorage.getItem('fc_admin_token') || sessionStorage.getItem('fc_admin_token')
+        : null);
+
     try {
       const res = await fetch(`/api/admin/matches/${match.id}/score`, {
         method: 'PUT',
         headers: {
           'Content-Type': 'application/json',
           ...(token ? { Authorization: `Bearer ${token}` } : {}),
-          ...(adminToken ? { 'x-admin-token': adminToken } : {}),
+          ...(effectiveAdminToken ? { 'x-admin-token': effectiveAdminToken } : {}),
         },
         body: JSON.stringify({
           score1,
@@ -64,6 +70,13 @@ export const ScoreModal: React.FC<ScoreModalProps> = ({ match, token, adminToken
         const data = await res.json();
         if (data.match) {
           updatedMatch = data.match;
+        }
+      } else {
+        const data = await res.json().catch(() => ({}));
+        if (data.error) {
+          setError(data.error);
+          setLoading(false);
+          return;
         }
       }
     } catch {

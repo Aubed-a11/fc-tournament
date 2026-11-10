@@ -323,12 +323,12 @@ export const TournamentDetail: React.FC<TournamentDetailProps> = ({
           const tabs = isLeagueFormat
             ? [
                 { id: 'standings', label: 'Classement', icon: Trophy },
-                { id: 'matches', label: `Calendrier des Journées (${matchesList.length})`, icon: Calendar },
+                { id: 'matches', label: `Calendrier des Matchs (${matchesList.length})`, icon: Calendar },
                 { id: 'overview', label: 'Règlement & Modalités', icon: FileText },
               ]
             : [
                 { id: 'overview', label: 'Vue d’ensemble & Règlement', icon: FileText },
-                { id: 'matches', label: 'Calendrier des rencontres', icon: Calendar },
+                { id: 'matches', label: `Calendrier des Matchs (${matchesList.length})`, icon: Calendar },
               ];
 
           return (
@@ -355,7 +355,7 @@ export const TournamentDetail: React.FC<TournamentDetailProps> = ({
           );
         })()}
 
-        {/* TAB 0: LALIGA STANDINGS (For Championship format) */}
+        {/* TAB 0: CLASSEMENT FCT */}
         {activeTab === 'standings' && (
           <LeagueStandingsTable
             matches={matchesList}
@@ -438,70 +438,15 @@ export const TournamentDetail: React.FC<TournamentDetailProps> = ({
           </div>
         )}
 
-        {/* TAB 2: CALENDRIER DES RENCONTRES / JOURNÉES */}
+        {/* TAB 2: CALENDRIER DES RENCONTRES */}
         {activeTab === 'matches' && (
-          tournament.format === 'aller_retour' ||
-          tournament.format === 'championship' ||
-          tournament.name.toLowerCase().includes('championnat') ? (
-            <LeagueSchedule
-              matches={matchesList}
-              registrations={registrationsList}
-              isAdmin={user?.role === 'admin'}
-              onSelectMatchForScore={(m) => setScoreModalMatch(m)}
-            />
-          ) : (
-            <div className="space-y-4">
-              <h3 className="font-display text-2xl font-bold text-white uppercase pb-2 border-b border-[#1b2333]">
-                Calendrier des rencontres
-              </h3>
-
-              {matchesList.length === 0 ? (
-                <div className="p-12 text-center rounded-2xl bg-[#0c1017] border border-[#1b2333] text-slate-400 text-xs">
-                  Les rencontres seront générées par l'arbitre une fois les inscriptions clôturées.
-                </div>
-              ) : (
-                <div className="space-y-3">
-                  {matchesList.map((m) => (
-                    <div
-                      key={m.id}
-                      className="p-4 rounded-xl bg-[#0c1017] border border-[#1c2535] flex flex-col sm:flex-row items-center justify-between gap-4"
-                    >
-                      <div className="text-xs font-mono text-slate-400 sm:w-44 text-center sm:text-left">
-                        <span className="block font-semibold text-white">{m.stageName}</span>
-                        <span>{m.scheduledDate} · {m.scheduledTime}</span>
-                      </div>
-
-                      <div className="flex items-center gap-4 text-xs sm:text-sm">
-                        <span className={`font-semibold text-right w-28 sm:w-36 truncate ${m.winnerId === m.player1Id ? 'text-[#00ff66]' : 'text-slate-200'}`}>
-                          {m.player1Gamertag}
-                        </span>
-                        <div className="px-3.5 py-1 rounded-lg bg-[#141b27] border border-[#242f44] font-mono font-bold text-white tabular-nums text-xs">
-                          {m.player1Score !== null ? `${m.player1Score} - ${m.player2Score}` : 'VS'}
-                        </div>
-                        <span className={`font-semibold text-left w-28 sm:w-36 truncate ${m.winnerId === m.player2Id ? 'text-[#00ff66]' : 'text-slate-200'}`}>
-                          {m.player2Gamertag}
-                        </span>
-                      </div>
-
-                      <div className="text-right sm:w-32">
-                        {m.status === 'completed' ? (
-                          <span className="text-xs font-mono text-[#00ff66] flex items-center justify-center sm:justify-end gap-1 font-semibold">
-                            <CheckCircle2 className="w-3.5 h-3.5" />
-                            <span>Homologué</span>
-                          </span>
-                        ) : (
-                          <span className="text-xs font-mono text-slate-400 flex items-center justify-center sm:justify-end gap-1">
-                            <Clock className="w-3.5 h-3.5" />
-                            <span>Programmé</span>
-                          </span>
-                        )}
-                      </div>
-                    </div>
-                  ))}
-                </div>
-              )}
-            </div>
-          )
+          <LeagueSchedule
+            matches={matchesList}
+            registrations={registrationsList}
+            tournamentName={tournament.name}
+            isAdmin={user?.role === 'admin'}
+            onSelectMatchForScore={(m) => setScoreModalMatch(m)}
+          />
         )}
       </div>
 

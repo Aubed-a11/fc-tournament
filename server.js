@@ -7,11 +7,15 @@ import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import pg from "pg";
 import {
-  syncRegistrationToSupabase,
+  checkSupabaseConnectivity,
+  insertRegistrationToSupabase,
   updateRegistrationStatusInSupabase,
+  deleteRegistrationFromSupabase,
   fetchRegistrationsFromSupabase,
+  migrateAllToSupabase,
   getPublicSupabaseConfig,
-  isSupabaseConfigured
+  isSupabaseConfigured,
+  getSupabaseServerClient
 } from "./src/services/supabaseServer.js";
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
@@ -315,11 +319,11 @@ function getInitialDatabase() {
   const tournaments = [
     {
       id: "tourn_spring_2026",
-      name: "Championnat",
-      slug: "championnat-fc-2026",
-      description: "Le tournoi e-sport incontournable de la saison ! Rassemblez-vous pour c\xE9l\xE9brer la comp\xE9tition et couronner le meilleur joueur dans une ambiance \xE9lectrique devant vos \xE9crans.",
+      name: "Championnat sur t\xE9l\xE9phone",
+      slug: "championnat-sur-telephone",
+      description: "Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour c\xE9l\xE9brer la comp\xE9tition et couronner le meilleur joueur dans une ambiance \xE9lectrique devant vos \xE9crans.",
       gameVersion: "EA SPORTS 27",
-      platform: "e-Football",
+      platform: "T\xE9l\xE9phone (Mobile)",
       format: "aller_retour",
       location: "Gaming Arena",
       city: "Maroc",
@@ -327,7 +331,7 @@ function getInitialDatabase() {
       time: "14:00",
       registrationDeadline: "2027-04-23T23:59:00.000Z",
       maxParticipants: 32,
-      entryFeeMAD: 50,
+      entryFeeMAD: 49.99,
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "open",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
@@ -336,11 +340,11 @@ function getInitialDatabase() {
     },
     {
       id: "tourn_ligue_oriental_2026",
-      name: "Ligue des champions",
-      slug: "ligue-des-champions",
-      description: "La comp\xE9tition d\u2019\xE9lite qui r\xE9unit les meilleurs joueurs pour s\u2019affronter et d\xE9crocher le titre de champion.",
+      name: "Championnat sur PC",
+      slug: "championnat-sur-pc",
+      description: "La comp\xE9tition d\u2019\xE9lite sur PC qui r\xE9unit les meilleurs joueurs pour s\u2019affronter et d\xE9crocher le titre de champion.",
       gameVersion: "EA SPORTS 27",
-      platform: "e-Football",
+      platform: "PC",
       format: "aller_retour",
       location: "Gaming Arena",
       city: "Maroc",
@@ -348,9 +352,9 @@ function getInitialDatabase() {
       time: "16:00",
       registrationDeadline: "2026-03-12T18:00:00.000Z",
       maxParticipants: 32,
-      entryFeeMAD: 50,
+      entryFeeMAD: 49.99,
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
-      status: "open",
+      status: "completed",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
       bannerImage: "/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
       createdAt: "2026-01-20T12:00:00.000Z"
@@ -969,7 +973,7 @@ function getInitialDatabase() {
       read: true
     }
   ];
-  return { users, tournaments, registrations, matches, contacts, notifications };
+  return { users, tournaments, registrations, matches, contacts, notifications, paymentSubmissions: [] };
 }
 function loadDatabase() {
   let loaded;
@@ -996,10 +1000,47 @@ function loadDatabase() {
   if (!Array.isArray(loaded.registrations)) {
     loaded.registrations = [];
   }
+  if (!Array.isArray(loaded.paymentSubmissions)) {
+    loaded.paymentSubmissions = [];
+  }
   let needsSync = false;
   loaded.registrations.forEach((r, idx) => {
     if (!r.registrationNumber) {
       r.registrationNumber = `REG-2026-${String(idx + 1).padStart(4, "0")}`;
+      needsSync = true;
+    }
+  });
+  loaded.tournaments?.forEach((t) => {
+    if (t.id === "tourn_spring_2026") {
+      if (t.name !== "Championnat sur t\xE9l\xE9phone") {
+        t.name = "Championnat sur t\xE9l\xE9phone";
+        t.slug = "championnat-sur-telephone";
+        t.platform = "T\xE9l\xE9phone (Mobile)";
+        needsSync = true;
+      }
+      if (t.entryFeeMAD !== 49.99) {
+        t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+    } else if (t.id === "tourn_ligue_oriental_2026") {
+      if (t.name !== "Championnat sur PC") {
+        t.name = "Championnat sur PC";
+        t.slug = "championnat-sur-pc";
+        t.platform = "PC";
+        needsSync = true;
+      }
+      if (t.entryFeeMAD !== 49.99) {
+        t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+    }
+  });
+  loaded.registrations?.forEach((r) => {
+    if (r.tournamentId === "tourn_spring_2026" && r.tournamentName !== "Championnat sur t\xE9l\xE9phone") {
+      r.tournamentName = "Championnat sur t\xE9l\xE9phone";
+      needsSync = true;
+    } else if (r.tournamentId === "tourn_ligue_oriental_2026" && r.tournamentName !== "Championnat sur PC") {
+      r.tournamentName = "Championnat sur PC";
       needsSync = true;
     }
   });
@@ -1066,13 +1107,42 @@ function saveDatabase(data) {
 function normalizeDatabase(raw) {
   const d = raw && typeof raw === "object" ? raw : {};
   return {
+    ...d,
     users: Array.isArray(d.users) ? d.users : [],
     tournaments: Array.isArray(d.tournaments) ? d.tournaments : [],
     registrations: Array.isArray(d.registrations) ? d.registrations : [],
     matches: Array.isArray(d.matches) ? d.matches : [],
     contacts: Array.isArray(d.contacts) ? d.contacts : [],
-    notifications: Array.isArray(d.notifications) ? d.notifications : []
+    notifications: Array.isArray(d.notifications) ? d.notifications : [],
+    paymentSubmissions: Array.isArray(d.paymentSubmissions) ? d.paymentSubmissions : []
   };
+}
+function applyTournamentMigrations(data) {
+  const official = {
+    tourn_spring_2026: { name: "Championnat sur t\xE9l\xE9phone", slug: "championnat-sur-telephone", platform: "T\xE9l\xE9phone (Mobile)" },
+    tourn_ligue_oriental_2026: { name: "Championnat sur PC", slug: "championnat-sur-pc", platform: "PC" }
+  };
+  let changed = false;
+  for (const t of data.tournaments) {
+    const o = official[t.id];
+    if (!o) continue;
+    if (t.name !== o.name) {
+      Object.assign(t, o);
+      changed = true;
+    }
+    if (t.entryFeeMAD !== 49.99) {
+      t.entryFeeMAD = 49.99;
+      changed = true;
+    }
+  }
+  for (const r of data.registrations) {
+    const o = official[r.tournamentId];
+    if (o && r.tournamentName !== o.name) {
+      r.tournamentName = o.name;
+      changed = true;
+    }
+  }
+  return changed;
 }
 function backfillRegistrationNumbers(data) {
   const used = new Set(data.registrations.map((r) => r.registrationNumber).filter(Boolean));
@@ -1102,7 +1172,13 @@ function buildSeedDatabase() {
 }
 let db = USE_PG ? normalizeDatabase(null) : loadDatabase();
 kvLoaders.set("db", (value) => {
+  const raw = value;
+  const hadAllNumbers = Array.isArray(raw?.registrations) && raw.registrations.every((r) => r.registrationNumber);
   db = backfillRegistrationNumbers(normalizeDatabase(value));
+  const migrated = applyTournamentMigrations(db);
+  if (migrated || !hadAllNumbers || !Array.isArray(raw?.paymentSubmissions)) {
+    saveDatabase(db);
+  }
 });
 function getRegistrationStats() {
   return {
@@ -1214,46 +1290,52 @@ L'\xE9quipe FC TOURNAMENT.`;
 </html>`;
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const port = Number(process.env.SMTP_PORT) || 587;
+      const secure = process.env.SMTP_SECURE === "true" || port === 465;
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
+        port,
+        secure,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
         }
       });
+      await transporter.verify();
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"FC TOURNAMENT" <alio227ng@gmail.com>',
+        from: process.env.SMTP_FROM || `"FC TOURNAMENT" <${process.env.SMTP_USER}>`,
         to: cleanEmail,
         subject,
         text: plainTextMessage,
         html: htmlMessage
       });
-      console.log(`[SMTP] Invitation WhatsApp envoy\xE9e avec succ\xE8s \xE0 ${cleanEmail} (ID: ${info.messageId})`);
+      console.log(`[SMTP ACCEPT\xC9] E-mail officiel accept\xE9 par le fournisseur pour ${cleanEmail} (ID: ${info.messageId}, R\xE9ponse: ${info.response})`);
       return { success: true, messageId: info.messageId };
     } else {
-      const simulatedMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      console.log(`[EMAIL DISPATCH] Invitation WhatsApp envoy\xE9e \xE0 ${cleanEmail} pour ${gamertag}`);
-      console.log(`[EMAIL LINK] ${WHATSAPP_GROUP_LINK}`);
-      console.log(`[EMAIL ID] ${simulatedMessageId}`);
+      const missingVars = [
+        !process.env.SMTP_HOST && "SMTP_HOST",
+        !process.env.SMTP_USER && "SMTP_USER",
+        !process.env.SMTP_PASS && "SMTP_PASS"
+      ].filter(Boolean).join(", ");
+      const errorMsg = `Serveur SMTP non configur\xE9 (${missingVars} manquants dans l'environnement). Aucun email n'a pu \xEAtre exp\xE9di\xE9 au fournisseur.`;
+      console.warn(`[SMTP NON CONFIGUR\xC9] ${errorMsg} (Destinataire: ${cleanEmail})`);
       return {
-        success: true,
-        messageId: simulatedMessageId
+        success: false,
+        error: errorMsg
       };
     }
   } catch (err) {
-    console.error(`[EMAIL ERROR] Erreur lors de l'envoi de l'invitation WhatsApp \xE0 ${cleanEmail}:`, err);
+    console.error(`[SMTP ERROR] \xC9chec de l'envoi de l'invitation \xE0 ${cleanEmail}:`, err?.message || err);
     return {
       success: false,
-      error: err?.message || "Erreur lors de l\u2019envoi du courriel transactionnel."
+      error: `Erreur fournisseur SMTP : ${err?.message || "Connexion refus\xE9e ou identifiants SMTP invalides."}`
     };
   }
 }
 const ADMIN_NOTIFICATION_EMAIL = "alio227ng@gmail.com";
 const FORMBOLD_ENDPOINT = "https://formbold.com/s/oWp4p";
 async function notifyAdminAndFormBold(event) {
-  const eventLabel = event.type === "user_account" ? "CR\xC9ATION DE COMPTE JOUEUR" : event.type === "tournament_registration" ? "NOUVELLE INSCRIPTION AU TOURNOI" : "NOUVEAU MESSAGE DE CONTACT";
+  const eventLabel = event.type === "user_account" ? "CR\xC9ATION DE COMPTE JOUEUR" : event.type === "tournament_registration" ? "NOUVELLE INSCRIPTION AU TOURNOI" : event.type === "payment_submission" ? "D\xC9P\xD4T DE JUSTIFICATIF DE PAIEMENT" : "NOUVEAU MESSAGE DE CONTACT";
   try {
     const formParams = new URLSearchParams();
     formParams.append("Email", event.senderEmail || ADMIN_NOTIFICATION_EMAIL);
@@ -1362,17 +1444,39 @@ function requireAuth(req, res, next) {
   next();
 }
 function requireAdmin(req, res, next) {
-  const directCode = req.headers["x-admin-code"] || req.headers["x-admin-key"];
+  function attachAdminUser() {
+    if (!req.user) {
+      const adminUser = db.users.find((u) => u.role === "admin");
+      if (adminUser) {
+        const { passwordHash: _, salt: __, ...userSafe } = adminUser;
+        req.user = userSafe;
+      } else {
+        req.user = {
+          id: "usr_owner_ali",
+          email: "alio227ng@gmail.com",
+          gamertag: "Ali_FC",
+          role: "admin",
+          firstName: "Ali",
+          lastName: "O.",
+          createdAt: (/* @__PURE__ */ new Date()).toISOString()
+        };
+      }
+    }
+  }
+  const directCode = req.headers["x-admin-code"] || req.headers["x-admin-key"] || req.query?.code || req.query?.adminCode || req.query?.admin_code;
   if (directCode && verifyAdminCode(directCode)) {
+    attachAdminUser();
     return next();
   }
-  const adminToken = req.headers["x-admin-token"] || req.headers["authorization"]?.replace(/^Bearer\s+/i, "");
+  const adminToken = req.headers["x-admin-token"] || req.headers["authorization"]?.replace(/^Bearer\s+/i, "") || req.query?.token || req.query?.adminToken;
   if (adminToken && verifyAdminCode(adminToken)) {
+    attachAdminUser();
     return next();
   }
   if (adminToken && adminSessions.has(adminToken)) {
     const session = adminSessions.get(adminToken);
     if (Date.now() < session.expiresAt) {
+      attachAdminUser();
       return next();
     } else {
       adminSessions.delete(adminToken);
@@ -1397,7 +1501,11 @@ function computeLeaderboard() {
         tournamentsPlayed: 0,
         matchesPlayed: 0,
         wins: 0,
+        draws: 0,
         losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
         winRate: 0,
         points: 0,
         rank: 0,
@@ -1422,27 +1530,37 @@ function computeLeaderboard() {
   }
   for (const m of db.matches) {
     if (m.status === "completed" && m.validatedByAdmin) {
+      const p1Score = typeof m.player1Score === "number" ? m.player1Score : 0;
+      const p2Score = typeof m.player2Score === "number" ? m.player2Score : 0;
       if (m.player1Id && statsMap.has(m.player1Id)) {
         const s1 = statsMap.get(m.player1Id);
         s1.matchesPlayed += 1;
+        s1.goalsFor += p1Score;
+        s1.goalsAgainst += p2Score;
+        s1.goalDifference = s1.goalsFor - s1.goalsAgainst;
         if (m.winnerId === m.player1Id) {
           s1.wins += 1;
           s1.points += 3;
         } else if (m.winnerId) {
           s1.losses += 1;
         } else {
+          s1.draws += 1;
           s1.points += 1;
         }
       }
       if (m.player2Id && statsMap.has(m.player2Id)) {
         const s2 = statsMap.get(m.player2Id);
         s2.matchesPlayed += 1;
+        s2.goalsFor += p2Score;
+        s2.goalsAgainst += p1Score;
+        s2.goalDifference = s2.goalsFor - s2.goalsAgainst;
         if (m.winnerId === m.player2Id) {
           s2.wins += 1;
           s2.points += 3;
         } else if (m.winnerId) {
           s2.losses += 1;
         } else {
+          s2.draws += 1;
           s2.points += 1;
         }
       }
@@ -1694,7 +1812,9 @@ app.get("/api/tournaments", (req, res) => {
   res.json(tournamentsWithStats);
 });
 app.get("/api/tournaments/:id", (req, res) => {
-  const tournament = db.tournaments.find((t) => t.id === req.params.id || t.slug === req.params.id);
+  const tournament = db.tournaments.find(
+    (t) => t.id === req.params.id || t.slug === req.params.id || req.params.id === "championnat-fc-2026" && t.id === "tourn_spring_2026" || req.params.id === "ligue-des-champions" && t.id === "tourn_ligue_oriental_2026"
+  );
   if (!tournament) {
     res.status(404).json({ error: "Tournoi introuvable." });
     return;
@@ -1715,7 +1835,7 @@ app.get("/api/tournaments/:id", (req, res) => {
     matches: tournamentMatches
   });
 });
-app.post("/api/tournaments/:id/register", (req, res) => {
+app.post("/api/tournaments/:id/register", async (req, res) => {
   const tournament = db.tournaments.find((t) => t.id === req.params.id);
   if (!tournament) {
     res.status(404).json({ error: "Tournoi introuvable." });
@@ -1820,6 +1940,20 @@ app.post("/api/tournaments/:id/register", (req, res) => {
     registeredAt: (/* @__PURE__ */ new Date()).toISOString(),
     seed: confirmedCount + 1
   };
+  const isConfigured = isSupabaseConfigured();
+  if (isConfigured) {
+    const insertResult = await insertRegistrationToSupabase(newRegistration);
+    if (!insertResult.success) {
+      console.error(`[SUPABASE] \xC9chec insertion inscription ${registrationNumber}:`, insertResult.error);
+      res.status(500).json({
+        error: `\xC9chec de l'enregistrement dans la base de donn\xE9es Supabase (${insertResult.error}). L'inscription n'a pas pu \xEAtre valid\xE9e. Veuillez r\xE9essayer.`
+      });
+      return;
+    }
+    console.log(`[SUPABASE] Inscription ${registrationNumber} (${cleanGamertag}) enregistr\xE9e avec succ\xE8s dans Supabase.`);
+  } else {
+    console.warn(`[SUPABASE AVERTISSEMENT] Supabase non configur\xE9 sur ce serveur. Sauvegarde locale dans data/fc_database.json.`);
+  }
   db.registrations.push(newRegistration);
   const newNotif = {
     id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -1838,9 +1972,6 @@ app.post("/api/tournaments/:id/register", (req, res) => {
   };
   db.notifications.unshift(newNotif);
   saveDatabase(db);
-  syncRegistrationToSupabase(newRegistration).catch(
-    (err) => console.warn("[SUPABASE] \xC9chec synchronisation nouvelle inscription:", err)
-  );
   broadcastStudioEvent("new_registration", {
     registration: newRegistration,
     stats: getRegistrationStats(),
@@ -1881,6 +2012,212 @@ app.delete("/api/tournaments/:id/register", requireAuth, (req, res) => {
   db.registrations.splice(regIndex, 1);
   saveDatabase(db);
   res.json({ message: "Votre inscription a bien \xE9t\xE9 annul\xE9e." });
+});
+app.post("/api/payments/submit", (req, res) => {
+  try {
+    const {
+      paymentMethod,
+      proofData,
+      proofName,
+      proofType,
+      proofSize,
+      tournamentId,
+      gamertag,
+      playerName,
+      userEmail,
+      phone,
+      notes
+    } = req.body;
+    if (!paymentMethod || !["cih", "bmce", "mtn_momo"].includes(paymentMethod)) {
+      res.status(400).json({ error: "Moyen de paiement non reconnu (CIH Bank, BMCE Bank ou MTN MoMo attendu)." });
+      return;
+    }
+    if (!proofData || typeof proofData !== "string") {
+      res.status(400).json({ error: "Veuillez joindre le justificatif de paiement (capture d\u2019\xE9cran ou fichier PDF)." });
+      return;
+    }
+    const isDataUrl = proofData.startsWith("data:");
+    if (!isDataUrl) {
+      res.status(400).json({ error: "Format de fichier justificatif invalide." });
+      return;
+    }
+    const isImage = proofData.startsWith("data:image/");
+    const isPdf = proofData.startsWith("data:application/pdf");
+    if (!isImage && !isPdf) {
+      res.status(400).json({ error: "Format de fichier non support\xE9. Veuillez joindre une image (JPG, PNG) ou un PDF." });
+      return;
+    }
+    let authUser;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      if (token && token !== "null" && token !== "undefined") {
+        const session = sessions.get(token);
+        if (session && session.expiresAt > Date.now()) {
+          authUser = db.users.find((u) => u.id === session.userId);
+        }
+      }
+    }
+    const finalGamertag = (authUser?.gamertag || gamertag || "").trim();
+    const finalPlayerName = (authUser ? `${authUser.firstName} ${authUser.lastName}` : playerName || "").trim();
+    const finalEmail = (authUser?.email || userEmail || "").trim();
+    const finalUserId = authUser?.id || `usr_guest_${Date.now()}`;
+    if (!finalGamertag || finalGamertag.length < 2) {
+      res.status(400).json({ error: "Veuillez pr\xE9ciser votre Gamertag (pseudo)." });
+      return;
+    }
+    if (!finalEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalEmail)) {
+      res.status(400).json({ error: "Veuillez pr\xE9ciser une adresse e-mail valide pour le suivi." });
+      return;
+    }
+    const paymentMethodNames = {
+      cih: "CIH BANK (RIB: 6046878211016200)",
+      bmce: "BMCE BANK (RIB: 011570000007200000447220)",
+      mtn_momo: "MTN MOMO (Num\xE9ro: 0162403071)"
+    };
+    const tourn = tournamentId ? db.tournaments.find((t) => t.id === tournamentId) : void 0;
+    const submission = {
+      id: `pay_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      userId: finalUserId,
+      gamertag: finalGamertag,
+      playerName: finalPlayerName || finalGamertag,
+      userEmail: finalEmail,
+      phone: phone || "",
+      tournamentId: tourn?.id || tournamentId || void 0,
+      tournamentName: tourn?.name || void 0,
+      paymentMethod,
+      paymentMethodName: paymentMethodNames[paymentMethod] || paymentMethod,
+      amountMAD: tourn?.entryFeeMAD || 49.99,
+      proofData,
+      proofName: (proofName || "justificatif_paiement").slice(0, 100),
+      proofType: proofType || (isPdf ? "application/pdf" : "image/jpeg"),
+      proofSize: proofSize || void 0,
+      notes: (notes || "").slice(0, 500),
+      status: "pending",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    db.paymentSubmissions.unshift(submission);
+    db.notifications.unshift({
+      id: `notif_pay_${Date.now()}`,
+      type: "new_registration",
+      title: `Nouveau justificatif de paiement re\xE7u : ${finalGamertag}`,
+      message: `${finalPlayerName || finalGamertag} a soumis un justificatif de paiement via ${paymentMethodNames[paymentMethod] || paymentMethod}. Montant : ${submission.amountMAD} MAD.`,
+      playerName: finalPlayerName,
+      gamertag: finalGamertag,
+      userEmail: finalEmail,
+      phone: phone || "",
+      tournamentId: tourn?.id,
+      tournamentName: tourn?.name,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      read: false
+    });
+    saveDatabase(db);
+    notifyAdminAndFormBold({
+      type: "payment_submission",
+      title: `[FC TOURNAMENT] Justificatif de Paiement : ${finalGamertag}`,
+      senderEmail: finalEmail,
+      senderName: finalPlayerName || finalGamertag,
+      gamertag: finalGamertag,
+      phone: phone || "",
+      tournamentName: tourn?.name || "Paiement direct",
+      details: `Justificatif de paiement d\xE9pos\xE9 par ${finalPlayerName} (${finalGamertag}). Moyen : ${paymentMethodNames[paymentMethod]}. Fichier : ${submission.proofName}. Statut : En attente de validation manuelle par l'administrateur.`
+    }).catch(() => {
+    });
+    res.json({
+      success: true,
+      message: "Votre justificatif de paiement a \xE9t\xE9 soumis avec succ\xE8s ! Il sera examin\xE9 par l\u2019administrateur sous 24h.",
+      submission
+    });
+  } catch (err) {
+    console.error("Erreur submission justificatif:", err);
+    res.status(500).json({ error: "Une erreur est survenue lors de l\u2019envoi de votre justificatif." });
+  }
+});
+app.get("/api/payments/my-submissions", requireAuth, (req, res) => {
+  const userPayments = db.paymentSubmissions.filter(
+    (p) => p.userId === req.user.id || p.userEmail.toLowerCase() === req.user.email.toLowerCase() || p.gamertag.toLowerCase() === req.user.gamertag.toLowerCase()
+  );
+  res.json(userPayments);
+});
+app.get("/api/admin/payments", requireAdmin, (req, res) => {
+  res.json(db.paymentSubmissions || []);
+});
+app.patch("/api/admin/payments/:id/status", requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { status, rejectionReason } = req.body;
+  if (!["pending", "accepted", "rejected"].includes(status)) {
+    res.status(400).json({ error: "Statut invalide." });
+    return;
+  }
+  const submission = db.paymentSubmissions.find((p) => p.id === id);
+  if (!submission) {
+    res.status(404).json({ error: "Justificatif de paiement introuvable." });
+    return;
+  }
+  submission.status = status;
+  submission.reviewedAt = (/* @__PURE__ */ new Date()).toISOString();
+  submission.reviewedBy = req.user?.gamertag || "Admin_Staff";
+  if (status === "rejected") {
+    submission.rejectionReason = rejectionReason || "Justificatif non conforme ou illisible";
+  } else {
+    submission.rejectionReason = void 0;
+  }
+  if (submission.tournamentId) {
+    const reg = db.registrations.find(
+      (r) => r.tournamentId === submission.tournamentId && (r.userId === submission.userId || r.gamertag.toLowerCase() === submission.gamertag.toLowerCase() || r.userEmail && r.userEmail.toLowerCase() === submission.userEmail.toLowerCase())
+    );
+    if (reg) {
+      if (status === "accepted" && reg.status !== "confirmed") {
+        reg.status = "confirmed";
+        reg.validatedAt = (/* @__PURE__ */ new Date()).toISOString();
+        reg.reviewedBy = req.user?.gamertag || "Admin_Staff";
+      } else if (status === "rejected" && reg.status !== "rejected") {
+        reg.status = "rejected";
+        reg.rejectedAt = (/* @__PURE__ */ new Date()).toISOString();
+        reg.rejectionReason = submission.rejectionReason;
+      }
+    }
+  }
+  saveDatabase(db);
+  res.json({
+    success: true,
+    message: `Justificatif ${status === "accepted" ? "accept\xE9" : "refus\xE9"} avec succ\xE8s.`,
+    submission
+  });
+});
+app.get("/api/admin/payments/:id/download-proof", requireAdmin, (req, res) => {
+  const submission = db.paymentSubmissions.find((p) => p.id === req.params.id);
+  if (!submission || !submission.proofData) {
+    res.status(404).json({ error: "Fichier justificatif introuvable." });
+    return;
+  }
+  const matches = submission.proofData.match(/^data:([a-zA-Z0-9/+-]+);base64,(.+)$/);
+  if (!matches || matches.length < 3) {
+    res.status(400).json({ error: "Format de fichier corrompu." });
+    return;
+  }
+  const mimeType = matches[1].toLowerCase();
+  let ext = "bin";
+  if (mimeType.includes("pdf")) ext = "pdf";
+  else if (mimeType.includes("jpeg") || mimeType.includes("jpg")) ext = "jpg";
+  else if (mimeType.includes("png")) ext = "png";
+  const buffer = Buffer.from(matches[2], "base64");
+  const safeName = submission.gamertag.replace(/[^a-zA-Z0-9_-]/g, "_") || "justificatif";
+  const filename = `justificatif-${submission.paymentMethod}-${safeName}-${submission.id}.${ext}`;
+  res.setHeader("Content-Type", mimeType);
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Content-Length", buffer.length.toString());
+  res.send(buffer);
+});
+app.delete("/api/admin/payments/:id", requireAdmin, (req, res) => {
+  const idx = db.paymentSubmissions.findIndex((p) => p.id === req.params.id);
+  if (idx === -1) {
+    res.status(404).json({ error: "Justificatif introuvable." });
+    return;
+  }
+  db.paymentSubmissions.splice(idx, 1);
+  saveDatabase(db);
+  res.json({ success: true, message: "Justificatif supprim\xE9 avec succ\xE8s." });
 });
 app.get("/api/matches", (req, res) => {
   const { tournamentId, status } = req.query;
@@ -2397,16 +2734,27 @@ app.put("/api/admin/registrations/:id/status", requireAdmin, async (req, res) =>
     createdAt: (/* @__PURE__ */ new Date()).toISOString(),
     read: false
   });
+  if (isSupabaseConfigured()) {
+    const updateResult = await updateRegistrationStatusInSupabase(reg.id, {
+      status: reg.status,
+      validatedAt: reg.validatedAt,
+      rejectedAt: reg.rejectedAt,
+      rejectionReason: reg.rejectionReason,
+      reviewedBy: reg.reviewedBy,
+      whatsappInviteStatus: reg.whatsappInviteStatus,
+      whatsappInviteSentAt: reg.whatsappInviteSentAt,
+      whatsappInviteError: reg.whatsappInviteError,
+      whatsappInviteAttempts: reg.whatsappInviteAttempts
+    });
+    if (!updateResult.success) {
+      console.error(`[SUPABASE] \xC9chec mise \xE0 jour statut dans Supabase pour ${reg.id}:`, updateResult.error);
+      res.status(500).json({
+        error: `\xC9chec de la mise \xE0 jour du statut dans la base Supabase (${updateResult.error}).`
+      });
+      return;
+    }
+  }
   saveDatabase(db);
-  updateRegistrationStatusInSupabase(reg.id, {
-    status: reg.status,
-    validatedAt: reg.validatedAt,
-    rejectedAt: reg.rejectedAt,
-    rejectionReason: reg.rejectionReason,
-    reviewedBy: reg.reviewedBy,
-    whatsappInviteStatus: reg.whatsappInviteStatus,
-    whatsappInviteSentAt: reg.whatsappInviteSentAt
-  }).catch((err) => console.warn("[SUPABASE] \xC9chec sync statut:", err));
   broadcastStudioEvent("status_updated", {
     registration: reg,
     stats: getRegistrationStats(),
@@ -2537,6 +2885,91 @@ app.get("/api/admin/studio/config", requireAdmin, (_req, res) => {
     supabase: getPublicSupabaseConfig()
   });
 });
+app.get("/api/public/supabase-config", (_req, res) => {
+  res.json(getPublicSupabaseConfig());
+});
+app.get("/api/admin/supabase/status", requireAdmin, async (_req, res) => {
+  const connectivity = await checkSupabaseConnectivity();
+  res.json({
+    success: true,
+    connectivity,
+    localTournamentsCount: db.tournaments.length,
+    localRegistrationsCount: db.registrations.length,
+    confirmedCount: db.registrations.filter((r) => r.status === "confirmed").length,
+    pendingCount: db.registrations.filter((r) => r.status === "pending").length,
+    rejectedCount: db.registrations.filter((r) => r.status === "rejected").length
+  });
+});
+app.post("/api/admin/supabase/sync-all", requireAdmin, async (_req, res) => {
+  if (!isSupabaseConfigured()) {
+    res.status(400).json({
+      error: "Supabase n\u2019est pas configur\xE9. Veuillez renseigner SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY dans les variables d\u2019environnement."
+    });
+    return;
+  }
+  const result = await migrateAllToSupabase(db.tournaments, db.registrations);
+  if (!result.success) {
+    res.status(500).json({ error: result.error });
+    return;
+  }
+  res.json({
+    success: true,
+    message: `Migration r\xE9ussie vers Supabase : ${result.tournamentsCount} tournois et ${result.registrationsCount} inscriptions synchronis\xE9s.`,
+    result
+  });
+});
+const handleDownloadSchema = (req, res) => {
+  const requestedFile = (req.query?.file || "schema").toLowerCase();
+  let targetFileName = "supabase_schema.sql";
+  if (requestedFile === "audit") targetFileName = "audit_pre_migration.sql";
+  else if (requestedFile === "migration") targetFileName = "migration_colonnes_contraintes.sql";
+  else if (requestedFile === "seeding") targetFileName = "seeding_donnees_securisees.sql";
+  else if (requestedFile === "verification") targetFileName = "verification_post_migration.sql";
+  const candidatePaths = [
+    path.resolve(__dirname, targetFileName),
+    path.resolve(process.cwd(), targetFileName),
+    path.resolve(__dirname, "..", targetFileName)
+  ];
+  let foundPath = null;
+  for (const p of candidatePaths) {
+    if (fs.existsSync(p)) {
+      foundPath = p;
+      break;
+    }
+  }
+  if (!foundPath) {
+    res.status(404).json({
+      error: `Fichier ${targetFileName} introuvable sur le serveur.`,
+      searchedPaths: candidatePaths
+    });
+    return;
+  }
+  try {
+    const sqlContent = fs.readFileSync(foundPath, "utf-8");
+    const trimmed = sqlContent.trim();
+    if (trimmed.startsWith("<!doctype") || trimmed.startsWith("<!DOCTYPE") || trimmed.startsWith("<html") || trimmed.includes("<title>Cookie check</title>")) {
+      console.error(`[SQL DOWNLOAD] Erreur critique : contenu HTML d\xE9tect\xE9 dans ${targetFileName} :`, trimmed.slice(0, 150));
+      res.status(500).json({
+        error: "Erreur critique : le fichier d\xE9tect\xE9 contient du code HTML au lieu du SQL PostgreSQL."
+      });
+      return;
+    }
+    res.setHeader("Content-Type", "application/sql; charset=utf-8");
+    res.setHeader("Content-Disposition", `attachment; filename="${targetFileName}"`);
+    res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate, proxy-revalidate");
+    res.setHeader("Pragma", "no-cache");
+    res.setHeader("Expires", "0");
+    res.setHeader("X-Content-Type-Options", "nosniff");
+    res.status(200).send(sqlContent);
+  } catch (err) {
+    console.error(`[SQL DOWNLOAD] Erreur lors de la lecture de ${targetFileName} :`, err);
+    res.status(500).json({
+      error: `Impossible de lire le fichier ${targetFileName} : ${err?.message || err}`
+    });
+  }
+};
+app.get("/api/admin/download-schema", requireAdmin, handleDownloadSchema);
+app.get("/api/admin/supabase/schema.sql", requireAdmin, handleDownloadSchema);
 app.get("/api/admin/studio/live-stream", (req, res) => {
   const code = req.query.code || req.headers["x-admin-code"];
   if (!code || !verifyAdminCode(code)) {
@@ -2603,11 +3036,14 @@ app.post("/api/admin/registrations/:id/resend-whatsapp", requireAdmin, async (re
     });
   }
 });
-app.delete("/api/admin/registrations/:id", requireAdmin, (req, res) => {
+app.delete("/api/admin/registrations/:id", requireAdmin, async (req, res) => {
   const regIndex = db.registrations.findIndex((r) => r.id === req.params.id);
   if (regIndex === -1) {
     res.status(404).json({ error: "Inscription introuvable." });
     return;
+  }
+  if (isSupabaseConfigured()) {
+    await deleteRegistrationFromSupabase(req.params.id);
   }
   db.registrations.splice(regIndex, 1);
   saveDatabase(db);
@@ -2923,7 +3359,7 @@ app.post("/api/admin/tournaments/:id/generate-bracket", requireAdmin, (req, res)
     message: `${newMatches.length} confrontations g\xE9n\xE9r\xE9es et tournoi pass\xE9 en statut \xAB En cours \xBB.`
   });
 });
-app.put("/api/admin/matches/:id/score", requireAdmin, (req, res) => {
+app.put("/api/admin/matches/:id/score", requireAdmin, async (req, res) => {
   const { score1, score2, note } = req.body;
   const matchIndex = db.matches.findIndex((m) => m.id === req.params.id);
   if (matchIndex === -1) {
@@ -2937,12 +3373,14 @@ app.put("/api/admin/matches/:id/score", requireAdmin, (req, res) => {
     res.status(400).json({ error: "Scores invalides. Veuillez entrer des nombres entiers positifs." });
     return;
   }
-  if (s1 === s2) {
-    res.status(400).json({ error: "En phase \xE9liminatoire, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but)." });
+  const isKnockout = match.stage === "quarter_final" || match.stage === "semi_final" || match.stage === "final" || match.stageName && match.stageName.toLowerCase().includes("finale");
+  if (isKnockout && s1 === s2) {
+    res.status(400).json({ error: "En phase \xE9liminatoire directe, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but)." });
     return;
   }
-  const winnerId = s1 > s2 ? match.player1Id : match.player2Id;
-  const winnerGamertag = s1 > s2 ? match.player1Gamertag : match.player2Gamertag;
+  const winnerId = s1 > s2 ? match.player1Id : s2 > s1 ? match.player2Id : null;
+  const winnerGamertag = s1 > s2 ? match.player1Gamertag : s2 > s1 ? match.player2Gamertag : null;
+  const isDraw = s1 === s2;
   match.player1Score = s1;
   match.player2Score = s2;
   match.winnerId = winnerId;
@@ -2950,12 +3388,12 @@ app.put("/api/admin/matches/:id/score", requireAdmin, (req, res) => {
   match.validatedByAdmin = true;
   const auditEntry = {
     timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    adminName: req.user.gamertag,
+    adminName: req.user?.gamertag || "Admin_Staff",
     action: "SCORE_UPDATE_AND_VALIDATION",
-    note: note || `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`
+    note: note || (isDraw ? `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag} (Match nul).` : `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`)
   };
   match.auditLog.push(auditEntry);
-  if (match.nextMatchId && winnerId) {
+  if (match.nextMatchId && winnerId && winnerGamertag) {
     const nextMatch = db.matches.find((m) => m.id === match.nextMatchId);
     if (nextMatch) {
       if (match.nextMatchSlot === 1) {
@@ -2968,7 +3406,22 @@ app.put("/api/admin/matches/:id/score", requireAdmin, (req, res) => {
     }
   }
   saveDatabase(db);
-  res.json({ match, message: `Score officiellement valid\xE9 ! Vainqueur qualifi\xE9 : ${winnerGamertag}.` });
+  try {
+    const client = getSupabaseServerClient();
+    if (client && match.tournamentId) {
+      const tournMatches = db.matches.filter((m) => m.tournamentId === match.tournamentId);
+      const { error: sbErr } = await client.from("tournaments").update({ bracket_data: tournMatches, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", match.tournamentId);
+      if (sbErr) {
+        console.warn("[SUPABASE] Synchro bracket_data match score:", sbErr.message);
+      }
+    }
+  } catch (e) {
+    console.warn("[SUPABASE] Exception client:", e?.message || e);
+  }
+  res.json({
+    match,
+    message: isDraw ? `Score officiellement valid\xE9 ! Match nul : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}.` : `Score officiellement valid\xE9 ! Vainqueur qualifi\xE9 : ${winnerGamertag}.`
+  });
 });
 app.get("/api/admin/stats", requireAdmin, (_req, res) => {
   res.json({
@@ -3043,6 +3496,31 @@ async function startServer() {
     }
   } else {
     serveStaticProduction();
+  }
+  try {
+    const supabaseStatus = await checkSupabaseConnectivity();
+    if (supabaseStatus.configured) {
+      if (supabaseStatus.tableExists) {
+        console.log(`[SUPABASE] Connexion active vers ${supabaseStatus.url}. Table 'registrations' d\xE9tect\xE9e (${supabaseStatus.rowCount} enregistrements).`);
+        const cloudRegs = await fetchRegistrationsFromSupabase();
+        if (cloudRegs && cloudRegs.length > 0) {
+          const map = /* @__PURE__ */ new Map();
+          for (const r of cloudRegs) map.set(r.id, r);
+          for (const localReg of db.registrations) {
+            if (!map.has(localReg.id)) map.set(localReg.id, localReg);
+          }
+          db.registrations = Array.from(map.values());
+          saveDatabase(db);
+          console.log(`[SUPABASE] Synchronisation termin\xE9e : ${db.registrations.length} inscriptions actives charg\xE9es.`);
+        }
+      } else {
+        console.warn(`[SUPABASE AVERTISSEMENT] Base connect\xE9e mais la table 'registrations' n'existe pas encore. Veuillez ex\xE9cuter le script 'supabase_schema.sql' dans l'\xC9diteur SQL Supabase.`);
+      }
+    } else {
+      console.warn(`[SUPABASE NOTICE] Variables SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY non d\xE9tect\xE9es. Sur Hostinger, configurez ces variables dans les param\xE8tres d'application Node.js ou dans votre fichier .env.`);
+    }
+  } catch (err) {
+    console.warn("[SUPABASE] Erreur v\xE9rification d\xE9marrage:", err?.message || err);
   }
   if (typeof PORT === "number") {
     app.listen(PORT, "0.0.0.0", () => {

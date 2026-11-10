@@ -1,10 +1,11 @@
 import React, { useState, useMemo } from 'react';
 import type { Match, Registration } from '../types/index.ts';
-import { Calendar, Clock, CheckCircle2, Trophy, Search, ChevronLeft, ChevronRight, Shield, Play } from 'lucide-react';
+import { Calendar, Clock, CheckCircle2, Trophy, Search, Shield } from 'lucide-react';
 
 interface LeagueScheduleProps {
   matches: Match[];
   registrations?: Registration[];
+  tournamentName?: string;
   isAdmin?: boolean;
   onSelectMatchForScore?: (match: Match) => void;
 }
@@ -12,33 +13,44 @@ interface LeagueScheduleProps {
 export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
   matches,
   registrations = [],
+  tournamentName,
   isAdmin,
   onSelectMatchForScore,
 }) => {
-  // Extract all distinct Journées (rounds)
-  const journees = useMemo(() => {
-    const roundMap = new Map<number, string>();
+  // Extract all distinct stages / Journées
+  const stages = useMemo(() => {
+    const stageMap = new Map<number, { round: number; name: string; shortLabel: string }>();
     matches.forEach((m) => {
       const roundNum = m.round || 1;
-      const stageName = m.stageName || `Journée ${roundNum}`;
-      if (!roundMap.has(roundNum)) {
-        roundMap.set(roundNum, stageName);
+      if (!stageMap.has(roundNum)) {
+        let name = m.stageName || `Journée ${roundNum}`;
+        let shortLabel = `J${roundNum}`;
+
+        const lowerStage = `${m.stage || ''} ${m.stageName || ''}`.toLowerCase();
+        if (lowerStage.includes('quart')) {
+          name = 'Quarts de Finale';
+          shortLabel = 'Quarts';
+        } else if (lowerStage.includes('demi')) {
+          name = 'Demi-Finales';
+          shortLabel = 'Demis';
+        } else if (lowerStage.includes('finale') || lowerStage.includes('final')) {
+          name = 'Grande Finale';
+          shortLabel = 'Finale';
+        }
+
+        stageMap.set(roundNum, { round: roundNum, name, shortLabel });
       }
     });
 
-    const list = Array.from(roundMap.entries()).map(([round, name]) => ({
-      round,
-      name,
-    }));
-
+    const list = Array.from(stageMap.values());
     list.sort((a, b) => a.round - b.round);
     return list;
   }, [matches]);
 
-  const [activeJournee, setActiveJournee] = useState<number | 'all'>(() => {
-    // Default to the first round with pending matches, or round 1
+  const [activeRound, setActiveRound] = useState<number | 'all'>(() => {
+    // Default to the first round with pending matches, or round 1, or 'all'
     const uncompleted = matches.find((m) => m.status !== 'completed');
-    return uncompleted?.round || 1;
+    return uncompleted?.round || (matches.length > 0 ? (matches[0].round || 1) : 'all');
   });
 
   const [playerFilter, setPlayerFilter] = useState('');
@@ -47,8 +59,8 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
   const filteredMatches = useMemo(() => {
     let list = [...matches];
 
-    if (activeJournee !== 'all') {
-      list = list.filter((m) => (m.round || 1) === activeJournee);
+    if (activeRound !== 'all') {
+      list = list.filter((m) => (m.round || 1) === activeRound);
     }
 
     if (playerFilter.trim()) {
@@ -67,35 +79,37 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
     });
 
     return list;
-  }, [matches, activeJournee, playerFilter]);
+  }, [matches, activeRound, playerFilter]);
 
-  // Stats for the active Journee
-  const journeeStats = useMemo(() => {
-    const current = activeJournee === 'all' ? matches : matches.filter((m) => (m.round || 1) === activeJournee);
+  // Stats for the active filter
+  const currentStats = useMemo(() => {
+    const current = activeRound === 'all' ? matches : matches.filter((m) => (m.round || 1) === activeRound);
     const total = current.length;
     const completed = current.filter((m) => m.status === 'completed').length;
     const scheduled = total - completed;
     return { total, completed, scheduled };
-  }, [matches, activeJournee]);
+  }, [matches, activeRound]);
+
+  const activeStage = stages.find((s) => s.round === activeRound);
 
   return (
     <div className="space-y-6">
-      {/* Header Banner - LaLiga Matchdays */}
+      {/* Header Banner - FCT Matchdays */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0d121c] via-[#101726] to-[#0d121c] border border-[#1e2738] shadow-2xl relative overflow-hidden">
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4">
           <div>
             <div className="flex items-center gap-2 text-xs font-mono text-[#00ff66] uppercase tracking-wider mb-1">
               <Calendar className="w-4 h-4 text-[#00ff66]" />
-              <span>CALENDRIER OFFICIEL DES RENCONTRES · PAR JOURNÉES</span>
+              <span>FCT · CALENDRIER OFFICIEL DES RENCONTRES</span>
             </div>
             <h2 className="font-display text-2xl sm:text-3xl font-black text-white uppercase tracking-wide flex items-center gap-3">
-              <span>Calendrier de la Saison</span>
+              <span>{tournamentName ? `Calendrier · ${tournamentName}` : 'Calendrier des Matchs'}</span>
               <span className="text-xs font-mono font-normal px-2.5 py-1 rounded-full bg-[#172030] text-slate-300 border border-[#22314a]">
-                {matches.length} Matchs au total
+                {matches.length} Matchs
               </span>
             </h2>
             <p className="text-xs text-slate-400 mt-1">
-              Suivez l'intégralité des duels journée par journée avec scores en direct et homologations certifiées.
+              Suivez l'intégralité des duels face à face avec scores certifiés et homologations en direct.
             </p>
           </div>
 
@@ -112,35 +126,35 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
           </div>
         </div>
 
-        {/* Journée Selector Bar (LaLiga style) */}
+        {/* Stage / Journée Selector Bar */}
         <div className="mt-6 pt-4 border-t border-[#182233] flex items-center gap-2 overflow-x-auto pb-2 scrollbar-thin">
           <button
-            onClick={() => setActiveJournee('all')}
+            onClick={() => setActiveRound('all')}
             className={`px-3.5 py-2 rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-all cursor-pointer ${
-              activeJournee === 'all'
+              activeRound === 'all'
                 ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.3)]'
                 : 'bg-[#121824] text-slate-400 hover:text-white hover:bg-[#1a2333] border border-[#1f293b]'
             }`}
           >
-            Toutes les Journées
+            Tous les Matchs
           </button>
 
-          {journees.map((j) => {
-            const jMatches = matches.filter((m) => (m.round || 1) === j.round);
-            const isCompleted = jMatches.length > 0 && jMatches.every((m) => m.status === 'completed');
-            const isActive = activeJournee === j.round;
+          {stages.map((st) => {
+            const stMatches = matches.filter((m) => (m.round || 1) === st.round);
+            const isCompleted = stMatches.length > 0 && stMatches.every((m) => m.status === 'completed');
+            const isActive = activeRound === st.round;
 
             return (
               <button
-                key={j.round}
-                onClick={() => setActiveJournee(j.round)}
+                key={st.round}
+                onClick={() => setActiveRound(st.round)}
                 className={`flex items-center gap-2 px-3.5 py-2 rounded-xl text-xs font-mono font-bold whitespace-nowrap transition-all cursor-pointer ${
                   isActive
                     ? 'bg-[#00ff66] text-black shadow-[0_0_12px_rgba(0,255,102,0.3)]'
                     : 'bg-[#121824] text-slate-300 hover:text-white hover:bg-[#1a2333] border border-[#1f293b]'
                 }`}
               >
-                <span>J{j.round}</span>
+                <span>{st.shortLabel}</span>
                 {isCompleted && (
                   <span
                     className={`w-1.5 h-1.5 rounded-full ${
@@ -159,16 +173,16 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
         <div>
           Affichage :{' '}
           <strong className="text-white">
-            {activeJournee === 'all' ? 'Toutes les journées' : `Journée ${activeJournee}`}
+            {activeRound === 'all' ? 'Toutes les rencontres' : activeStage?.name || `Étape ${activeRound}`}
           </strong>{' '}
           ({filteredMatches.length} match{filteredMatches.length > 1 ? 's' : ''})
         </div>
         <div className="flex items-center gap-3">
           <span className="text-[#00ff66]">
-            ● {journeeStats.completed} terminé{journeeStats.completed > 1 ? 's' : ''}
+            ● {currentStats.completed} terminé{currentStats.completed > 1 ? 's' : ''}
           </span>
           <span className="text-slate-400">
-            ○ {journeeStats.scheduled} à venir
+            ○ {currentStats.scheduled} à venir
           </span>
         </div>
       </div>
@@ -179,7 +193,7 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
           <Calendar className="w-8 h-8 mx-auto text-slate-600" />
           <p className="text-white font-semibold">Aucun match trouvé pour ce filtre</p>
           <p className="text-slate-500">
-            Modifiez la journée sélectionnée ou réinitialisez le filtre de recherche de joueur.
+            Modifiez l'étape sélectionnée ou réinitialisez le filtre de recherche de joueur.
           </p>
         </div>
       ) : (
@@ -217,9 +231,9 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
                   </div>
                 </div>
 
-                {/* Card Middle: Head to Head Display (LaLiga Scoreboard Style) */}
+                {/* Card Middle: Head to Head Display (Face to Face Style) */}
                 <div className="flex items-center justify-between gap-3 py-1">
-                  {/* Home Player */}
+                  {/* Player 1 */}
                   <div className="flex items-center gap-3 flex-1 min-w-0">
                     <div className="w-10 h-10 rounded-full bg-[#151c2b] border border-[#232f45] flex items-center justify-center font-bold text-xs text-[#00ff66] shrink-0">
                       {m.player1Gamertag.substring(0, 2).toUpperCase()}
@@ -236,7 +250,7 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
                         {p1Won && <Trophy className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />}
                       </div>
                       <span className="text-[10px] text-slate-400 font-mono block">
-                        Domicile
+                        Joueur 1
                       </span>
                     </div>
                   </div>
@@ -281,7 +295,7 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
                     )}
                   </div>
 
-                  {/* Away Player */}
+                  {/* Player 2 */}
                   <div className="flex items-center justify-end gap-3 flex-1 min-w-0 text-right">
                     <div className="truncate">
                       <div className="flex items-center justify-end gap-1.5">
@@ -295,7 +309,7 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
                         </span>
                       </div>
                       <span className="text-[10px] text-slate-400 font-mono block">
-                        Extérieur
+                        Joueur 2
                       </span>
                     </div>
                     <div className="w-10 h-10 rounded-full bg-[#151c2b] border border-[#232f45] flex items-center justify-center font-bold text-xs text-cyan-400 shrink-0">
@@ -312,10 +326,15 @@ export const LeagueSchedule: React.FC<LeagueScheduleProps> = ({
                         <CheckCircle2 className="w-3.5 h-3.5" />
                         <span>Score officiel homologué</span>
                       </span>
+                    ) : isLive ? (
+                      <span className="text-[11px] font-mono text-rose-400 flex items-center gap-1 font-semibold">
+                        <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping inline-block" />
+                        <span>Rencontre en cours</span>
+                      </span>
                     ) : (
                       <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
                         <Clock className="w-3.5 h-3.5 text-slate-500" />
-                        <span>En attente de déroulement</span>
+                        <span>À venir · En attente</span>
                       </span>
                     )}
                   </div>
