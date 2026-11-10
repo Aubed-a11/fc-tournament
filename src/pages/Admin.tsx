@@ -73,7 +73,7 @@ interface TournamentsStatsItem {
 }
 
 export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
-  const { user, token } = useAuth();
+  const { user, token, login } = useAuth();
   const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'payments' | 'users' | 'matches'>('registrations');
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
@@ -171,6 +171,9 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   });
   const [isVerifyingSession, setIsVerifyingSession] = useState<boolean>(true);
   const [accessCodeInput, setAccessCodeInput] = useState<string>('');
+  const [adminLoginMode, setAdminLoginMode] = useState<'credentials' | 'code'>('credentials');
+  const [adminEmailInput, setAdminEmailInput] = useState<string>('');
+  const [adminPasswordInput, setAdminPasswordInput] = useState<string>('');
   const [showCode, setShowCode] = useState<boolean>(false);
   const [authError, setAuthError] = useState<string | null>(null);
   const [authRemainingAttempts, setAuthRemainingAttempts] = useState<number | null>(null);
@@ -273,6 +276,33 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
     verifySession();
   }, [adminToken, token, user]);
+
+  // Connexion par identifiants (e-mail + mot de passe d'un compte administrateur)
+  const handleAdminCredentialsSubmit = async (e: React.FormEvent) => {
+    e.preventDefault();
+    const email = adminEmailInput.trim();
+    if (!email || !adminPasswordInput || authLoading) return;
+
+    setAuthLoading(true);
+    setAuthError(null);
+    try {
+      const result = await login(email, adminPasswordInput);
+      if (!result.success) {
+        setAuthError(result.error || 'Identifiants invalides.');
+        return;
+      }
+      if (result.user?.role !== 'admin') {
+        setAuthError('Ce compte n’a pas les droits administrateur.');
+        return;
+      }
+      setAdminPasswordInput('');
+      setAdminVerified(true);
+    } catch {
+      setAuthError('Erreur de connexion au serveur. Veuillez réessayer.');
+    } finally {
+      setAuthLoading(false);
+    }
+  };
 
   const handleAdminCodeSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -990,7 +1020,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               Espace Administrateur
             </h1>
             <p className="text-xs text-slate-400 leading-relaxed">
-              Veuillez saisir votre code d'accès administrateur pour déverrouiller le panneau de contrôle de FC Tournament.
+              Connectez-vous avec vos identifiants administrateur ou avec le code d'accès pour ouvrir le panneau de contrôle de FC Tournament.
             </p>
           </div>
 
@@ -1021,6 +1051,83 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
             </div>
           )}
 
+          <div className="grid grid-cols-2 gap-1 p-1 rounded-xl bg-[#0e131d] border border-[#1b2537]">
+            <button
+              type="button"
+              onClick={() => { setAdminLoginMode('credentials'); setAuthError(null); }}
+              className={`py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                adminLoginMode === 'credentials' ? 'bg-[#00ff66] text-black' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Mail className="w-3.5 h-3.5" />
+              <span>Identifiants</span>
+            </button>
+            <button
+              type="button"
+              onClick={() => { setAdminLoginMode('code'); setAuthError(null); }}
+              className={`py-2 rounded-lg text-xs font-semibold transition-colors cursor-pointer flex items-center justify-center gap-1.5 ${
+                adminLoginMode === 'code' ? 'bg-[#00ff66] text-black' : 'text-slate-400 hover:text-white'
+              }`}
+            >
+              <Key className="w-3.5 h-3.5" />
+              <span>Code d'accès</span>
+            </button>
+          </div>
+
+          {adminLoginMode === 'credentials' && (
+          <form onSubmit={handleAdminCredentialsSubmit} className="space-y-4">
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-300">Adresse e-mail</label>
+              <div className="relative">
+                <Mail className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type="email"
+                  required
+                  disabled={authLoading}
+                  value={adminEmailInput}
+                  onChange={(e) => setAdminEmailInput(e.target.value)}
+                  placeholder="admin@fctournament.ma"
+                  autoComplete="username"
+                  className="w-full pl-10 pr-3 py-3 text-sm rounded-xl bg-[#111723] border border-[#202b3e] text-white placeholder-slate-600 focus:outline-none focus:border-[#00ff66] disabled:opacity-50"
+                />
+              </div>
+            </div>
+            <div className="space-y-1.5">
+              <label className="block text-xs font-medium text-slate-300">Mot de passe</label>
+              <div className="relative">
+                <Lock className="w-4 h-4 text-slate-500 absolute left-3.5 top-1/2 -translate-y-1/2" />
+                <input
+                  type={showCode ? 'text' : 'password'}
+                  required
+                  disabled={authLoading}
+                  value={adminPasswordInput}
+                  onChange={(e) => setAdminPasswordInput(e.target.value)}
+                  placeholder="Votre mot de passe"
+                  autoComplete="current-password"
+                  className="w-full pl-10 pr-10 py-3 text-sm rounded-xl bg-[#111723] border border-[#202b3e] text-white placeholder-slate-600 focus:outline-none focus:border-[#00ff66] disabled:opacity-50"
+                />
+                <button
+                  type="button"
+                  onClick={() => setShowCode(!showCode)}
+                  className="absolute right-3 top-1/2 -translate-y-1/2 text-slate-500 hover:text-white transition-colors cursor-pointer"
+                  tabIndex={-1}
+                >
+                  {showCode ? <EyeOff className="w-4 h-4" /> : <Eye className="w-4 h-4" />}
+                </button>
+              </div>
+            </div>
+            <button
+              type="submit"
+              disabled={authLoading || !adminEmailInput.trim() || !adminPasswordInput}
+              className="w-full py-3 rounded-xl bg-[#00ff66] text-black font-display text-sm font-bold uppercase tracking-wider hover:bg-[#00e65c] transition-all shadow-[0_0_20px_rgba(0,255,102,0.35)] disabled:opacity-50 cursor-pointer flex items-center justify-center gap-2"
+            >
+              <ShieldCheck className="w-4 h-4" />
+              <span>{authLoading ? 'Connexion en cours...' : 'Se connecter'}</span>
+            </button>
+          </form>
+          )}
+
+          {adminLoginMode === 'code' && (
           <form onSubmit={handleAdminCodeSubmit} className="space-y-4">
             <div className="space-y-1.5">
               <label className="block text-xs font-medium text-slate-300 flex items-center justify-between">
@@ -1069,6 +1176,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               <span>{authLoading ? 'Vérification en cours...' : 'Déverrouiller l’espace administrateur'}</span>
             </button>
           </form>
+          )}
 
           <div className="text-center pt-2 border-t border-[#182131]">
             <button

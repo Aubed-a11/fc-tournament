@@ -9,6 +9,10 @@ import {
   Swords,
   Flame,
   ArrowRight,
+  ShieldCheck,
+  Clock,
+  Wallet,
+  Mail,
 } from 'lucide-react';
 
 interface AboutProps {
@@ -180,6 +184,67 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
                 03 · Dépassement
               </div>
             </div>
+          </div>
+        </div>
+
+        {/* ============================================================ */}
+        {/* SECTION : GARANTIE DE VERSEMENT DES GAINS                    */}
+        {/* ============================================================ */}
+        <div className="p-8 sm:p-10 rounded-3xl bg-[#0b0f16] border border-[#00ff66]/30 shadow-2xl space-y-8 relative overflow-hidden">
+          <div className="absolute -top-24 -left-24 w-80 h-80 bg-[#00ff66]/5 rounded-full blur-3xl pointer-events-none" />
+
+          <div className="flex flex-col sm:flex-row sm:items-center gap-6 relative z-10">
+            <div className="shrink-0 w-20 h-20 rounded-2xl bg-[#00ff66]/10 border border-[#00ff66]/40 flex flex-col items-center justify-center text-[#00ff66]">
+              <span className="font-display text-3xl font-black leading-none">72h</span>
+              <span className="text-[10px] font-mono uppercase tracking-wider text-slate-300 mt-1">maximum</span>
+            </div>
+            <div className="space-y-2 max-w-3xl">
+              <h2 className="font-display text-2xl sm:text-3xl font-black text-white uppercase tracking-tight">
+                Vos gains, versés sous 72 heures
+              </h2>
+              <p className="text-sm sm:text-base text-slate-300 leading-relaxed">
+                Chaque prix remporté est versé au gagnant dans un délai maximum de 72 heures après la fin officielle du tournoi. C'est un engagement ferme de FC Tournament envers tous les compétiteurs.
+              </p>
+            </div>
+          </div>
+
+          <div className="grid grid-cols-1 md:grid-cols-3 gap-4 relative z-10">
+            <div className="p-5 rounded-2xl bg-[#0f1420] border border-[#1a2538] space-y-2">
+              <div className="w-9 h-9 rounded-lg bg-[#00ff66]/10 flex items-center justify-center text-[#00ff66]">
+                <ShieldCheck className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">1. Résultats validés</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                À la fin du tournoi, l'équipe d'organisation valide le score final et le classement à partir des captures transmises par les joueurs.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#0f1420] border border-[#1a2538] space-y-2">
+              <div className="w-9 h-9 rounded-lg bg-[#00ff66]/10 flex items-center justify-center text-[#00ff66]">
+                <Mail className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">2. Gagnant contacté</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Le gagnant est contacté par e-mail ou WhatsApp pour confirmer son identité et le moyen de réception de son gain.
+              </p>
+            </div>
+
+            <div className="p-5 rounded-2xl bg-[#0f1420] border border-[#1a2538] space-y-2">
+              <div className="w-9 h-9 rounded-lg bg-[#00ff66]/10 flex items-center justify-center text-[#00ff66]">
+                <Wallet className="w-4 h-4" />
+              </div>
+              <h3 className="text-sm font-bold text-white">3. Versement du prix</h3>
+              <p className="text-xs text-slate-400 leading-relaxed">
+                Le prix est versé par virement bancaire ou mobile money dans les 72 heures suivant la fin du tournoi, et les lots physiques sont remis au gagnant.
+              </p>
+            </div>
+          </div>
+
+          <div className="flex items-start gap-3 p-4 rounded-2xl bg-[#0e131d] border border-[#1b2537] relative z-10">
+            <Clock className="w-4 h-4 shrink-0 text-[#00ff66] mt-0.5" />
+            <p className="text-xs text-slate-400 leading-relaxed">
+              Un retard ou une question sur votre gain ? Écrivez-nous depuis la page Contact en indiquant votre pseudo et le nom du tournoi : votre demande est traitée en priorité.
+            </p>
           </div>
         </div>
 
