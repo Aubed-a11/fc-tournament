@@ -154,3 +154,29 @@ export interface AdminNotification {
   read: boolean;
 }
 
+export type PaymentMethodId = 'cih' | 'bmce' | 'mtn_momo';
+export type PaymentProofStatus = 'pending' | 'accepted' | 'rejected';
+
+export interface PaymentSubmission {
+  id: string;
+  userId: string;
+  gamertag: string;
+  playerName: string;
+  userEmail: string;
+  phone?: string;
+  tournamentId?: string;
+  tournamentName?: string;
+  paymentMethod: PaymentMethodId;
+  paymentMethodName: string;
+  amountMAD?: number;
+  proofData: string; // Base64 data URL (image or PDF)
+  proofName: string;
+  proofType: string;
+  proofSize?: string;
+  notes?: string;
+  status: PaymentProofStatus;
+  rejectionReason?: string;
+  createdAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+}

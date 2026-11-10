@@ -1,6 +1,6 @@
 import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
-import type { Tournament, Registration, Match, AdminNotification, User } from '../types/index.ts';
+import type { Tournament, Registration, Match, AdminNotification, User, PaymentSubmission } from '../types/index.ts';
 import { ScoreModal } from '../components/ScoreModal.tsx';
 import { formatDateFrench, formatMAD } from '../utils/format.ts';
 import { apiClient, getLocalRegistrations } from '../services/apiClient.ts';
@@ -53,6 +53,8 @@ import {
   Share2,
   Copy,
   FileCode,
+  CreditCard,
+  FileText,
 } from 'lucide-react';
 
 interface AdminProps {
@@ -72,13 +74,20 @@ interface TournamentsStatsItem {
 
 export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const { user, token } = useAuth();
-  const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'users' | 'matches'>('registrations');
+  const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'payments' | 'users' | 'matches'>('registrations');
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
   const [selectedTournamentId, setSelectedTournamentId] = useState<string>('');
   const [loading, setLoading] = useState<boolean>(true);
   const [message, setMessage] = useState<{ type: 'success' | 'error'; text: string } | null>(null);
+
+  // Payments state (Effectuer mon paiement - Justificatifs)
+  const [allPayments, setAllPayments] = useState<PaymentSubmission[]>([]);
+  const [paymentsFilterStatus, setPaymentsFilterStatus] = useState<string>('all');
+  const [paymentsFilterMethod, setPaymentsFilterMethod] = useState<string>('all');
+  const [paymentsSearch, setPaymentsSearch] = useState<string>('');
+  const [selectedPaymentForDetail, setSelectedPaymentForDetail] = useState<PaymentSubmission | null>(null);
 
   // Users state (Registered player accounts)
   const [allUsers, setAllUsers] = useState<
@@ -832,12 +841,62 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
+  const fetchPayments = async () => {
+    if (!adminVerified) return;
+    try {
+      const list = await apiClient.getAdminPayments(adminToken);
+      setAllPayments(list);
+    } catch (err) {
+      console.error('Error fetching admin payments:', err);
+    }
+  };
+
+  const handleUpdatePaymentStatus = async (
+    id: string,
+    status: 'accepted' | 'rejected',
+    rejectionReason?: string
+  ) => {
+    try {
+      let reason = rejectionReason;
+      if (status === 'rejected' && !reason) {
+        const inputReason = prompt('Motif du refus du justificatif (ex: Reçu illisible, montant incorrect, etc.) :');
+        if (inputReason === null) return; // User cancelled
+        reason = inputReason || 'Justificatif non conforme';
+      }
+
+      const res = await apiClient.updatePaymentStatus(id, status, reason, adminToken);
+      if (res.success) {
+        setMessage({
+          type: 'success',
+          text: `Justificatif ${status === 'accepted' ? 'accepté' : 'refusé'} avec succès.`,
+        });
+        await fetchPayments();
+        await fetchRegistrations();
+      } else {
+        setMessage({ type: 'error', text: res.message || 'Erreur lors de la mise à jour.' });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Impossible de joindre le serveur.' });
+    }
+  };
+
+  const handleDownloadPaymentProofFile = (payment: PaymentSubmission) => {
+    if (!payment.proofData) return;
+    const a = document.createElement('a');
+    a.href = payment.proofData;
+    a.download = payment.proofName || `justificatif-${payment.gamertag}`;
+    document.body.appendChild(a);
+    a.click();
+    document.body.removeChild(a);
+  };
+
   useEffect(() => {
     if (adminVerified) {
       fetchAdminData();
       fetchRegistrations();
       fetchNotifications();
       fetchUsers();
+      fetchPayments();
       fetchSupabaseLiveStatus();
     }
   }, [adminVerified]);
@@ -1616,6 +1675,12 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               icon: UserCheck,
             },
             {
+              id: 'payments',
+              label: 'Justificatifs de Paiement',
+              badge: allPayments.length,
+              icon: CreditCard,
+            },
+            {
               id: 'users',
               label: 'Comptes Joueurs Inscrits',
               badge: allUsers.length,
@@ -2217,6 +2282,277 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                 </div>
               </div>
             )}
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* TAB: JUSTIFICATIFS DE PAIEMENT (Effectuer mon paiement)   */}
+        {/* ======================================================== */}
+        {adminTab === 'payments' && (
+          <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Header */}
+            <div className="p-6 rounded-3xl bg-[#0c1017] border border-[#1b2538] flex flex-col md:flex-row items-start md:items-center justify-between gap-4 shadow-xl">
+              <div className="space-y-1">
+                <div className="flex items-center gap-2 text-xs font-mono text-[#00ff66] uppercase">
+                  <CreditCard className="w-4 h-4 text-[#00ff66]" />
+                  <span>GESTION DES VIREMENTS & MOBILE MONEY</span>
+                </div>
+                <h2 className="font-display text-2xl font-black text-white uppercase tracking-tight">
+                  Justificatifs de Paiement ({allPayments.length})
+                </h2>
+                <p className="text-xs text-slate-400 max-w-2xl leading-relaxed">
+                  Consultez les preuves de virement (CIH Bank, BMCE Bank, MTN MoMo) déposées par les joueurs. Vous pouvez prévisualiser la capture ou le PDF, accepter ou refuser chaque justificatif et notifier automatiquement le compétiteur.
+                </p>
+              </div>
+
+              <button
+                onClick={fetchPayments}
+                className="px-4 py-2.5 rounded-xl bg-[#141b27] hover:bg-[#1a2333] border border-[#222e44] text-xs font-bold text-slate-300 hover:text-white transition-colors cursor-pointer flex items-center gap-2 shrink-0"
+              >
+                <RefreshCw className="w-3.5 h-3.5" />
+                <span>Actualiser les paiements</span>
+              </button>
+            </div>
+
+            {/* Filters */}
+            <div className="p-4 rounded-2xl bg-[#0d121c] border border-[#1a2334] flex flex-wrap items-center justify-between gap-3 text-xs">
+              <div className="flex flex-wrap items-center gap-3">
+                <div className="flex items-center gap-2">
+                  <Filter className="w-3.5 h-3.5 text-slate-400" />
+                  <span className="text-slate-400 font-mono">Statut :</span>
+                  <select
+                    value={paymentsFilterStatus}
+                    onChange={(e) => setPaymentsFilterStatus(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-[#111722] border border-[#222e44] text-white focus:outline-none focus:border-[#00ff66]"
+                  >
+                    <option value="all">Tous les statuts ({allPayments.length})</option>
+                    <option value="pending">
+                      En attente ({allPayments.filter((p) => p.status === 'pending').length})
+                    </option>
+                    <option value="accepted">
+                      Acceptés ({allPayments.filter((p) => p.status === 'accepted').length})
+                    </option>
+                    <option value="rejected">
+                      Refusés ({allPayments.filter((p) => p.status === 'rejected').length})
+                    </option>
+                  </select>
+                </div>
+
+                <div className="flex items-center gap-2">
+                  <span className="text-slate-400 font-mono">Moyen :</span>
+                  <select
+                    value={paymentsFilterMethod}
+                    onChange={(e) => setPaymentsFilterMethod(e.target.value)}
+                    className="px-3 py-1.5 rounded-lg bg-[#111722] border border-[#222e44] text-white focus:outline-none focus:border-[#00ff66]"
+                  >
+                    <option value="all">Tous les moyens</option>
+                    <option value="cih">CIH BANK</option>
+                    <option value="bmce">BMCE BANK</option>
+                    <option value="mtn_momo">MTN MOMO</option>
+                  </select>
+                </div>
+              </div>
+
+              <div className="relative w-full sm:w-64">
+                <Search className="w-3.5 h-3.5 absolute left-3 top-2.5 text-slate-500" />
+                <input
+                  type="text"
+                  value={paymentsSearch}
+                  onChange={(e) => setPaymentsSearch(e.target.value)}
+                  placeholder="Rechercher par pseudo, email..."
+                  className="w-full pl-8 pr-3 py-1.5 rounded-lg bg-[#111722] border border-[#222e44] text-white placeholder-slate-500 text-xs focus:outline-none focus:border-[#00ff66]"
+                />
+              </div>
+            </div>
+
+            {/* Payments Table */}
+            {(() => {
+              let filtered = [...allPayments];
+              if (paymentsFilterStatus !== 'all') {
+                filtered = filtered.filter((p) => p.status === paymentsFilterStatus);
+              }
+              if (paymentsFilterMethod !== 'all') {
+                filtered = filtered.filter((p) => p.paymentMethod === paymentsFilterMethod);
+              }
+              if (paymentsSearch.trim()) {
+                const q = paymentsSearch.trim().toLowerCase();
+                filtered = filtered.filter(
+                  (p) =>
+                    p.gamertag.toLowerCase().includes(q) ||
+                    p.playerName.toLowerCase().includes(q) ||
+                    p.userEmail.toLowerCase().includes(q) ||
+                    (p.phone && p.phone.includes(q))
+                );
+              }
+
+              if (filtered.length === 0) {
+                return (
+                  <div className="p-12 text-center rounded-3xl bg-[#0c1017] border border-[#1b2538] space-y-3">
+                    <CreditCard className="w-10 h-10 text-slate-600 mx-auto" />
+                    <p className="text-sm text-slate-400">Aucun justificatif de paiement ne correspond aux critères.</p>
+                  </div>
+                );
+              }
+
+              return (
+                <div className="rounded-3xl bg-[#0b0f16] border border-[#1c2538] overflow-hidden shadow-xl">
+                  <div className="overflow-x-auto">
+                    <table className="w-full text-left text-xs">
+                      <thead className="bg-[#0e1420] text-slate-400 font-mono text-[11px] uppercase border-b border-[#1b2538]">
+                        <tr>
+                          <th className="px-5 py-3.5">Date & Heure</th>
+                          <th className="px-5 py-3.5">Joueur (Gamertag)</th>
+                          <th className="px-5 py-3.5">Moyen & Montant</th>
+                          <th className="px-5 py-3.5">Tournoi</th>
+                          <th className="px-5 py-3.5">Justificatif</th>
+                          <th className="px-5 py-3.5">Statut</th>
+                          <th className="px-5 py-3.5 text-right">Actions</th>
+                        </tr>
+                      </thead>
+                      <tbody className="divide-y divide-[#172030] text-slate-300">
+                        {filtered.map((item) => {
+                          const isPdf = item.proofType?.includes('pdf') || item.proofName?.toLowerCase().endsWith('.pdf');
+                          return (
+                            <tr key={item.id} className="hover:bg-[#0f1522] transition-colors">
+                              {/* Date */}
+                              <td className="px-5 py-3.5 font-mono text-[11px] text-slate-400 whitespace-nowrap">
+                                <div>{new Date(item.createdAt).toLocaleDateString('fr-FR')}</div>
+                                <div className="text-[10px] text-slate-500">
+                                  {new Date(item.createdAt).toLocaleTimeString('fr-FR', {
+                                    hour: '2-digit',
+                                    minute: '2-digit',
+                                  })}
+                                </div>
+                              </td>
+
+                              {/* Joueur */}
+                              <td className="px-5 py-3.5">
+                                <div className="font-bold text-white text-xs">{item.gamertag}</div>
+                                <div className="text-[11px] text-slate-400">{item.playerName}</div>
+                                <div className="text-[10px] text-slate-500 font-mono">{item.userEmail}</div>
+                              </td>
+
+                              {/* Moyen & Montant */}
+                              <td className="px-5 py-3.5">
+                                <span className="inline-block px-2 py-0.5 rounded font-mono text-[10px] font-bold bg-[#141d2c] text-[#00ff66] border border-[#222e42] mb-1">
+                                  {item.paymentMethod.toUpperCase()}
+                                </span>
+                                <div className="text-white font-mono font-bold text-xs">
+                                  {item.amountMAD || 49.99} MAD
+                                </div>
+                              </td>
+
+                              {/* Tournoi */}
+                              <td className="px-5 py-3.5 text-slate-300">
+                                <span className="block font-semibold text-white truncate max-w-[170px]">
+                                  {item.tournamentName || 'Tournoi FC'}
+                                </span>
+                              </td>
+
+                              {/* Justificatif */}
+                              <td className="px-5 py-3.5">
+                                <div className="flex items-center gap-2">
+                                  {isPdf ? (
+                                    <button
+                                      onClick={() => handleDownloadPaymentProofFile(item)}
+                                      className="w-10 h-10 rounded-lg bg-rose-500/15 border border-rose-500/30 flex items-center justify-center text-rose-400 hover:scale-105 transition-transform cursor-pointer"
+                                      title="Télécharger le reçu PDF"
+                                    >
+                                      <FileText className="w-5 h-5" />
+                                    </button>
+                                  ) : (
+                                    <button
+                                      onClick={() =>
+                                        setPreviewScreenshotUrl({
+                                          url: item.proofData,
+                                          title: `Justificatif de ${item.gamertag} (${item.paymentMethodName})`,
+                                        })
+                                      }
+                                      className="relative w-10 h-10 rounded-lg overflow-hidden border border-[#233149] hover:border-[#00ff66] transition-colors group cursor-pointer bg-black"
+                                      title="Agrandir la capture du paiement"
+                                    >
+                                      <img
+                                        src={item.proofData}
+                                        alt="Reçu"
+                                        className="w-full h-full object-cover"
+                                      />
+                                      <div className="absolute inset-0 bg-black/40 group-hover:bg-black/10 flex items-center justify-center transition-colors">
+                                        <Eye className="w-3.5 h-3.5 text-white opacity-80 group-hover:opacity-100" />
+                                      </div>
+                                    </button>
+                                  )}
+
+                                  <button
+                                    onClick={() => handleDownloadPaymentProofFile(item)}
+                                    className="p-1.5 rounded-lg bg-[#141d2c] hover:bg-[#1f2b3e] text-slate-300 hover:text-[#00ff66] transition-colors cursor-pointer"
+                                    title="Télécharger le fichier justificatif"
+                                  >
+                                    <Download className="w-3.5 h-3.5" />
+                                  </button>
+                                </div>
+                              </td>
+
+                              {/* Statut */}
+                              <td className="px-5 py-3.5 whitespace-nowrap">
+                                <span
+                                  className={`inline-flex items-center gap-1.5 px-2.5 py-1 rounded-full text-[10px] font-mono font-bold ${
+                                    item.status === 'accepted'
+                                      ? 'bg-[#00ff66]/15 text-[#00ff66] border border-[#00ff66]/30'
+                                      : item.status === 'rejected'
+                                      ? 'bg-rose-500/15 text-rose-400 border border-rose-500/30'
+                                      : 'bg-amber-400/15 text-amber-400 border border-amber-400/30'
+                                  }`}
+                                >
+                                  {item.status === 'accepted' ? (
+                                    <>
+                                      <CheckCircle2 className="w-3 h-3 text-[#00ff66]" />
+                                      <span>Accepté</span>
+                                    </>
+                                  ) : item.status === 'rejected' ? (
+                                    <>
+                                      <XCircle className="w-3 h-3 text-rose-400" />
+                                      <span>Refusé</span>
+                                    </>
+                                  ) : (
+                                    <>
+                                      <Clock className="w-3 h-3 text-amber-400" />
+                                      <span>En attente</span>
+                                    </>
+                                  )}
+                                </span>
+                              </td>
+
+                              {/* Actions */}
+                              <td className="px-5 py-3.5 text-right whitespace-nowrap space-x-1.5">
+                                {item.status !== 'accepted' && (
+                                  <button
+                                    onClick={() => handleUpdatePaymentStatus(item.id, 'accepted')}
+                                    className="px-2.5 py-1.5 rounded-lg bg-[#00ff66]/15 text-[#00ff66] hover:bg-[#00ff66] hover:text-black font-semibold text-[11px] transition-all cursor-pointer"
+                                    title="Accepter ce justificatif de paiement"
+                                  >
+                                    Accepter
+                                  </button>
+                                )}
+
+                                {item.status !== 'rejected' && (
+                                  <button
+                                    onClick={() => handleUpdatePaymentStatus(item.id, 'rejected')}
+                                    className="px-2.5 py-1.5 rounded-lg bg-amber-500/15 text-amber-400 hover:bg-amber-500 hover:text-black font-semibold text-[11px] transition-all cursor-pointer"
+                                    title="Refuser ce justificatif de paiement"
+                                  >
+                                    Refuser
+                                  </button>
+                                )}
+                              </td>
+                            </tr>
+                          );
+                        })}
+                      </tbody>
+                    </table>
+                  </div>
+                </div>
+              );
+            })()}
           </div>
         )}
 

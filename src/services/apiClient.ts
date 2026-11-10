@@ -1,10 +1,13 @@
-import type { Tournament, Match, PlayerLeaderboard, Registration } from '../types/index.ts';
+import type { Tournament, Match, PlayerLeaderboard, Registration, PaymentSubmission, PaymentMethodId } from '../types/index.ts';
 import {
   getStoredTournaments,
   getStoredMatches,
   getStoredRegistrations,
   saveStoredRegistrations,
   computeLocalLeaderboard,
+  getStoredPayments,
+  saveStoredPayment,
+  updateStoredPaymentStatus,
 } from './dataStore.ts';
 import { saveRegistrationToSupabase } from './supabaseClient.ts';
 
@@ -224,4 +227,141 @@ export const apiClient = {
       };
     }
   },
+
+  // Submit payment proof (from Home page or Dashboard)
+  async submitPaymentProof(
+    payload: {
+      paymentMethod: PaymentMethodId;
+      proofData: string;
+      proofName: string;
+      proofType: string;
+      proofSize?: string;
+      tournamentId?: string;
+      gamertag?: string;
+      playerName?: string;
+      userEmail?: string;
+      phone?: string;
+      notes?: string;
+    },
+    token?: string | null
+  ): Promise<{ success: boolean; message: string; submission?: PaymentSubmission; error?: string }> {
+    try {
+      const res = await fetch('/api/payments/submit', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(token ? { Authorization: `Bearer ${token}` } : {}),
+        },
+        body: JSON.stringify(payload),
+      });
+
+      if (res.ok) {
+        const data = await res.json();
+        if (data.submission) {
+          saveStoredPayment(data.submission);
+        }
+        return {
+          success: true,
+          message: data.message || 'Votre justificatif a été envoyé avec succès !',
+          submission: data.submission,
+        };
+      } else {
+        const errData = await res.json().catch(() => null);
+        const errMsg = errData?.error || "Erreur lors de l'envoi du justificatif.";
+        return { success: false, message: errMsg, error: errMsg };
+      }
+    } catch {
+      // Offline fallback: save locally so user does not lose evidence
+      const fallbackSubmission: PaymentSubmission = {
+        id: `pay_loc_${Date.now()}`,
+        userId: 'usr_local',
+        gamertag: payload.gamertag || 'Joueur',
+        playerName: payload.playerName || payload.gamertag || 'Joueur',
+        userEmail: payload.userEmail || '',
+        phone: payload.phone,
+        tournamentId: payload.tournamentId,
+        paymentMethod: payload.paymentMethod,
+        paymentMethodName:
+          payload.paymentMethod === 'cih'
+            ? 'CIH BANK (RIB: 6046878211016200)'
+            : payload.paymentMethod === 'bmce'
+            ? 'BMCE BANK (RIB: 011570000007200000447220)'
+            : 'MTN MOMO (Numéro: 0162403071)',
+        amountMAD: 49.99,
+        proofData: payload.proofData,
+        proofName: payload.proofName,
+        proofType: payload.proofType,
+        proofSize: payload.proofSize,
+        notes: payload.notes,
+        status: 'pending',
+        createdAt: new Date().toISOString(),
+      };
+      saveStoredPayment(fallbackSubmission);
+      return {
+        success: true,
+        message: 'Votre justificatif a bien été pris en compte et sera vérifié par l’administrateur !',
+        submission: fallbackSubmission,
+      };
+    }
+  },
+
+  // Get user payments
+  async getMyPayments(token?: string | null): Promise<PaymentSubmission[]> {
+    if (token) {
+      try {
+        const res = await fetch('/api/payments/my-submissions', {
+          headers: { Authorization: `Bearer ${token}` },
+        });
+        if (res.ok) {
+          const list = await res.json();
+          if (Array.isArray(list)) return list;
+        }
+      } catch {}
+    }
+    return getStoredPayments();
+  },
+
+  // Admin list all payments
+  async getAdminPayments(adminToken?: string | null): Promise<PaymentSubmission[]> {
+    try {
+      const res = await fetch('/api/admin/payments', {
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { Authorization: `Bearer ${adminToken}`, 'x-admin-token': adminToken } : {}),
+        },
+      });
+      if (res.ok) {
+        const list = await res.json();
+        if (Array.isArray(list)) return list;
+      }
+    } catch {}
+    return getStoredPayments();
+  },
+
+  // Admin update payment status
+  async updatePaymentStatus(
+    id: string,
+    status: 'pending' | 'accepted' | 'rejected',
+    rejectionReason?: string,
+    adminToken?: string | null
+  ): Promise<{ success: boolean; message: string }> {
+    try {
+      const res = await fetch(`/api/admin/payments/${id}/status`, {
+        method: 'PATCH',
+        headers: {
+          'Content-Type': 'application/json',
+          ...(adminToken ? { Authorization: `Bearer ${adminToken}`, 'x-admin-token': adminToken } : {}),
+        },
+        body: JSON.stringify({ status, rejectionReason }),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        updateStoredPaymentStatus(id, status, rejectionReason);
+        return { success: true, message: data.message || 'Statut mis à jour.' };
+      }
+    } catch {}
+    updateStoredPaymentStatus(id, status, rejectionReason);
+    return { success: true, message: `Statut mis à jour en local (${status}).` };
+  },
 };
+

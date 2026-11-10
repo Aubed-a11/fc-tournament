@@ -865,7 +865,7 @@ function getInitialDatabase() {
       read: true
     }
   ];
-  return { users, tournaments, registrations, matches, contacts, notifications };
+  return { users, tournaments, registrations, matches, contacts, notifications, paymentSubmissions: [] };
 }
 function loadDatabase() {
   let loaded;
@@ -891,6 +891,9 @@ function loadDatabase() {
   }
   if (!Array.isArray(loaded.registrations)) {
     loaded.registrations = [];
+  }
+  if (!Array.isArray(loaded.paymentSubmissions)) {
+    loaded.paymentSubmissions = [];
   }
   let needsSync = false;
   loaded.registrations.forEach((r, idx) => {
@@ -1145,7 +1148,7 @@ L'\xE9quipe FC TOURNAMENT.`;
 const ADMIN_NOTIFICATION_EMAIL = "alio227ng@gmail.com";
 const FORMBOLD_ENDPOINT = "https://formbold.com/s/oWp4p";
 async function notifyAdminAndFormBold(event) {
-  const eventLabel = event.type === "user_account" ? "CR\xC9ATION DE COMPTE JOUEUR" : event.type === "tournament_registration" ? "NOUVELLE INSCRIPTION AU TOURNOI" : "NOUVEAU MESSAGE DE CONTACT";
+  const eventLabel = event.type === "user_account" ? "CR\xC9ATION DE COMPTE JOUEUR" : event.type === "tournament_registration" ? "NOUVELLE INSCRIPTION AU TOURNOI" : event.type === "payment_submission" ? "D\xC9P\xD4T DE JUSTIFICATIF DE PAIEMENT" : "NOUVEAU MESSAGE DE CONTACT";
   try {
     const formParams = new URLSearchParams();
     formParams.append("Email", event.senderEmail || ADMIN_NOTIFICATION_EMAIL);
@@ -1797,6 +1800,212 @@ app.delete("/api/tournaments/:id/register", requireAuth, (req, res) => {
   db.registrations.splice(regIndex, 1);
   saveDatabase(db);
   res.json({ message: "Votre inscription a bien \xE9t\xE9 annul\xE9e." });
+});
+app.post("/api/payments/submit", (req, res) => {
+  try {
+    const {
+      paymentMethod,
+      proofData,
+      proofName,
+      proofType,
+      proofSize,
+      tournamentId,
+      gamertag,
+      playerName,
+      userEmail,
+      phone,
+      notes
+    } = req.body;
+    if (!paymentMethod || !["cih", "bmce", "mtn_momo"].includes(paymentMethod)) {
+      res.status(400).json({ error: "Moyen de paiement non reconnu (CIH Bank, BMCE Bank ou MTN MoMo attendu)." });
+      return;
+    }
+    if (!proofData || typeof proofData !== "string") {
+      res.status(400).json({ error: "Veuillez joindre le justificatif de paiement (capture d\u2019\xE9cran ou fichier PDF)." });
+      return;
+    }
+    const isDataUrl = proofData.startsWith("data:");
+    if (!isDataUrl) {
+      res.status(400).json({ error: "Format de fichier justificatif invalide." });
+      return;
+    }
+    const isImage = proofData.startsWith("data:image/");
+    const isPdf = proofData.startsWith("data:application/pdf");
+    if (!isImage && !isPdf) {
+      res.status(400).json({ error: "Format de fichier non support\xE9. Veuillez joindre une image (JPG, PNG) ou un PDF." });
+      return;
+    }
+    let authUser;
+    const authHeader = req.headers.authorization;
+    if (authHeader && authHeader.startsWith("Bearer ")) {
+      const token = authHeader.split(" ")[1];
+      if (token && token !== "null" && token !== "undefined") {
+        const session = sessions.get(token);
+        if (session && session.expiresAt > Date.now()) {
+          authUser = db.users.find((u) => u.id === session.userId);
+        }
+      }
+    }
+    const finalGamertag = (authUser?.gamertag || gamertag || "").trim();
+    const finalPlayerName = (authUser ? `${authUser.firstName} ${authUser.lastName}` : playerName || "").trim();
+    const finalEmail = (authUser?.email || userEmail || "").trim();
+    const finalUserId = authUser?.id || `usr_guest_${Date.now()}`;
+    if (!finalGamertag || finalGamertag.length < 2) {
+      res.status(400).json({ error: "Veuillez pr\xE9ciser votre Gamertag (pseudo)." });
+      return;
+    }
+    if (!finalEmail || !/^[^\s@]+@[^\s@]+\.[^\s@]+$/.test(finalEmail)) {
+      res.status(400).json({ error: "Veuillez pr\xE9ciser une adresse e-mail valide pour le suivi." });
+      return;
+    }
+    const paymentMethodNames = {
+      cih: "CIH BANK (RIB: 6046878211016200)",
+      bmce: "BMCE BANK (RIB: 011570000007200000447220)",
+      mtn_momo: "MTN MOMO (Num\xE9ro: 0162403071)"
+    };
+    const tourn = tournamentId ? db.tournaments.find((t) => t.id === tournamentId) : void 0;
+    const submission = {
+      id: `pay_${Date.now()}_${Math.random().toString(36).substring(2, 7)}`,
+      userId: finalUserId,
+      gamertag: finalGamertag,
+      playerName: finalPlayerName || finalGamertag,
+      userEmail: finalEmail,
+      phone: phone || "",
+      tournamentId: tourn?.id || tournamentId || void 0,
+      tournamentName: tourn?.name || void 0,
+      paymentMethod,
+      paymentMethodName: paymentMethodNames[paymentMethod] || paymentMethod,
+      amountMAD: tourn?.entryFeeMAD || 49.99,
+      proofData,
+      proofName: (proofName || "justificatif_paiement").slice(0, 100),
+      proofType: proofType || (isPdf ? "application/pdf" : "image/jpeg"),
+      proofSize: proofSize || void 0,
+      notes: (notes || "").slice(0, 500),
+      status: "pending",
+      createdAt: (/* @__PURE__ */ new Date()).toISOString()
+    };
+    db.paymentSubmissions.unshift(submission);
+    db.notifications.unshift({
+      id: `notif_pay_${Date.now()}`,
+      type: "new_registration",
+      title: `Nouveau justificatif de paiement re\xE7u : ${finalGamertag}`,
+      message: `${finalPlayerName || finalGamertag} a soumis un justificatif de paiement via ${paymentMethodNames[paymentMethod] || paymentMethod}. Montant : ${submission.amountMAD} MAD.`,
+      playerName: finalPlayerName,
+      gamertag: finalGamertag,
+      userEmail: finalEmail,
+      phone: phone || "",
+      tournamentId: tourn?.id,
+      tournamentName: tourn?.name,
+      createdAt: (/* @__PURE__ */ new Date()).toISOString(),
+      read: false
+    });
+    saveDatabase(db);
+    notifyAdminAndFormBold({
+      type: "payment_submission",
+      title: `[FC TOURNAMENT] Justificatif de Paiement : ${finalGamertag}`,
+      senderEmail: finalEmail,
+      senderName: finalPlayerName || finalGamertag,
+      gamertag: finalGamertag,
+      phone: phone || "",
+      tournamentName: tourn?.name || "Paiement direct",
+      details: `Justificatif de paiement d\xE9pos\xE9 par ${finalPlayerName} (${finalGamertag}). Moyen : ${paymentMethodNames[paymentMethod]}. Fichier : ${submission.proofName}. Statut : En attente de validation manuelle par l'administrateur.`
+    }).catch(() => {
+    });
+    res.json({
+      success: true,
+      message: "Votre justificatif de paiement a \xE9t\xE9 soumis avec succ\xE8s ! Il sera examin\xE9 par l\u2019administrateur sous 24h.",
+      submission
+    });
+  } catch (err) {
+    console.error("Erreur submission justificatif:", err);
+    res.status(500).json({ error: "Une erreur est survenue lors de l\u2019envoi de votre justificatif." });
+  }
+});
+app.get("/api/payments/my-submissions", requireAuth, (req, res) => {
+  const userPayments = db.paymentSubmissions.filter(
+    (p) => p.userId === req.user.id || p.userEmail.toLowerCase() === req.user.email.toLowerCase() || p.gamertag.toLowerCase() === req.user.gamertag.toLowerCase()
+  );
+  res.json(userPayments);
+});
+app.get("/api/admin/payments", requireAdmin, (req, res) => {
+  res.json(db.paymentSubmissions || []);
+});
+app.patch("/api/admin/payments/:id/status", requireAdmin, (req, res) => {
+  const { id } = req.params;
+  const { status, rejectionReason } = req.body;
+  if (!["pending", "accepted", "rejected"].includes(status)) {
+    res.status(400).json({ error: "Statut invalide." });
+    return;
+  }
+  const submission = db.paymentSubmissions.find((p) => p.id === id);
+  if (!submission) {
+    res.status(404).json({ error: "Justificatif de paiement introuvable." });
+    return;
+  }
+  submission.status = status;
+  submission.reviewedAt = (/* @__PURE__ */ new Date()).toISOString();
+  submission.reviewedBy = req.user?.gamertag || "Admin_Staff";
+  if (status === "rejected") {
+    submission.rejectionReason = rejectionReason || "Justificatif non conforme ou illisible";
+  } else {
+    submission.rejectionReason = void 0;
+  }
+  if (submission.tournamentId) {
+    const reg = db.registrations.find(
+      (r) => r.tournamentId === submission.tournamentId && (r.userId === submission.userId || r.gamertag.toLowerCase() === submission.gamertag.toLowerCase() || r.userEmail && r.userEmail.toLowerCase() === submission.userEmail.toLowerCase())
+    );
+    if (reg) {
+      if (status === "accepted" && reg.status !== "confirmed") {
+        reg.status = "confirmed";
+        reg.validatedAt = (/* @__PURE__ */ new Date()).toISOString();
+        reg.reviewedBy = req.user?.gamertag || "Admin_Staff";
+      } else if (status === "rejected" && reg.status !== "rejected") {
+        reg.status = "rejected";
+        reg.rejectedAt = (/* @__PURE__ */ new Date()).toISOString();
+        reg.rejectionReason = submission.rejectionReason;
+      }
+    }
+  }
+  saveDatabase(db);
+  res.json({
+    success: true,
+    message: `Justificatif ${status === "accepted" ? "accept\xE9" : "refus\xE9"} avec succ\xE8s.`,
+    submission
+  });
+});
+app.get("/api/admin/payments/:id/download-proof", requireAdmin, (req, res) => {
+  const submission = db.paymentSubmissions.find((p) => p.id === req.params.id);
+  if (!submission || !submission.proofData) {
+    res.status(404).json({ error: "Fichier justificatif introuvable." });
+    return;
+  }
+  const matches = submission.proofData.match(/^data:([a-zA-Z0-9/+-]+);base64,(.+)$/);
+  if (!matches || matches.length < 3) {
+    res.status(400).json({ error: "Format de fichier corrompu." });
+    return;
+  }
+  const mimeType = matches[1].toLowerCase();
+  let ext = "bin";
+  if (mimeType.includes("pdf")) ext = "pdf";
+  else if (mimeType.includes("jpeg") || mimeType.includes("jpg")) ext = "jpg";
+  else if (mimeType.includes("png")) ext = "png";
+  const buffer = Buffer.from(matches[2], "base64");
+  const safeName = submission.gamertag.replace(/[^a-zA-Z0-9_-]/g, "_") || "justificatif";
+  const filename = `justificatif-${submission.paymentMethod}-${safeName}-${submission.id}.${ext}`;
+  res.setHeader("Content-Type", mimeType);
+  res.setHeader("Content-Disposition", `attachment; filename="${filename}"`);
+  res.setHeader("Content-Length", buffer.length.toString());
+  res.send(buffer);
+});
+app.delete("/api/admin/payments/:id", requireAdmin, (req, res) => {
+  const idx = db.paymentSubmissions.findIndex((p) => p.id === req.params.id);
+  if (idx === -1) {
+    res.status(404).json({ error: "Justificatif introuvable." });
+    return;
+  }
+  db.paymentSubmissions.splice(idx, 1);
+  saveDatabase(db);
+  res.json({ success: true, message: "Justificatif supprim\xE9 avec succ\xE8s." });
 });
 app.get("/api/matches", (req, res) => {
   const { tournamentId, status } = req.query;

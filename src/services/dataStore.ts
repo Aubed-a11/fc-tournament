@@ -1,4 +1,4 @@
-import type { Tournament, Match, Registration, PlayerLeaderboard, User } from '../types/index.ts';
+import type { Tournament, Match, Registration, PlayerLeaderboard, User, PaymentSubmission } from '../types/index.ts';
 import {
   INITIAL_TOURNAMENTS,
   INITIAL_MATCHES,
@@ -7,12 +7,13 @@ import {
 } from '../data/initialData.ts';
 
 // Increment this version whenever code source defaults change to purge/refresh stale browser cache
-export const CURRENT_DATA_VERSION = '2026-11-10-v4';
+export const CURRENT_DATA_VERSION = '2026-11-10-v5';
 
 const KEY_DATA_VERSION = 'fc_data_version';
 const KEY_TOURNAMENTS = 'fc_store_tournaments';
 const KEY_MATCHES = 'fc_store_matches';
 const KEY_REGISTRATIONS = 'fc_store_registrations';
+const KEY_PAYMENTS = 'fc_store_payments';
 
 /**
  * Ensures that the client's localStorage cache does not block new source code data.
@@ -320,5 +321,51 @@ export function resetToOfficialDefaults(): void {
     localStorage.setItem('fc_local_registrations', JSON.stringify(INITIAL_REGISTRATIONS));
   } catch (err) {
     console.error('Error resetting to official defaults:', err);
+  }
+}
+
+export function getStoredPayments(): PaymentSubmission[] {
+  try {
+    if (typeof window === 'undefined') return [];
+    const raw = localStorage.getItem(KEY_PAYMENTS);
+    return raw ? JSON.parse(raw) : [];
+  } catch {
+    return [];
+  }
+}
+
+export function saveStoredPayment(payment: PaymentSubmission): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const list = getStoredPayments();
+    const idx = list.findIndex((p) => p.id === payment.id);
+    if (idx >= 0) {
+      list[idx] = payment;
+    } else {
+      list.unshift(payment);
+    }
+    localStorage.setItem(KEY_PAYMENTS, JSON.stringify(list));
+  } catch (err) {
+    console.error('Error saving stored payment:', err);
+  }
+}
+
+export function updateStoredPaymentStatus(
+  id: string,
+  status: 'pending' | 'accepted' | 'rejected',
+  rejectionReason?: string
+): void {
+  try {
+    if (typeof window === 'undefined') return;
+    const list = getStoredPayments();
+    const item = list.find((p) => p.id === id);
+    if (item) {
+      item.status = status;
+      item.reviewedAt = new Date().toISOString();
+      if (rejectionReason) item.rejectionReason = rejectionReason;
+      localStorage.setItem(KEY_PAYMENTS, JSON.stringify(list));
+    }
+  } catch (err) {
+    console.error('Error updating payment status:', err);
   }
 }

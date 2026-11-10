@@ -15,6 +15,7 @@ import {
   Flame,
   Award,
 } from 'lucide-react';
+import { PaymentSection } from '../components/PaymentSection.tsx';
 
 interface HomeProps {
   onNavigate: (page: string, param?: string) => void;
@@ -411,6 +412,9 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
           </div>
         </div>
       </section>
+
+      {/* SECTION PAIEMENT OFFICIEL : EFFECTUER MON PAIEMENT */}
+      <PaymentSection tournaments={tournaments} onNavigate={onNavigate} />
 
       {/* Official Rules & Fair-Play Callout Section */}
       <section className="py-12 bg-gradient-to-b from-[#07090e] to-[#0a0e16] border-t border-[#161e2c]">
