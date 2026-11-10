@@ -424,7 +424,7 @@ function getInitialDatabase(): DatabaseSchema {
       time: '14:00',
       registrationDeadline: '2027-04-23T23:59:00.000Z',
       maxParticipants: 32,
-      entryFeeMAD: 49.99,
+      entryFeeMAD: 50,
       prizePool: '**** MAD + Trophée + T-shirt',
       status: 'open',
       rules:
@@ -447,7 +447,7 @@ function getInitialDatabase(): DatabaseSchema {
       time: '16:00',
       registrationDeadline: '2026-03-12T18:00:00.000Z',
       maxParticipants: 32,
-      entryFeeMAD: 49.99,
+      entryFeeMAD: 50,
       prizePool: '**** MAD + Trophée + T-shirt',
       status: 'completed',
       rules:
@@ -1129,8 +1129,8 @@ function loadDatabase(): DatabaseSchema {
         t.platform = 'Téléphone (Mobile)';
         needsSync = true;
       }
-      if (t.entryFeeMAD !== 49.99) {
-        t.entryFeeMAD = 49.99;
+      if (t.entryFeeMAD !== 50) {
+        t.entryFeeMAD = 50;
         needsSync = true;
       }
     } else if (t.id === 'tourn_ligue_oriental_2026') {
@@ -1140,8 +1140,8 @@ function loadDatabase(): DatabaseSchema {
         t.platform = 'PC';
         needsSync = true;
       }
-      if (t.entryFeeMAD !== 49.99) {
-        t.entryFeeMAD = 49.99;
+      if (t.entryFeeMAD !== 50) {
+        t.entryFeeMAD = 50;
         needsSync = true;
       }
     }
@@ -1253,8 +1253,8 @@ function applyTournamentMigrations(data: DatabaseSchema): boolean {
       Object.assign(t, o);
       changed = true;
     }
-    if (t.entryFeeMAD !== 49.99) {
-      t.entryFeeMAD = 49.99;
+    if (t.entryFeeMAD !== 50) {
+      t.entryFeeMAD = 50;
       changed = true;
     }
   }
@@ -2453,7 +2453,7 @@ app.get('/auth/me', handleMe);
         tournamentName: tourn?.name || undefined,
         paymentMethod: paymentMethod as any,
         paymentMethodName: paymentMethodNames[paymentMethod] || paymentMethod,
-        amountMAD: tourn?.entryFeeMAD || 49.99,
+        amountMAD: tourn?.entryFeeMAD || 50,
         proofData,
         proofName: (proofName || 'justificatif_paiement').slice(0, 100),
         proofType: proofType || (isPdf ? 'application/pdf' : 'image/jpeg'),

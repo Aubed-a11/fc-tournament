@@ -27,7 +27,7 @@ SELECT
   'tourn_spring_2026', 'Championnat sur téléphone', 'championnat-sur-telephone',
   'Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
   'EA SPORTS 27', 'Téléphone (Mobile)', 'aller_retour', 'Gaming Arena', 'Maroc',
-  '2027-04-25', '14:00', '2027-04-23T23:59:00.000Z', 32, 49.99,
+  '2027-04-25', '14:00', '2027-04-23T23:59:00.000Z', 32, 50,
   '**** MAD + Trophée + T-shirt', 'open',
   'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.
 Article 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.
@@ -51,7 +51,7 @@ SELECT
   'tourn_ligue_oriental_2026', 'Championnat sur PC', 'championnat-sur-pc',
   'La compétition d’élite sur PC qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
   'EA SPORTS 27', 'PC', 'aller_retour', 'Gaming Arena', 'Maroc',
-  '2026-03-14', '16:00', '2026-03-12T18:00:00.000Z', 32, 49.99,
+  '2026-03-14', '16:00', '2026-03-12T18:00:00.000Z', 32, 50,
   '**** MAD + Trophée + T-shirt', 'completed',
   'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.
 Article 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.

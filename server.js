@@ -331,7 +331,7 @@ function getInitialDatabase() {
       time: "14:00",
       registrationDeadline: "2027-04-23T23:59:00.000Z",
       maxParticipants: 32,
-      entryFeeMAD: 49.99,
+      entryFeeMAD: 50,
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "open",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
@@ -352,7 +352,7 @@ function getInitialDatabase() {
       time: "16:00",
       registrationDeadline: "2026-03-12T18:00:00.000Z",
       maxParticipants: 32,
-      entryFeeMAD: 49.99,
+      entryFeeMAD: 50,
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "completed",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
@@ -1018,8 +1018,8 @@ function loadDatabase() {
         t.platform = "T\xE9l\xE9phone (Mobile)";
         needsSync = true;
       }
-      if (t.entryFeeMAD !== 49.99) {
-        t.entryFeeMAD = 49.99;
+      if (t.entryFeeMAD !== 50) {
+        t.entryFeeMAD = 50;
         needsSync = true;
       }
     } else if (t.id === "tourn_ligue_oriental_2026") {
@@ -1029,8 +1029,8 @@ function loadDatabase() {
         t.platform = "PC";
         needsSync = true;
       }
-      if (t.entryFeeMAD !== 49.99) {
-        t.entryFeeMAD = 49.99;
+      if (t.entryFeeMAD !== 50) {
+        t.entryFeeMAD = 50;
         needsSync = true;
       }
     }
@@ -1130,8 +1130,8 @@ function applyTournamentMigrations(data) {
       Object.assign(t, o);
       changed = true;
     }
-    if (t.entryFeeMAD !== 49.99) {
-      t.entryFeeMAD = 49.99;
+    if (t.entryFeeMAD !== 50) {
+      t.entryFeeMAD = 50;
       changed = true;
     }
   }
@@ -2087,7 +2087,7 @@ app.post("/api/payments/submit", (req, res) => {
       tournamentName: tourn?.name || void 0,
       paymentMethod,
       paymentMethodName: paymentMethodNames[paymentMethod] || paymentMethod,
-      amountMAD: tourn?.entryFeeMAD || 49.99,
+      amountMAD: tourn?.entryFeeMAD || 50,
       proofData,
       proofName: (proofName || "justificatif_paiement").slice(0, 100),
       proofType: proofType || (isPdf ? "application/pdf" : "image/jpeg"),

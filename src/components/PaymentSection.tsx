@@ -228,7 +228,7 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({ tournaments = []
   };
 
   const selectedTourn = tournaments.find((t) => t.id === selectedTournamentId) || tournaments[0];
-  const activeFee = selectedTourn?.entryFeeMAD ? `${selectedTourn.entryFeeMAD} MAD` : '49.99 MAD';
+  const activeFee = selectedTourn?.entryFeeMAD ? `${selectedTourn.entryFeeMAD} MAD` : '50 MAD';
 
   return (
     <section id="paiement" className="py-16 bg-[#080c14] border-t border-b border-[#172033] relative overflow-hidden">
@@ -565,7 +565,7 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({ tournaments = []
                     >
                       {tournaments.map((t) => (
                         <option key={t.id} value={t.id}>
-                          {t.name} ({t.entryFeeMAD || 49.99} MAD)
+                          {t.name} ({t.entryFeeMAD || 50} MAD)
                         </option>
                       ))}
                     </select>
@@ -823,7 +823,7 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({ tournaments = []
                         Moyen : <strong className="text-white">{p.paymentMethodName}</strong>
                       </div>
                       <div>
-                        Montant : <strong className="text-[#00ff66]">{p.amountMAD || 49.99} MAD</strong>
+                        Montant : <strong className="text-[#00ff66]">{p.amountMAD || 50} MAD</strong>
                       </div>
                       <div>
                         Reçu : <span className="text-slate-300 truncate">{p.proofName}</span>

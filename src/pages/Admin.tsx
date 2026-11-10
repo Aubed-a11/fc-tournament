@@ -2547,7 +2547,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                                   {item.paymentMethod.toUpperCase()}
                                 </span>
                                 <div className="text-white font-mono font-bold text-xs">
-                                  {item.amountMAD || 49.99} MAD
+                                  {item.amountMAD || 50} MAD
                                 </div>
                               </td>
 

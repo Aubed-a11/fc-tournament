@@ -287,7 +287,7 @@ export const apiClient = {
             : payload.paymentMethod === 'bmce'
             ? 'BMCE BANK (RIB: 011570000007200000447220)'
             : 'MTN MOMO (Numéro: 0162403071)',
-        amountMAD: 49.99,
+        amountMAD: 50,
         proofData: payload.proofData,
         proofName: payload.proofName,
         proofType: payload.proofType,

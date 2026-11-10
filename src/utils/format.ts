@@ -34,7 +34,7 @@ export function formatDateTimeFrench(dateString?: string, timeString?: string): 
 
 export function formatMAD(amount?: number): string {
   if (amount === undefined || amount === null || isNaN(amount)) {
-    return '49.99 MAD';
+    return '50 MAD';
   }
   const num = Number(amount);
   const formatted = Number.isInteger(num) ? num.toString() : num.toFixed(2);

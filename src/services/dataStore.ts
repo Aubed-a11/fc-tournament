@@ -29,10 +29,10 @@ export function ensureDataVersionSynced(): void {
       console.log(`[FC DataStore] Synchronisation nouvelle version du code (${savedVersion} -> ${CURRENT_DATA_VERSION})`);
       localStorage.setItem(KEY_DATA_VERSION, CURRENT_DATA_VERSION);
 
-      // Initialize / Update tournaments with new official names & entryFeeMAD 49.99
+      // Initialize / Update tournaments with new official names & entryFeeMAD 50
       const freshTournaments = INITIAL_TOURNAMENTS.map(t => ({
         ...t,
-        entryFeeMAD: 49.99
+        entryFeeMAD: 50
       }));
       localStorage.setItem(KEY_TOURNAMENTS, JSON.stringify(freshTournaments));
 
