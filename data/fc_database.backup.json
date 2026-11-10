@@ -1,0 +1,2693 @@
+{
+  "users": [
+    {
+      "id": "usr_owner_ali",
+      "email": "alio227ng@gmail.com",
+      "passwordHash": "97d5ef563037f57b4d8414665a987fa246901bab27c18fac68eb53e9e95ea60caa8a85be5e2a8abc668a15b02cfbd514c1e032e4ad955d0fede803777f5b6ae0",
+      "salt": "9eaf2a3cd5a3f29b95d377117e8013db",
+      "gamertag": "Ali_FC",
+      "firstName": "Ali",
+      "lastName": "O.",
+      "role": "admin",
+      "favoriteTeam": "Real Madrid",
+      "bio": "Fondateur et administrateur officiel de FC Tournament.",
+      "avatarUrl": "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-01T00:00:00.000Z"
+    },
+    {
+      "id": "usr_admin",
+      "email": "admin@fctournament.ma",
+      "passwordHash": "528cb4ed233139b7cf6611ce34cba4268a9c92c0bf48b9e25d872ae91520dfd5f4300342456cd6b527129884d18f9f698ddd72d0b23d6344ca1e83899339b1b8",
+      "salt": "d31c6fd8a0ef6cf6aa870523d2fcb1c2",
+      "gamertag": "Admin_FC",
+      "firstName": "Karim",
+      "lastName": "El Mansouri",
+      "role": "admin",
+      "favoriteTeam": "Real Madrid",
+      "bio": "Responsable de l’organisation des tournois eSport.",
+      "avatarUrl": "https://images.unsplash.com/photo-1566492031773-4f4e44671857?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-10T10:00:00.000Z"
+    },
+    {
+      "id": "usr_amine",
+      "email": "joueur@fctournament.ma",
+      "passwordHash": "c18d98fecf1a3e501527b1b0be8437b7e6c04192655ddf86fa9ef56396b2eb43467890c1f9ad43ec7d0c5ef9b1a41c69fda7c6c5d46e51e301ca8fe03abba8c4",
+      "salt": "f5c6938b319c4f51a3ed1a42f5316e2f",
+      "gamertag": "Amine_FC",
+      "firstName": "Amine",
+      "lastName": "Bennani",
+      "role": "player",
+      "favoriteTeam": "Real Madrid",
+      "bio": "Finaliste Champions Cup 2025. Joueur offensif tiki-taka.",
+      "avatarUrl": "https://images.unsplash.com/photo-1535713875002-d1d0cf377fde?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-15T14:30:00.000Z"
+    },
+    {
+      "id": "usr_reda",
+      "email": "reda@fctournament.ma",
+      "passwordHash": "7548bebd08d5e58e0a210715fb2e145926132015878421f30f6ffe3003b24d4ff122ea946017a62c7224432fa42e233b1393ac9e24993eccbd50b6b4639d65d6",
+      "salt": "cd614e9680c1e99f781469076b221669",
+      "gamertag": "Reda_TheKing",
+      "firstName": "Reda",
+      "lastName": "Berrada",
+      "role": "player",
+      "favoriteTeam": "Manchester City",
+      "bio": "Compétiteur eSport. Spécialiste contre-attaque.",
+      "avatarUrl": "https://images.unsplash.com/photo-1570295999919-56ceb5ecca61?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-16T09:00:00.000Z"
+    },
+    {
+      "id": "usr_yassine",
+      "email": "yassine@fctournament.ma",
+      "passwordHash": "080aa76c4baf4d4730f85a47401559979645cfd4a579bb24dc0d1283141e1eff6a00ffeb987a90848c6f43554d0f36c769cdb4a49c0026c7be61f6c2d7cbe3d0",
+      "salt": "a3a38e8bcaf3ff651de528c5957fb3ba",
+      "gamertag": "Yassine_99",
+      "firstName": "Yassine",
+      "lastName": "Mansouri",
+      "role": "player",
+      "favoriteTeam": "FC Barcelone",
+      "bio": "Joueur régulier à Al Qods Gaming.",
+      "avatarUrl": "https://images.unsplash.com/photo-1527980965255-d3b416303d12?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-18T16:20:00.000Z"
+    },
+    {
+      "id": "usr_bilal",
+      "email": "bilal@fctournament.ma",
+      "passwordHash": "0a6af8f65b3e88655f3cef0b81cd49f4bfc64e46f44d29fb41d6a2a23071a424244e957bf1b63da6c2df2634bc4edf96597b2333d3f6cdc0b35548eac1e2225d",
+      "salt": "93b9aa9c3a685f32392816f7fb5dff32",
+      "gamertag": "FC_Sniper",
+      "firstName": "Bilal",
+      "lastName": "Tahiri",
+      "role": "player",
+      "favoriteTeam": "Arsenal",
+      "bio": "Top 5 Maroc eSport Qualifiers.",
+      "avatarUrl": "https://images.unsplash.com/photo-1580489944761-15a19d654956?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-20T11:15:00.000Z"
+    },
+    {
+      "id": "usr_mehdi",
+      "email": "mehdi@fctournament.ma",
+      "passwordHash": "925110a34f0d220f0096089191f3b2bdb7c9c014a1ba22a6068721505fae1a8948a44a55f8f0e856268ee9931d79d02fe5fd49b72216c1afd4ad618c750cfbb9",
+      "salt": "5cd8e9155a4aeb44248771b8419ce8ef",
+      "gamertag": "Mehdi_Pro",
+      "firstName": "Mehdi",
+      "lastName": "El Amrani",
+      "role": "player",
+      "favoriteTeam": "Paris SG",
+      "bio": "Passionné de gestes techniques et de tirs enroulés.",
+      "avatarUrl": "https://images.unsplash.com/photo-1628157582853-a796fa650a6a?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-22T19:40:00.000Z"
+    },
+    {
+      "id": "usr_simoo",
+      "email": "simoo@fctournament.ma",
+      "passwordHash": "d1ef87b551f7151513f85d8e7e356cb5aacab263f263188644ff6b38ec4178c1307521663ce8882069142ef69c919cfad21d7e8400b4a478c84e1e49a6a9e3f6",
+      "salt": "d1a913ceaf6d1f28b0ef06e1b4e1458e",
+      "gamertag": "Simoo_Dribble",
+      "firstName": "Mohamed",
+      "lastName": "Ziani",
+      "role": "player",
+      "favoriteTeam": "Bayern Munich",
+      "bio": "Vétéran des tournois FIFA / FC.",
+      "avatarUrl": "https://images.unsplash.com/photo-1507003211169-0a1dd7228f2d?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-25T13:00:00.000Z"
+    },
+    {
+      "id": "usr_hamza",
+      "email": "hamza@fctournament.ma",
+      "passwordHash": "02f46995d024cec6f4b4b22de9261cf9bddbd0e8d56400983d5b630464deae7a7d88b432217f4bedf8483fcc98b32c2ae848d25a976db9ef8a092ffbfc8fee8d",
+      "salt": "19518a0c3a3578e99347a70a43cfabc7",
+      "gamertag": "Hamza_FCB",
+      "firstName": "Hamza",
+      "lastName": "Chaoui",
+      "role": "player",
+      "favoriteTeam": "Liverpool",
+      "bio": "Pressing haut et jeu rapide.",
+      "avatarUrl": "https://images.unsplash.com/photo-1500648767791-00dcc994a43e?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-27T17:45:00.000Z"
+    },
+    {
+      "id": "usr_karim",
+      "email": "karim.atlas@fctournament.ma",
+      "passwordHash": "344173cf18a279c7a6c589efb3a7a194fa900d781d6ddbbc7f3c266fddc594d1e2e11a1abd8fbfbaaa7f999a3d8c53ec9df2f218431b23ad7c18998be0c01a3b",
+      "salt": "530980472591670a8c3afeaddc73f825",
+      "gamertag": "Karim_Atlas",
+      "firstName": "Karim",
+      "lastName": "Benali",
+      "role": "player",
+      "favoriteTeam": "Maroc eSport",
+      "bio": "Fier compétiteur eSport.",
+      "avatarUrl": "https://images.unsplash.com/photo-1472099645785-5658abf4ff4e?w=150&auto=format&fit=crop&q=80",
+      "createdAt": "2026-01-29T20:10:00.000Z"
+    },
+    {
+      "id": "usr_1793800042399_5iwqz",
+      "email": "newplayer_1793800042342@example.com",
+      "passwordHash": "b777ac60325d2469569d0047f69e745b9759cf219dec5e2d1a7322df2f8b86291a1cc498374ec9d6e5c67b104fe7ee878710e01fe1b6f5ca4f800b435d4f2ed5",
+      "salt": "461a8dde04d8441b3f7b795f1f1dfaf3",
+      "gamertag": "TestGamer_1793800042342",
+      "firstName": "Hakim",
+      "lastName": "Ziyech",
+      "role": "player",
+      "favoriteTeam": "Maroc",
+      "bio": "",
+      "avatarUrl": "https://api.dicebear.com/7.x/bottts/svg?seed=TestGamer_1793800042342",
+      "createdAt": "2026-11-04T13:47:22.399Z"
+    }
+  ],
+  "tournaments": [
+    {
+      "id": "tourn_spring_2026",
+      "name": "Championnat",
+      "slug": "championnat-fc-2026",
+      "description": "Le tournoi e-sport incontournable de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.",
+      "gameVersion": "EA SPORTS 27",
+      "platform": "e-Football",
+      "format": "aller_retour",
+      "location": "Gaming Arena",
+      "city": "Maroc",
+      "startDate": "2027-04-25",
+      "time": "14:00",
+      "registrationDeadline": "2027-04-23T23:59:00.000Z",
+      "maxParticipants": 32,
+      "entryFeeMAD": 50,
+      "prizePool": "**** MAD + Trophée + T-shirt",
+      "status": "open",
+      "rules": "Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.",
+      "bannerImage": "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
+      "createdAt": "2026-02-01T10:00:00.000Z",
+      "participantsCount": 12,
+      "confirmedCount": 12,
+      "userRegistration": null
+    },
+    {
+      "id": "tourn_ligue_oriental_2026",
+      "name": "Ligue des champions",
+      "slug": "ligue-des-champions",
+      "description": "La compétition d’élite qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.",
+      "gameVersion": "EA SPORTS 27",
+      "platform": "e-Football",
+      "format": "aller_retour",
+      "location": "Gaming Arena",
+      "city": "Maroc",
+      "startDate": "2026-03-14",
+      "time": "16:00",
+      "registrationDeadline": "2026-03-12T18:00:00.000Z",
+      "maxParticipants": 32,
+      "entryFeeMAD": 50,
+      "prizePool": "**** MAD + Trophée + T-shirt",
+      "status": "completed",
+      "rules": "Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.",
+      "bannerImage": "/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
+      "createdAt": "2026-01-20T12:00:00.000Z",
+      "participantsCount": 8,
+      "confirmedCount": 8,
+      "userRegistration": null
+    }
+  ],
+  "registrations": [
+    {
+      "id": "reg_1",
+      "tournamentId": "tourn_spring_2026",
+      "userId": "usr_amine",
+      "gamertag": "Amine_FC",
+      "playerName": "Amine Bennani",
+      "userEmail": "joueur@fctournament.ma",
+      "status": "confirmed",
+      "registeredAt": "2026-02-02T10:15:00.000Z",
+      "seed": 1,
+      "registrationNumber": "REG-2026-0001"
+    },
+    {
+      "id": "reg_2",
+      "tournamentId": "tourn_spring_2026",
+      "userId": "usr_reda",
+      "gamertag": "Reda_TheKing",
+      "playerName": "Reda Berrada",
+      "userEmail": "reda@fctournament.ma",
+      "status": "confirmed",
+      "registeredAt": "2026-02-02T11:30:00.000Z",
+      "seed": 2,
+      "whatsappInviteAttempts": 1,
+      "whatsappInviteStatus": "sent",
+      "whatsappInviteSentAt": "2026-11-04T13:02:52.807Z",
+      "registrationNumber": "REG-2026-0002"
+    },
+    {
+      "id": "reg_3",
+      "tournamentId": "tourn_spring_2026",
+      "userId": "usr_yassine",
+      "gamertag": "Yassine_99",
+      "playerName": "Yassine Mansouri",
+      "userEmail": "yassine@fctournament.ma",
+      "status": "confirmed",
+      "registeredAt": "2026-02-03T14:20:00.000Z",
+      "seed": 3,
+      "registrationNumber": "REG-2026-0003"
+    },
+    {
+      "id": "reg_4",
+      "tournamentId": "tourn_spring_2026",
+      "userId": "usr_bilal",
+      "gamertag": "FC_Sniper",
+      "playerName": "Bilal Tahiri",
+      "userEmail": "bilal@fctournament.ma",
+      "status": "confirmed",
+      "registeredAt": "2026-02-04T09:45:00.000Z",
+      "seed": 4,
+      "registrationNumber": "REG-2026-0004"
+    },
+    {
+      "id": "reg_5",
+      "tournamentId": "tourn_spring_2026",
+      "userId": "usr_mehdi",
+      "gamertag": "Mehdi_Pro",
+      "playerName": "Mehdi El Amrani",
+      "userEmail": "mehdi@fctournament.ma",
+      "status": "confirmed",
+      "registeredAt": "2026-02-05T16:00:00.000Z",
+      "seed": 5,
+      "registrationNumber": "REG-2026-0005"
+    },
+    {
+      "id": "reg_6",
+      "tournamentId": "tourn_spring_2026",
+      "userId": "usr_simoo",
+      "gamertag": "Simoo_Dribble",
+      "playerName": "Mohamed Ziani",
+      "userEmail": "simoo@fctournament.ma",
+      "status": "confirmed",
+      "registeredAt": "2026-02-06T18:10:00.000Z",
+      "seed": 6,
+      "registrationNumber": "REG-2026-0006"
+    },
+    {
+      "id": "reg_oriental_1",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_amine",
+      "gamertag": "Amine_FC",
+      "playerName": "Amine Bennani",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T10:00:00.000Z",
+      "seed": 1,
+      "registrationNumber": "REG-2026-0007"
+    },
+    {
+      "id": "reg_oriental_2",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_reda",
+      "gamertag": "Reda_TheKing",
+      "playerName": "Reda Berrada",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T10:15:00.000Z",
+      "seed": 2,
+      "registrationNumber": "REG-2026-0008"
+    },
+    {
+      "id": "reg_oriental_3",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_yassine",
+      "gamertag": "Yassine_99",
+      "playerName": "Yassine Mansouri",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T10:30:00.000Z",
+      "seed": 3,
+      "registrationNumber": "REG-2026-0009"
+    },
+    {
+      "id": "reg_oriental_4",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_bilal",
+      "gamertag": "FC_Sniper",
+      "playerName": "Bilal Tahiri",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T10:45:00.000Z",
+      "seed": 4,
+      "registrationNumber": "REG-2026-0010"
+    },
+    {
+      "id": "reg_oriental_5",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_mehdi",
+      "gamertag": "Mehdi_Pro",
+      "playerName": "Mehdi El Amrani",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T11:00:00.000Z",
+      "seed": 5,
+      "registrationNumber": "REG-2026-0011"
+    },
+    {
+      "id": "reg_oriental_6",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_simoo",
+      "gamertag": "Simoo_Dribble",
+      "playerName": "Mohamed Ziani",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T11:15:00.000Z",
+      "seed": 6,
+      "registrationNumber": "REG-2026-0012"
+    },
+    {
+      "id": "reg_oriental_7",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_hamza",
+      "gamertag": "Hamza_FCB",
+      "playerName": "Hamza Chaoui",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T11:30:00.000Z",
+      "seed": 7,
+      "registrationNumber": "REG-2026-0013"
+    },
+    {
+      "id": "reg_oriental_8",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "userId": "usr_karim",
+      "gamertag": "Karim_Atlas",
+      "playerName": "Karim Benali",
+      "status": "confirmed",
+      "registeredAt": "2026-02-01T11:45:00.000Z",
+      "seed": 8,
+      "registrationNumber": "REG-2026-0014"
+    },
+    {
+      "id": "reg_1793725437285_qkz9",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "guest_1793725437285_sccv",
+      "gamertag": "Omar_Maestro",
+      "playerName": "Omar El Alami",
+      "userEmail": "omar.test@fctournament.ma",
+      "phone": "0612345678",
+      "teamSelected": "Real Madrid",
+      "controllerPreference": "Manette personnelle PS5",
+      "paymentProof": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "paymentProofName": "recu_virement_omar.png",
+      "status": "confirmed",
+      "registeredAt": "2026-11-03T17:03:57.285Z",
+      "seed": 9,
+      "whatsappInviteAttempts": 1,
+      "whatsappInviteStatus": "sent",
+      "whatsappInviteSentAt": "2026-11-04T13:02:19.568Z",
+      "registrationNumber": "REG-2026-0015"
+    },
+    {
+      "id": "reg_champ_hamza",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "usr_hamza",
+      "gamertag": "Hamza_FCB",
+      "playerName": "Hamza Chaoui",
+      "userEmail": "hamza@fctournament.ma",
+      "phone": "+212 6 33 44 55 66",
+      "status": "confirmed",
+      "registeredAt": "2026-02-07T14:30:00.000Z",
+      "seed": 7,
+      "registrationNumber": "REG-2026-0016"
+    },
+    {
+      "id": "reg_champ_karim",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "usr_karim",
+      "gamertag": "Karim_Atlas",
+      "playerName": "Karim Benali",
+      "userEmail": "karim.atlas@fctournament.ma",
+      "phone": "+212 6 44 55 66 77",
+      "status": "confirmed",
+      "registeredAt": "2026-02-08T11:15:00.000Z",
+      "seed": 8,
+      "registrationNumber": "REG-2026-0017"
+    },
+    {
+      "id": "reg_champ_tariq",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "usr_tariq",
+      "gamertag": "Tariq_Pro9",
+      "playerName": "Tariq Mansour",
+      "userEmail": "tariq.mansour@fctournament.ma",
+      "phone": "+212 6 55 66 77 88",
+      "status": "confirmed",
+      "registeredAt": "2026-02-09T16:20:00.000Z",
+      "seed": 10,
+      "registrationNumber": "REG-2026-0018"
+    },
+    {
+      "id": "reg_champ_soufiane",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "usr_soufiane",
+      "gamertag": "Souf_Skiller",
+      "playerName": "Soufiane El Fassi",
+      "userEmail": "soufiane.elfassi@fctournament.ma",
+      "phone": "+212 6 66 77 88 99",
+      "status": "confirmed",
+      "registeredAt": "2026-02-10T18:45:00.000Z",
+      "seed": 11,
+      "registrationNumber": "REG-2026-0019"
+    },
+    {
+      "id": "reg_champ_ayoub",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "usr_ayoub",
+      "gamertag": "Ayoub_Striker",
+      "playerName": "Ayoub Bennis",
+      "userEmail": "ayoub.bennis@fctournament.ma",
+      "phone": "+212 6 77 88 99 00",
+      "status": "confirmed",
+      "registeredAt": "2026-02-11T19:10:00.000Z",
+      "seed": 12,
+      "registrationNumber": "REG-2026-0020"
+    },
+    {
+      "id": "reg_1794301367570_czq8",
+      "registrationNumber": "REG-2026-0021",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "userId": "guest_1794301367570_nywi",
+      "gamertag": "Youssef_FC27",
+      "playerName": "Youssef Testeur",
+      "userEmail": "alio2002ng@gmail.com",
+      "phone": "+212 6 99 88 77 66",
+      "teamSelected": "Real Madrid",
+      "controllerPreference": "Manette personnelle PS5",
+      "notes": "Test inscription officielle",
+      "paymentProof": "data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==",
+      "paymentProofName": "recu_virement.png",
+      "status": "confirmed",
+      "registeredAt": "2026-11-10T09:02:47.570Z",
+      "seed": 13,
+      "validatedAt": "2026-11-10T09:03:11.592Z",
+      "reviewedBy": "Google AI Studio Admin",
+      "whatsappInviteAttempts": 1,
+      "whatsappInviteStatus": "sent",
+      "whatsappInviteSentAt": "2026-11-10T09:03:11.592Z"
+    }
+  ],
+  "matches": [
+    {
+      "id": "match_oriental_qf1",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "quarter_final",
+      "stageName": "Quart de Finale 1",
+      "round": 1,
+      "matchNumber": 1,
+      "nextMatchId": "match_oriental_sf1",
+      "nextMatchSlot": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": 3,
+      "player2Id": "usr_karim",
+      "player2Gamertag": "Karim_Atlas",
+      "player2Score": 1,
+      "status": "completed",
+      "winnerId": "usr_amine",
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-03-14T16:25:00.000Z",
+          "adminName": "Admin_FC",
+          "action": "VALIDATION_SCORE",
+          "note": "Score officiel vérifié et validé sur la console 1."
+        }
+      ]
+    },
+    {
+      "id": "match_oriental_qf2",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "quarter_final",
+      "stageName": "Quart de Finale 2",
+      "round": 1,
+      "matchNumber": 2,
+      "nextMatchId": "match_oriental_sf1",
+      "nextMatchSlot": 2,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": 2,
+      "player2Id": "usr_mehdi",
+      "player2Gamertag": "Mehdi_Pro",
+      "player2Score": 0,
+      "status": "completed",
+      "winnerId": "usr_bilal",
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "16:30",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-03-14T16:55:00.000Z",
+          "adminName": "Admin_FC",
+          "action": "VALIDATION_SCORE",
+          "note": "Score 2-0 validé. FC_Sniper qualifié en demi."
+        }
+      ]
+    },
+    {
+      "id": "match_oriental_qf3",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "quarter_final",
+      "stageName": "Quart de Finale 3",
+      "round": 1,
+      "matchNumber": 3,
+      "nextMatchId": "match_oriental_sf2",
+      "nextMatchSlot": 1,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": 4,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": 2,
+      "status": "completed",
+      "winnerId": "usr_reda",
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-03-14T17:28:00.000Z",
+          "adminName": "Admin_FC",
+          "action": "VALIDATION_SCORE",
+          "note": "Score 4-2 validé. Reda_TheKing qualifié."
+        }
+      ]
+    },
+    {
+      "id": "match_oriental_qf4",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "quarter_final",
+      "stageName": "Quart de Finale 4",
+      "round": 1,
+      "matchNumber": 4,
+      "nextMatchId": "match_oriental_sf2",
+      "nextMatchSlot": 2,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": 3,
+      "player2Id": "usr_simoo",
+      "player2Gamertag": "Simoo_Dribble",
+      "player2Score": 2,
+      "status": "completed",
+      "winnerId": "usr_yassine",
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "17:30",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-03-14T17:58:00.000Z",
+          "adminName": "Admin_FC",
+          "action": "VALIDATION_SCORE",
+          "note": "Score 3-2 en prolongation. Yassine_99 qualifié."
+        }
+      ]
+    },
+    {
+      "id": "match_oriental_sf1",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "semi_final",
+      "stageName": "Demi-Finale 1",
+      "round": 2,
+      "matchNumber": 1,
+      "nextMatchId": "match_oriental_final",
+      "nextMatchSlot": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": 1,
+      "player2Id": "usr_bilal",
+      "player2Gamertag": "FC_Sniper",
+      "player2Score": 3,
+      "status": "completed",
+      "winnerId": "usr_bilal",
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "18:30",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T16:54:37.225Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Score validé : Amine_FC (1) - (3) FC_Sniper. Vainqueur : FC_Sniper."
+        }
+      ]
+    },
+    {
+      "id": "match_oriental_sf2",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "semi_final",
+      "stageName": "Demi-Finale 2",
+      "round": 2,
+      "matchNumber": 2,
+      "nextMatchId": "match_oriental_final",
+      "nextMatchSlot": 2,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "usr_yassine",
+      "player2Gamertag": "Yassine_99",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": []
+    },
+    {
+      "id": "match_oriental_final",
+      "tournamentId": "tourn_ligue_oriental_2026",
+      "stage": "final",
+      "stageName": "Grande Finale",
+      "round": 3,
+      "matchNumber": 1,
+      "nextMatchId": null,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": 1,
+      "player2Id": null,
+      "player2Gamertag": "Vainqueur Demi 2",
+      "player2Score": 8,
+      "status": "completed",
+      "winnerId": null,
+      "scheduledDate": "2026-03-14",
+      "scheduledTime": "20:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T16:54:49.640Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Score validé : FC_Sniper (1) - (8) Vainqueur Demi 2. Vainqueur : Vainqueur Demi 2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j1_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 1",
+      "round": 1,
+      "matchNumber": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": 3,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": 1,
+      "status": "completed",
+      "winnerId": "usr_amine",
+      "scheduledDate": "2027-04-25",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 1 match #1."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.042Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Match d’ouverture spectaculaire. Victoire nette à domicile."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j1_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 1",
+      "round": 1,
+      "matchNumber": 2,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "usr_soufiane",
+      "player2Gamertag": "Souf_Skiller",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-04-25",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 1 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j1_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 1",
+      "round": 1,
+      "matchNumber": 3,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": 4,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": 0,
+      "status": "completed",
+      "winnerId": "usr_yassine",
+      "scheduledDate": "2027-04-25",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 1 match #3."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.048Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Festival offensif et clean-sheet."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j1_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 1",
+      "round": 1,
+      "matchNumber": 4,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": 1,
+      "player2Id": "usr_karim",
+      "player2Gamertag": "Karim_Atlas",
+      "player2Score": 2,
+      "status": "completed",
+      "winnerId": "usr_karim",
+      "scheduledDate": "2027-04-25",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 1 match #4."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.052Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Victoire à l’extérieur arrachée à la 88e minute."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j1_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 1",
+      "round": 1,
+      "matchNumber": 5,
+      "player1Id": "usr_mehdi",
+      "player1Gamertag": "Mehdi_Pro",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-04-25",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 1 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j1_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 1",
+      "round": 1,
+      "matchNumber": 6,
+      "player1Id": "usr_simoo",
+      "player1Gamertag": "Simoo_Dribble",
+      "player1Score": 3,
+      "player2Id": "guest_1793725437285_sccv",
+      "player2Gamertag": "Omar_Maestro",
+      "player2Score": 2,
+      "status": "completed",
+      "winnerId": "usr_simoo",
+      "scheduledDate": "2027-04-25",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 1 match #6."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.057Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Dénouement haletant en fin de partie."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j2_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 2",
+      "round": 2,
+      "matchNumber": 1,
+      "player1Id": "usr_soufiane",
+      "player1Gamertag": "Souf_Skiller",
+      "player1Score": 2,
+      "player2Id": "usr_amine",
+      "player2Gamertag": "Amine_FC",
+      "player2Score": 0,
+      "status": "completed",
+      "winnerId": "usr_soufiane",
+      "scheduledDate": "2027-05-02",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 2 match #1."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.061Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Victoire solide 2-0 sans trembler."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j2_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 2",
+      "round": 2,
+      "matchNumber": 2,
+      "player1Id": "usr_tariq",
+      "player1Gamertag": "Tariq_Pro9",
+      "player1Score": 1,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": 3,
+      "status": "completed",
+      "winnerId": "usr_ayoub",
+      "scheduledDate": "2027-05-02",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 2 match #2."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.066Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Démonstration collective du visiteur."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j2_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 2",
+      "round": 2,
+      "matchNumber": 3,
+      "player1Id": "usr_karim",
+      "player1Gamertag": "Karim_Atlas",
+      "player1Score": null,
+      "player2Id": "usr_reda",
+      "player2Gamertag": "Reda_TheKing",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-02",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 2 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j2_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 2",
+      "round": 2,
+      "matchNumber": 4,
+      "player1Id": "usr_hamza",
+      "player1Gamertag": "Hamza_FCB",
+      "player1Score": 2,
+      "player2Id": "usr_yassine",
+      "player2Gamertag": "Yassine_99",
+      "player2Score": 1,
+      "status": "completed",
+      "winnerId": "usr_hamza",
+      "scheduledDate": "2027-05-02",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 2 match #4."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.071Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Succès 2-1 devant le public."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j2_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 2",
+      "round": 2,
+      "matchNumber": 5,
+      "player1Id": "guest_1793725437285_sccv",
+      "player1Gamertag": "Omar_Maestro",
+      "player1Score": 0,
+      "player2Id": "usr_bilal",
+      "player2Gamertag": "FC_Sniper",
+      "player2Score": 1,
+      "status": "completed",
+      "winnerId": "usr_bilal",
+      "scheduledDate": "2027-05-02",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": true,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 2 match #5."
+        },
+        {
+          "timestamp": "2026-11-03T17:47:48.073Z",
+          "adminName": "Admin_FC",
+          "action": "SCORE_UPDATE_AND_VALIDATION",
+          "note": "Courte victoire 0-1 sur contre-attaque."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j2_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 2",
+      "round": 2,
+      "matchNumber": 6,
+      "player1Id": "usr_simoo",
+      "player1Gamertag": "Simoo_Dribble",
+      "player1Score": null,
+      "player2Id": "usr_mehdi",
+      "player2Gamertag": "Mehdi_Pro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-02",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 2 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j3_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 3",
+      "round": 3,
+      "matchNumber": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": null,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-09",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 3 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j3_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 3",
+      "round": 3,
+      "matchNumber": 2,
+      "player1Id": "usr_soufiane",
+      "player1Gamertag": "Souf_Skiller",
+      "player1Score": null,
+      "player2Id": "usr_karim",
+      "player2Gamertag": "Karim_Atlas",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-09",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 3 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j3_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 3",
+      "round": 3,
+      "matchNumber": 3,
+      "player1Id": "usr_ayoub",
+      "player1Gamertag": "Ayoub_Striker",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-09",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 3 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j3_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 3",
+      "round": 3,
+      "matchNumber": 4,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "guest_1793725437285_sccv",
+      "player2Gamertag": "Omar_Maestro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-09",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 3 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j3_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 3",
+      "round": 3,
+      "matchNumber": 5,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": null,
+      "player2Id": "usr_simoo",
+      "player2Gamertag": "Simoo_Dribble",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-09",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 3 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j3_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 3",
+      "round": 3,
+      "matchNumber": 6,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": null,
+      "player2Id": "usr_mehdi",
+      "player2Gamertag": "Mehdi_Pro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-09",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 3 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j4_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 4",
+      "round": 4,
+      "matchNumber": 1,
+      "player1Id": "usr_karim",
+      "player1Gamertag": "Karim_Atlas",
+      "player1Score": null,
+      "player2Id": "usr_amine",
+      "player2Gamertag": "Amine_FC",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-16",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 4 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j4_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 4",
+      "round": 4,
+      "matchNumber": 2,
+      "player1Id": "usr_hamza",
+      "player1Gamertag": "Hamza_FCB",
+      "player1Score": null,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-16",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 4 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j4_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 4",
+      "round": 4,
+      "matchNumber": 3,
+      "player1Id": "guest_1793725437285_sccv",
+      "player1Gamertag": "Omar_Maestro",
+      "player1Score": null,
+      "player2Id": "usr_soufiane",
+      "player2Gamertag": "Souf_Skiller",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-16",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 4 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j4_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 4",
+      "round": 4,
+      "matchNumber": 4,
+      "player1Id": "usr_simoo",
+      "player1Gamertag": "Simoo_Dribble",
+      "player1Score": null,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-16",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 4 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j4_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 4",
+      "round": 4,
+      "matchNumber": 5,
+      "player1Id": "usr_mehdi",
+      "player1Gamertag": "Mehdi_Pro",
+      "player1Score": null,
+      "player2Id": "usr_reda",
+      "player2Gamertag": "Reda_TheKing",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-16",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 4 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j4_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 4",
+      "round": 4,
+      "matchNumber": 6,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": null,
+      "player2Id": "usr_yassine",
+      "player2Gamertag": "Yassine_99",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-16",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 4 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j5_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 5",
+      "round": 5,
+      "matchNumber": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-23",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 5 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j5_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 5",
+      "round": 5,
+      "matchNumber": 2,
+      "player1Id": "usr_karim",
+      "player1Gamertag": "Karim_Atlas",
+      "player1Score": null,
+      "player2Id": "guest_1793725437285_sccv",
+      "player2Gamertag": "Omar_Maestro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-23",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 5 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j5_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 5",
+      "round": 5,
+      "matchNumber": 3,
+      "player1Id": "usr_tariq",
+      "player1Gamertag": "Tariq_Pro9",
+      "player1Score": null,
+      "player2Id": "usr_simoo",
+      "player2Gamertag": "Simoo_Dribble",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-23",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 5 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j5_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 5",
+      "round": 5,
+      "matchNumber": 4,
+      "player1Id": "usr_soufiane",
+      "player1Gamertag": "Souf_Skiller",
+      "player1Score": null,
+      "player2Id": "usr_mehdi",
+      "player2Gamertag": "Mehdi_Pro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-23",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 5 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j5_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 5",
+      "round": 5,
+      "matchNumber": 5,
+      "player1Id": "usr_ayoub",
+      "player1Gamertag": "Ayoub_Striker",
+      "player1Score": null,
+      "player2Id": "usr_bilal",
+      "player2Gamertag": "FC_Sniper",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-23",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 5 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j5_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 5",
+      "round": 5,
+      "matchNumber": 6,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "usr_yassine",
+      "player2Gamertag": "Yassine_99",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-23",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 5 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j6_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 6",
+      "round": 6,
+      "matchNumber": 1,
+      "player1Id": "guest_1793725437285_sccv",
+      "player1Gamertag": "Omar_Maestro",
+      "player1Score": null,
+      "player2Id": "usr_amine",
+      "player2Gamertag": "Amine_FC",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-30",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 6 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j6_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 6",
+      "round": 6,
+      "matchNumber": 2,
+      "player1Id": "usr_simoo",
+      "player1Gamertag": "Simoo_Dribble",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-30",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 6 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j6_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 6",
+      "round": 6,
+      "matchNumber": 3,
+      "player1Id": "usr_mehdi",
+      "player1Gamertag": "Mehdi_Pro",
+      "player1Score": null,
+      "player2Id": "usr_karim",
+      "player2Gamertag": "Karim_Atlas",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-30",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 6 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j6_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 6",
+      "round": 6,
+      "matchNumber": 4,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": null,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-30",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 6 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j6_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 6",
+      "round": 6,
+      "matchNumber": 5,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": null,
+      "player2Id": "usr_soufiane",
+      "player2Gamertag": "Souf_Skiller",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-30",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 6 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j6_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 6",
+      "round": 6,
+      "matchNumber": 6,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-05-30",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 6 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j7_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 7",
+      "round": 7,
+      "matchNumber": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": null,
+      "player2Id": "usr_simoo",
+      "player2Gamertag": "Simoo_Dribble",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-06",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 7 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j7_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 7",
+      "round": 7,
+      "matchNumber": 2,
+      "player1Id": "guest_1793725437285_sccv",
+      "player1Gamertag": "Omar_Maestro",
+      "player1Score": null,
+      "player2Id": "usr_mehdi",
+      "player2Gamertag": "Mehdi_Pro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-06",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 7 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j7_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 7",
+      "round": 7,
+      "matchNumber": 3,
+      "player1Id": "usr_hamza",
+      "player1Gamertag": "Hamza_FCB",
+      "player1Score": null,
+      "player2Id": "usr_bilal",
+      "player2Gamertag": "FC_Sniper",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-06",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 7 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j7_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 7",
+      "round": 7,
+      "matchNumber": 4,
+      "player1Id": "usr_karim",
+      "player1Gamertag": "Karim_Atlas",
+      "player1Score": null,
+      "player2Id": "usr_yassine",
+      "player2Gamertag": "Yassine_99",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-06",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 7 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j7_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 7",
+      "round": 7,
+      "matchNumber": 5,
+      "player1Id": "usr_tariq",
+      "player1Gamertag": "Tariq_Pro9",
+      "player1Score": null,
+      "player2Id": "usr_reda",
+      "player2Gamertag": "Reda_TheKing",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-06",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 7 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j7_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 7",
+      "round": 7,
+      "matchNumber": 6,
+      "player1Id": "usr_soufiane",
+      "player1Gamertag": "Souf_Skiller",
+      "player1Score": null,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-06",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 7 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j8_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 8",
+      "round": 8,
+      "matchNumber": 1,
+      "player1Id": "usr_mehdi",
+      "player1Gamertag": "Mehdi_Pro",
+      "player1Score": null,
+      "player2Id": "usr_amine",
+      "player2Gamertag": "Amine_FC",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-13",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 8 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j8_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 8",
+      "round": 8,
+      "matchNumber": 2,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": null,
+      "player2Id": "usr_simoo",
+      "player2Gamertag": "Simoo_Dribble",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-13",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 8 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j8_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 8",
+      "round": 8,
+      "matchNumber": 3,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": null,
+      "player2Id": "guest_1793725437285_sccv",
+      "player2Gamertag": "Omar_Maestro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-13",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 8 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j8_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 8",
+      "round": 8,
+      "matchNumber": 4,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-13",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 8 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j8_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 8",
+      "round": 8,
+      "matchNumber": 5,
+      "player1Id": "usr_ayoub",
+      "player1Gamertag": "Ayoub_Striker",
+      "player1Score": null,
+      "player2Id": "usr_karim",
+      "player2Gamertag": "Karim_Atlas",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-13",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 8 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j8_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 8",
+      "round": 8,
+      "matchNumber": 6,
+      "player1Id": "usr_soufiane",
+      "player1Gamertag": "Souf_Skiller",
+      "player1Score": null,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-13",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 8 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j9_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 9",
+      "round": 9,
+      "matchNumber": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": null,
+      "player2Id": "usr_bilal",
+      "player2Gamertag": "FC_Sniper",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-20",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 9 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j9_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 9",
+      "round": 9,
+      "matchNumber": 2,
+      "player1Id": "usr_mehdi",
+      "player1Gamertag": "Mehdi_Pro",
+      "player1Score": null,
+      "player2Id": "usr_yassine",
+      "player2Gamertag": "Yassine_99",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-20",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 9 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j9_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 9",
+      "round": 9,
+      "matchNumber": 3,
+      "player1Id": "usr_simoo",
+      "player1Gamertag": "Simoo_Dribble",
+      "player1Score": null,
+      "player2Id": "usr_reda",
+      "player2Gamertag": "Reda_TheKing",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-20",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 9 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j9_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 9",
+      "round": 9,
+      "matchNumber": 4,
+      "player1Id": "guest_1793725437285_sccv",
+      "player1Gamertag": "Omar_Maestro",
+      "player1Score": null,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-20",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 9 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j9_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 9",
+      "round": 9,
+      "matchNumber": 5,
+      "player1Id": "usr_hamza",
+      "player1Gamertag": "Hamza_FCB",
+      "player1Score": null,
+      "player2Id": "usr_soufiane",
+      "player2Gamertag": "Souf_Skiller",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-20",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 9 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j9_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 9",
+      "round": 9,
+      "matchNumber": 6,
+      "player1Id": "usr_karim",
+      "player1Gamertag": "Karim_Atlas",
+      "player1Score": null,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-20",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 9 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j10_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 10",
+      "round": 10,
+      "matchNumber": 1,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": null,
+      "player2Id": "usr_amine",
+      "player2Gamertag": "Amine_FC",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-27",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 10 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j10_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 10",
+      "round": 10,
+      "matchNumber": 2,
+      "player1Id": "usr_reda",
+      "player1Gamertag": "Reda_TheKing",
+      "player1Score": null,
+      "player2Id": "usr_bilal",
+      "player2Gamertag": "FC_Sniper",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-27",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 10 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j10_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 10",
+      "round": 10,
+      "matchNumber": 3,
+      "player1Id": "usr_ayoub",
+      "player1Gamertag": "Ayoub_Striker",
+      "player1Score": null,
+      "player2Id": "usr_mehdi",
+      "player2Gamertag": "Mehdi_Pro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-27",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 10 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j10_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 10",
+      "round": 10,
+      "matchNumber": 4,
+      "player1Id": "usr_soufiane",
+      "player1Gamertag": "Souf_Skiller",
+      "player1Score": null,
+      "player2Id": "usr_simoo",
+      "player2Gamertag": "Simoo_Dribble",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-27",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 10 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j10_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 10",
+      "round": 10,
+      "matchNumber": 5,
+      "player1Id": "usr_tariq",
+      "player1Gamertag": "Tariq_Pro9",
+      "player1Score": null,
+      "player2Id": "guest_1793725437285_sccv",
+      "player2Gamertag": "Omar_Maestro",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-27",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 10 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j10_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 10",
+      "round": 10,
+      "matchNumber": 6,
+      "player1Id": "usr_karim",
+      "player1Gamertag": "Karim_Atlas",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-06-27",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 10 match #6."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j11_m1",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 11",
+      "round": 11,
+      "matchNumber": 1,
+      "player1Id": "usr_amine",
+      "player1Gamertag": "Amine_FC",
+      "player1Score": null,
+      "player2Id": "usr_reda",
+      "player2Gamertag": "Reda_TheKing",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-07-04",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 11 match #1."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j11_m2",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 11",
+      "round": 11,
+      "matchNumber": 2,
+      "player1Id": "usr_yassine",
+      "player1Gamertag": "Yassine_99",
+      "player1Score": null,
+      "player2Id": "usr_ayoub",
+      "player2Gamertag": "Ayoub_Striker",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-07-04",
+      "scheduledTime": "16:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 11 match #2."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j11_m3",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 11",
+      "round": 11,
+      "matchNumber": 3,
+      "player1Id": "usr_bilal",
+      "player1Gamertag": "FC_Sniper",
+      "player1Score": null,
+      "player2Id": "usr_soufiane",
+      "player2Gamertag": "Souf_Skiller",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-07-04",
+      "scheduledTime": "17:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 11 match #3."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j11_m4",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 11",
+      "round": 11,
+      "matchNumber": 4,
+      "player1Id": "usr_mehdi",
+      "player1Gamertag": "Mehdi_Pro",
+      "player1Score": null,
+      "player2Id": "usr_tariq",
+      "player2Gamertag": "Tariq_Pro9",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-07-04",
+      "scheduledTime": "18:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 11 match #4."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j11_m5",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 11",
+      "round": 11,
+      "matchNumber": 5,
+      "player1Id": "usr_simoo",
+      "player1Gamertag": "Simoo_Dribble",
+      "player1Score": null,
+      "player2Id": "usr_karim",
+      "player2Gamertag": "Karim_Atlas",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-07-04",
+      "scheduledTime": "19:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 11 match #5."
+        }
+      ]
+    },
+    {
+      "id": "match_tourn_spring_2026_j11_m6",
+      "tournamentId": "tourn_spring_2026",
+      "stage": "league",
+      "stageName": "Journée 11",
+      "round": 11,
+      "matchNumber": 6,
+      "player1Id": "guest_1793725437285_sccv",
+      "player1Gamertag": "Omar_Maestro",
+      "player1Score": null,
+      "player2Id": "usr_hamza",
+      "player2Gamertag": "Hamza_FCB",
+      "player2Score": null,
+      "status": "scheduled",
+      "winnerId": null,
+      "scheduledDate": "2027-07-04",
+      "scheduledTime": "15:00",
+      "validatedByAdmin": false,
+      "auditLog": [
+        {
+          "timestamp": "2026-11-03T17:47:35.037Z",
+          "adminName": "Admin_FC",
+          "action": "LEAGUE_DRAW_GENERATION",
+          "note": "Calendrier officiel Championnat - Journée 11 match #6."
+        }
+      ]
+    }
+  ],
+  "contacts": [
+    {
+      "id": "contact_1",
+      "name": "Youssef El Fassi",
+      "email": "youssef@example.com",
+      "subject": "Partenariat Salle Gaming",
+      "message": "Bonjour, nous souhaitons accueillir une étape de qualification dans notre centre eSport.",
+      "createdAt": "2026-02-10T11:20:00.000Z",
+      "replied": false
+    }
+  ],
+  "notifications": [
+    {
+      "id": "notif_1794301391592_yjpr",
+      "type": "system",
+      "title": "Inscription Validée (REG-2026-0021)",
+      "message": "L'inscription de Youssef Testeur (Youssef_FC27) [REG-2026-0021] a été passée à « Validé ».",
+      "registrationId": "reg_1794301367570_czq8",
+      "createdAt": "2026-11-10T09:03:11.592Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794301367570_3kwg",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Youssef Testeur (Youssef_FC27) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Youssef Testeur",
+      "gamertag": "Youssef_FC27",
+      "userEmail": "alio2002ng@gmail.com",
+      "phone": "+212 6 99 88 77 66",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794301367570_czq8",
+      "createdAt": "2026-11-10T09:02:47.570Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438745_nj4t",
+      "type": "system",
+      "title": "Inscription Validée (REG-2026-0021)",
+      "message": "L'inscription de Nassim Visiteur 1794072438185 (Nassim_1794072438185) [REG-2026-0021] a été passée à « Validé ».",
+      "registrationId": "reg_1794072438189_nv43",
+      "createdAt": "2026-11-07T17:27:18.745Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438189_nscb",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Nassim Visiteur 1794072438185 (Nassim_1794072438185) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Nassim Visiteur 1794072438185",
+      "gamertag": "Nassim_1794072438185",
+      "userEmail": "nassim.1794072438185@visiteur-fct.ma",
+      "phone": "+212 6 11 22 33 44",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794072438189_nv43",
+      "createdAt": "2026-11-07T17:27:18.189Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438179_uhwl",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 07/11/2026 17:27:18.",
+      "createdAt": "2026-11-07T17:27:18.179Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794072438154_pzkp",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 07/11/2026 17:27:18.",
+      "createdAt": "2026-11-07T17:27:18.173Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061839395_p26p",
+      "type": "system",
+      "title": "Inscription Refusée (REG-2026-0021)",
+      "message": "L'inscription de Tariq Test 1794061839179 (Tariq_1794061839179) a été refusée depuis Google AI Studio.",
+      "registrationId": "reg_1794061839322_e6r8",
+      "createdAt": "2026-11-07T14:30:39.395Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061839372_nvm5",
+      "type": "system",
+      "title": "Inscription Validée (REG-2026-0021)",
+      "message": "L'inscription de Tariq Test 1794061839179 (Tariq_1794061839179) a été validée depuis Google AI Studio.",
+      "registrationId": "reg_1794061839322_e6r8",
+      "createdAt": "2026-11-07T14:30:39.372Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061839322_8njf",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Tariq Test 1794061839179 (Tariq_1794061839179) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Tariq Test 1794061839179",
+      "gamertag": "Tariq_1794061839179",
+      "userEmail": "tariq.1794061839179@fctournament.ma",
+      "phone": "+212 6 99 88 77 66",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794061839322_e6r8",
+      "createdAt": "2026-11-07T14:30:39.322Z",
+      "read": false
+    },
+    {
+      "id": "notif_1794061781146_pf1b",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
+      "message": "Tariq Test Realtime (TariqAtlas99) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Tariq Test Realtime",
+      "gamertag": "TariqAtlas99",
+      "userEmail": "tariq.test@fctournament.ma",
+      "phone": "+212 6 99 88 77 66",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1794061781146_sazj",
+      "createdAt": "2026-11-07T14:29:41.146Z",
+      "read": false
+    },
+    {
+      "id": "notif_1793803369358_ml84",
+      "type": "system",
+      "title": "Connexion administrateur sécurisée",
+      "message": "Accès administrateur authentifié avec succès par code secret le 04/11/2026 14:42:49.",
+      "createdAt": "2026-11-04T14:42:49.373Z",
+      "read": false
+    },
+    {
+      "id": "notif_1793725437285_jxn9",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi (En attente de validation)",
+      "message": "Omar El Alami (Omar_Maestro) vient de déposer son inscription avec capture de paiement pour le tournoi « Championnat ».",
+      "playerName": "Omar El Alami",
+      "gamertag": "Omar_Maestro",
+      "userEmail": "omar.test@fctournament.ma",
+      "phone": "0612345678",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1793725437285_qkz9",
+      "createdAt": "2026-11-03T17:03:57.285Z",
+      "read": false
+    },
+    {
+      "id": "notif_1793700526444_gurw",
+      "type": "new_registration",
+      "title": "Nouvelle Inscription Tournoi",
+      "message": "Tariq Alami (Tariq_Pro) vient de s'inscrire au tournoi « Championnat ».",
+      "playerName": "Tariq Alami",
+      "gamertag": "Tariq_Pro",
+      "userEmail": "tariq@test.ma",
+      "phone": "0655443322",
+      "tournamentId": "tourn_spring_2026",
+      "tournamentName": "Championnat",
+      "registrationId": "reg_1793700526443_cfvw",
+      "createdAt": "2026-11-03T10:08:46.444Z",
+      "read": true
+    },
+    {
+      "id": "notif_welcome",
+      "type": "new_registration",
+      "title": "Système d'Inscriptions Actif",
+      "message": "Le système d'inscription officiel est opérationnel. Toutes les nouvelles inscriptions des joueurs apparaîtront ici.",
+      "playerName": "Amine Bennani",
+      "gamertag": "Amine_FC",
+      "userEmail": "joueur@fctournament.ma",
+      "phone": "+212 6 12 34 56 78",
+      "tournamentId": "tourn_champions_cup_2026",
+      "tournamentName": "EA FC 25 Champions Cup",
+      "registrationId": "reg_champ_1",
+      "createdAt": "2026-02-05T14:35:00.000Z",
+      "read": true
+    }
+  ]
+}

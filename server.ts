@@ -18,9 +18,13 @@ import type {
   AdminNotification,
 } from './src/types/index.ts';
 import {
+  checkSupabaseConnectivity,
+  insertRegistrationToSupabase,
   syncRegistrationToSupabase,
   updateRegistrationStatusInSupabase,
+  deleteRegistrationFromSupabase,
   fetchRegistrationsFromSupabase,
+  migrateAllToSupabase,
   getPublicSupabaseConfig,
   isSupabaseConfigured,
 } from './src/services/supabaseServer.ts';
@@ -1791,7 +1795,7 @@ app.get('/auth/me', handleMe);
   });
 
   // Player register to tournament (supports both authenticated users and direct registration)
-  app.post('/api/tournaments/:id/register', (req: AuthenticatedRequest, res: Response) => {
+  app.post('/api/tournaments/:id/register', async (req: AuthenticatedRequest, res: Response) => {
     const tournament = db.tournaments.find((t) => t.id === req.params.id);
     if (!tournament) {
       res.status(404).json({ error: 'Tournoi introuvable.' });
@@ -1923,6 +1927,23 @@ app.get('/auth/me', handleMe);
       seed: confirmedCount + 1,
     };
 
+    // Exigence FCT : Supabase est la base principale
+    const isConfigured = isSupabaseConfigured();
+    if (isConfigured) {
+      const insertResult = await insertRegistrationToSupabase(newRegistration);
+      if (!insertResult.success) {
+        console.error(`[SUPABASE] Échec insertion inscription ${registrationNumber}:`, insertResult.error);
+        res.status(500).json({
+          error: `Échec de l'enregistrement dans la base de données Supabase (${insertResult.error}). L'inscription n'a pas pu être validée. Veuillez réessayer.`,
+        });
+        return;
+      }
+      console.log(`[SUPABASE] Inscription ${registrationNumber} (${cleanGamertag}) enregistrée avec succès dans Supabase.`);
+    } else {
+      console.warn(`[SUPABASE AVERTISSEMENT] Supabase non configuré sur ce serveur. Sauvegarde locale dans data/fc_database.json.`);
+    }
+
+    // Mise à jour de la mémoire et sauvegarde locale
     db.registrations.push(newRegistration);
 
     // Create real Admin Notification
@@ -1945,12 +1966,7 @@ app.get('/auth/me', handleMe);
 
     saveDatabase(db);
 
-    // 1. Sync immediately to Supabase
-    syncRegistrationToSupabase(newRegistration).catch((err) =>
-      console.warn('[SUPABASE] Échec synchronisation nouvelle inscription:', err)
-    );
-
-    // 2. Broadcast immediately in Realtime to Google AI Studio
+    // Broadcast immediately in Realtime to Google AI Studio
     broadcastStudioEvent('new_registration', {
       registration: newRegistration,
       stats: getRegistrationStats(),
@@ -2680,18 +2696,30 @@ app.get('/auth/me', handleMe);
       read: false,
     });
 
-    saveDatabase(db);
+    // Exigence FCT : Synchronisation prioritaire et vérifiée dans Supabase
+    if (isSupabaseConfigured()) {
+      const updateResult = await updateRegistrationStatusInSupabase(reg.id, {
+        status: reg.status,
+        validatedAt: reg.validatedAt,
+        rejectedAt: reg.rejectedAt,
+        rejectionReason: reg.rejectionReason,
+        reviewedBy: reg.reviewedBy,
+        whatsappInviteStatus: reg.whatsappInviteStatus,
+        whatsappInviteSentAt: reg.whatsappInviteSentAt,
+        whatsappInviteError: reg.whatsappInviteError,
+        whatsappInviteAttempts: reg.whatsappInviteAttempts,
+      });
 
-    // Sync status change to Supabase
-    updateRegistrationStatusInSupabase(reg.id, {
-      status: reg.status,
-      validatedAt: reg.validatedAt,
-      rejectedAt: reg.rejectedAt,
-      rejectionReason: reg.rejectionReason,
-      reviewedBy: reg.reviewedBy,
-      whatsappInviteStatus: reg.whatsappInviteStatus,
-      whatsappInviteSentAt: reg.whatsappInviteSentAt,
-    }).catch((err) => console.warn('[SUPABASE] Échec sync statut:', err));
+      if (!updateResult.success) {
+        console.error(`[SUPABASE] Échec mise à jour statut dans Supabase pour ${reg.id}:`, updateResult.error);
+        res.status(500).json({
+          error: `Échec de la mise à jour du statut dans la base Supabase (${updateResult.error}).`,
+        });
+        return;
+      }
+    }
+
+    saveDatabase(db);
 
     // Broadcast status change in Realtime to Google AI Studio
     broadcastStudioEvent('status_updated', {
@@ -2862,6 +2890,57 @@ app.get('/auth/me', handleMe);
     });
   });
 
+  // Public Supabase configuration for realtime listener
+  app.get('/api/public/supabase-config', (_req: Request, res: Response) => {
+    res.json(getPublicSupabaseConfig());
+  });
+
+  // Supabase live connectivity check & status
+  app.get('/api/admin/supabase/status', requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
+    const connectivity = await checkSupabaseConnectivity();
+    res.json({
+      success: true,
+      connectivity,
+      localTournamentsCount: db.tournaments.length,
+      localRegistrationsCount: db.registrations.length,
+      confirmedCount: db.registrations.filter((r) => r.status === 'confirmed').length,
+      pendingCount: db.registrations.filter((r) => r.status === 'pending').length,
+      rejectedCount: db.registrations.filter((r) => r.status === 'rejected').length,
+    });
+  });
+
+  // Synchronize / Migrate all existing data to Supabase in one click
+  app.post('/api/admin/supabase/sync-all', requireAdmin, async (_req: AuthenticatedRequest, res: Response) => {
+    if (!isSupabaseConfigured()) {
+      res.status(400).json({
+        error: 'Supabase n’est pas configuré. Veuillez renseigner SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY dans les variables d’environnement.',
+      });
+      return;
+    }
+    const result = await migrateAllToSupabase(db.tournaments, db.registrations);
+    if (!result.success) {
+      res.status(500).json({ error: result.error });
+      return;
+    }
+    res.json({
+      success: true,
+      message: `Migration réussie vers Supabase : ${result.tournamentsCount} tournois et ${result.registrationsCount} inscriptions synchronisés.`,
+      result,
+    });
+  });
+
+  // Download turnkey SQL schema for Supabase SQL Editor
+  app.get('/api/admin/supabase/schema.sql', requireAdmin, (_req: AuthenticatedRequest, res: Response) => {
+    const schemaPath = path.resolve(__dirname, 'supabase_schema.sql');
+    if (fs.existsSync(schemaPath)) {
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.setHeader('Content-Disposition', 'attachment; filename="supabase_schema.sql"');
+      res.sendFile(schemaPath);
+    } else {
+      res.status(404).json({ error: 'Fichier supabase_schema.sql introuvable.' });
+    }
+  });
+
   // Real-time Server-Sent Events (SSE) stream for Google AI Studio
   app.get('/api/admin/studio/live-stream', (req: Request, res: Response) => {
     const code = (req.query.code as string) || (req.headers['x-admin-code'] as string);
@@ -2938,11 +3017,15 @@ app.get('/auth/me', handleMe);
   });
 
   // Admin delete registration
-  app.delete('/api/admin/registrations/:id', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.delete('/api/admin/registrations/:id', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     const regIndex = db.registrations.findIndex((r) => r.id === req.params.id);
     if (regIndex === -1) {
       res.status(404).json({ error: 'Inscription introuvable.' });
       return;
+    }
+
+    if (isSupabaseConfigured()) {
+      await deleteRegistrationFromSupabase(req.params.id);
     }
 
     db.registrations.splice(regIndex, 1);
@@ -3461,6 +3544,33 @@ async function startServer() {
     }
   } else {
     serveStaticProduction();
+  }
+
+  // Supabase startup audit & synchronization
+  try {
+    const supabaseStatus = await checkSupabaseConnectivity();
+    if (supabaseStatus.configured) {
+      if (supabaseStatus.tableExists) {
+        console.log(`[SUPABASE] Connexion active vers ${supabaseStatus.url}. Table 'registrations' détectée (${supabaseStatus.rowCount} enregistrements).`);
+        const cloudRegs = await fetchRegistrationsFromSupabase();
+        if (cloudRegs && cloudRegs.length > 0) {
+          const map = new Map<string, Registration>();
+          for (const r of cloudRegs) map.set(r.id, r);
+          for (const localReg of db.registrations) {
+            if (!map.has(localReg.id)) map.set(localReg.id, localReg);
+          }
+          db.registrations = Array.from(map.values());
+          saveDatabase(db);
+          console.log(`[SUPABASE] Synchronisation terminée : ${db.registrations.length} inscriptions actives chargées.`);
+        }
+      } else {
+        console.warn(`[SUPABASE AVERTISSEMENT] Base connectée mais la table 'registrations' n'existe pas encore. Veuillez exécuter le script 'supabase_schema.sql' dans l'Éditeur SQL Supabase.`);
+      }
+    } else {
+      console.warn(`[SUPABASE NOTICE] Variables SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY non détectées. Sur Hostinger, configurez ces variables dans les paramètres d'application Node.js ou dans votre fichier .env.`);
+    }
+  } catch (err: any) {
+    console.warn('[SUPABASE] Erreur vérification démarrage:', err?.message || err);
   }
 
   if (typeof PORT === 'number') {

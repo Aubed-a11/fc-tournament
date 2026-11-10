@@ -208,45 +208,20 @@ export const apiClient = {
         };
       } else {
         const errData = await res.json().catch(() => null);
-        if (errData && errData.error && res.status !== 404 && res.status !== 502) {
-          return { success: false, error: errData.error, message: errData.error };
-        }
+        const errMsg = errData?.error || `Erreur serveur (${res.status}). Impossible d'enregistrer l'inscription.`;
+        return {
+          success: false,
+          error: errMsg,
+          message: errMsg,
+        };
       }
-    } catch {
-      // Server offline or unavailable on static deployment
+    } catch (netErr: any) {
+      const errMsg = "Impossible de communiquer avec le serveur de l'application. Veuillez vérifier votre connexion et réessayer.";
+      return {
+        success: false,
+        error: errMsg,
+        message: errMsg,
+      };
     }
-
-    // Direct Cloud & Local Fallback (for static Netlify / Vercel hosting)
-    const currentList = getStoredRegistrations();
-    const localCount = currentList.length + 1;
-    const generatedNumber = `REG-2026-${String(localCount).padStart(4, '0')}`;
-    const newReg: Registration = {
-      id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
-      registrationNumber: generatedNumber,
-      tournamentId,
-      tournamentName: payload.tournamentName || 'Tournoi FC',
-      userId: `user_${Date.now()}`,
-      gamertag: payload.gamertag,
-      playerName: payload.playerName,
-      userEmail: payload.userEmail,
-      phone: payload.phone,
-      paymentProof: payload.paymentProof,
-      paymentProofName: payload.paymentProofName || 'capture_paiement.png',
-      status: 'pending',
-      registeredAt: new Date().toISOString(),
-      whatsappInviteStatus: 'not_sent',
-    };
-
-    saveLocalRegistration(newReg);
-    saveRegistrationToSupabase(newReg).catch((err) => {
-      console.warn('[SUPABASE FALLBACK] Erreur enregistrement cloud:', err);
-    });
-    notifyFormBold(generatedNumber);
-
-    return {
-      success: true,
-      registration: newReg,
-      message: 'Votre inscription a bien été enregistrée et transmise aux administrateurs pour validation !',
-    };
   },
 };

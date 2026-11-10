@@ -100,6 +100,17 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [showNotificationsPanel, setShowNotificationsPanel] = useState<boolean>(false);
   const [showHostingerModal, setShowHostingerModal] = useState<boolean>(false);
 
+  // Supabase live status and sync state
+  const [supabaseLiveStatus, setSupabaseLiveStatus] = useState<{
+    configured: boolean;
+    connected: boolean;
+    tableExists: boolean;
+    rowCount: number;
+    url?: string;
+    error?: string;
+  } | null>(null);
+  const [syncingSupabase, setSyncingSupabase] = useState<boolean>(false);
+
   // Create tournament modal state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
   const [newTournName, setNewTournName] = useState<string>('');
@@ -449,6 +460,48 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
+  const fetchSupabaseLiveStatus = async () => {
+    try {
+      const res = await fetch('/api/admin/supabase/status', {
+        headers: getAdminHeaders(),
+      });
+      if (res.ok) {
+        const data = await res.json();
+        setSupabaseLiveStatus(data.connectivity || null);
+      }
+    } catch {
+      // Ignore
+    }
+  };
+
+  const handleSyncAllToSupabase = async () => {
+    setSyncingSupabase(true);
+    try {
+      const res = await fetch('/api/admin/supabase/sync-all', {
+        method: 'POST',
+        headers: getAdminHeaders(),
+      });
+      const data = await res.json();
+      if (res.ok) {
+        setMessage({
+          type: 'success',
+          text: data.message || 'Toutes les données ont été synchronisées vers Supabase avec succès !',
+        });
+        await fetchSupabaseLiveStatus();
+        await fetchRegistrations();
+      } else {
+        setMessage({
+          type: 'error',
+          text: data.error || 'Erreur lors de la synchronisation vers Supabase. Assurez-vous d’avoir exécuté le script SQL.',
+        });
+      }
+    } catch {
+      setMessage({ type: 'error', text: 'Impossible de joindre le serveur pour la synchronisation Supabase.' });
+    } finally {
+      setSyncingSupabase(false);
+    }
+  };
+
   const fetchAdminData = async () => {
     try {
       const [tRes, mRes] = await Promise.all([
@@ -512,6 +565,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
       let serverRegs: Registration[] = [];
       let statsList: TournamentsStatsItem[] = [];
+      let serverOk = false;
 
       try {
         const res = await fetch(`/api/admin/registrations?${params.toString()}`, {
@@ -521,6 +575,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
           const data = await res.json();
           serverRegs = data.registrations || [];
           statsList = data.tournamentsStats || [];
+          serverOk = true;
         } else if (res.status === 401 || res.status === 403) {
           const isMaster = (sessionStorage.getItem('fc_admin_code') === ADMIN_MASTER_CODE) || (adminToken === ADMIN_MASTER_CODE);
           if (!isMaster && (!user || user.role !== 'admin')) {
@@ -534,7 +589,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         // Server might be unreachable on static deployment
       }
 
-      if (serverRegs.length === 0) {
+      if (!serverOk) {
         const local = getLocalRegistrations();
         const mergedInitial = [...INITIAL_REGISTRATIONS];
         for (const loc of local) {
@@ -659,6 +714,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       fetchRegistrations();
       fetchNotifications();
       fetchUsers();
+      fetchSupabaseLiveStatus();
     }
   }, [adminVerified]);
 
@@ -1485,6 +1541,70 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         {/* ======================================================== */}
         {adminTab === 'registrations' && (
           <div className="space-y-6 animate-in fade-in duration-200">
+            {/* Supabase Realtime & Cloud Database Status Card */}
+            <div className="p-4 rounded-2xl bg-[#0e1420] border border-[#1f2b40] flex flex-col md:flex-row items-start md:items-center justify-between gap-4">
+              <div className="flex items-center gap-3">
+                <div
+                  className={`w-3 h-3 rounded-full shrink-0 ${
+                    supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                      ? 'bg-[#00ff66] shadow-[0_0_12px_#00ff66]'
+                      : supabaseLiveStatus?.configured
+                      ? 'bg-amber-400 shadow-[0_0_12px_#fbbf24]'
+                      : 'bg-rose-500 shadow-[0_0_12px_#f43f5e]'
+                  }`}
+                />
+                <div>
+                  <div className="flex items-center gap-2">
+                    <span className="font-display font-bold text-xs tracking-wider uppercase text-white">
+                      Base de Données Supabase :
+                    </span>
+                    <span
+                      className={`text-xs font-mono font-bold ${
+                        supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                          ? 'text-[#00ff66]'
+                          : supabaseLiveStatus?.configured
+                          ? 'text-amber-400'
+                          : 'text-rose-400'
+                      }`}
+                    >
+                      {supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                        ? `Connecté en Direct (${supabaseLiveStatus.rowCount} inscriptions dans Supabase)`
+                        : supabaseLiveStatus?.configured && !supabaseLiveStatus.tableExists
+                        ? `Connecté mais Table "registrations" Manquante (Exécuter SQL ci-contre)`
+                        : `Non configuré (Stockage local actif - Configurer Hostinger)`}
+                    </span>
+                  </div>
+                  <p className="text-[11px] text-slate-400 mt-0.5">
+                    {supabaseLiveStatus?.connected && supabaseLiveStatus.tableExists
+                      ? `Base cloud principale active. Synchronisation automatique bidirectionnelle et Realtime opérationnels.`
+                      : `Pour activer la persistance sur Hostinger, ajoutez vos variables SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY.`}
+                  </p>
+                </div>
+              </div>
+
+              <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
+                <a
+                  href="/api/admin/supabase/schema.sql"
+                  download="supabase_schema.sql"
+                  className="px-3 py-2 rounded-xl bg-[#162032] hover:bg-[#1d2a42] border border-[#2a3a54] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors"
+                  title="Télécharger le script SQL complet prêt à coller dans Supabase SQL Editor"
+                >
+                  <Download className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span>Script SQL Supabase</span>
+                </a>
+
+                <button
+                  onClick={handleSyncAllToSupabase}
+                  disabled={syncingSupabase}
+                  className="px-3.5 py-2 rounded-xl bg-[#00ff66]/15 hover:bg-[#00ff66]/25 border border-[#00ff66]/40 text-[#00ff66] text-xs font-bold flex items-center gap-1.5 transition-all cursor-pointer disabled:opacity-50"
+                  title="Transférer toutes les données actuelles vers Supabase en 1 clic"
+                >
+                  <RefreshCw className={`w-3.5 h-3.5 ${syncingSupabase ? 'animate-spin' : ''}`} />
+                  <span>{syncingSupabase ? 'Synchronisation...' : 'Synchroniser vers Supabase'}</span>
+                </button>
+              </div>
+            </div>
+
             {/* KPI Stats Cards */}
             <div className="grid grid-cols-2 lg:grid-cols-5 gap-4">
               <div
@@ -3104,11 +3224,31 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                   </div>
                 </div>
 
+                {/* Info Supabase Variables */}
+                <div className="p-4 rounded-xl bg-[#090d14] border border-[#192231] text-xs text-slate-300 space-y-2">
+                  <div className="flex items-center gap-2 font-display font-bold text-white uppercase tracking-wider">
+                    <CheckCircle2 className="w-4 h-4 text-[#00ff66]" />
+                    <span>Variables Supabase indispensables pour Hostinger (Node.js)</span>
+                  </div>
+                  <p className="text-[11px] text-slate-400">
+                    Dans votre panneau Hostinger (hPanel &gt; Node.js App &gt; Variables d'environnement, ou fichier <code className="text-[#00ff66]">.env</code>) :
+                  </p>
+                  <pre className="p-3 bg-[#05080d] border border-[#141c28] rounded-xl text-[10px] font-mono text-slate-300 overflow-x-auto space-y-1">
+                    <div>SUPABASE_URL=https://votre-projet.supabase.co</div>
+                    <div>SUPABASE_ANON_KEY=votre_cle_anon_publique</div>
+                    <div>SUPABASE_SERVICE_ROLE_KEY=votre_cle_secrete_service_role</div>
+                    <div>PORT=3000</div>
+                  </pre>
+                  <p className="text-[10px] text-slate-500">
+                    ⚠️ Après avoir enregistré les variables sur Hostinger, cliquez sur <strong>Redémarrer (Restart)</strong> pour que le serveur prenne en compte la connexion à Supabase.
+                  </p>
+                </div>
+
                 {/* Info aide */}
                 <div className="p-3.5 rounded-xl bg-[#090d14] border border-[#192231] text-[11px] text-slate-400 flex items-start gap-2.5">
                   <CheckCircle2 className="w-4 h-4 text-[#00ff66] shrink-0 mt-0.5" />
                   <p>
-                    Les deux archives intègrent toutes les corrections récentes : l'adresse de contact <strong className="text-white">alio227ng@gmail.com</strong>, le numéro <strong className="text-white">+212681337566</strong>, et l'alerte instantanée des inscriptions visiteurs.
+                    Toutes les inscriptions soumises sur le site Hostinger seront écrites directement dans la table <strong className="text-white">registrations</strong> de Supabase et récupérables en temps réel dans votre panneau administrateur.
                   </p>
                 </div>
               </div>

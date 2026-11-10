@@ -6,9 +6,12 @@ import dotenv from "dotenv";
 import { fileURLToPath } from "url";
 import nodemailer from "nodemailer";
 import {
-  syncRegistrationToSupabase,
+  checkSupabaseConnectivity,
+  insertRegistrationToSupabase,
   updateRegistrationStatusInSupabase,
+  deleteRegistrationFromSupabase,
   fetchRegistrationsFromSupabase,
+  migrateAllToSupabase,
   getPublicSupabaseConfig,
   isSupabaseConfigured
 } from "./src/services/supabaseServer.ts";
@@ -54,22 +57,11 @@ const LOCKOUT_DURATION_MS = 15 * 60 * 1e3;
 const ADMIN_SESSION_TTL_MS = 2 * 60 * 60 * 1e3;
 const adminSessions = /* @__PURE__ */ new Map();
 const adminLoginAttempts = /* @__PURE__ */ new Map();
+const ADMIN_MASTER_CODE = "96300130";
 function verifyAdminCode(inputCode) {
-  const cleanInput = String(inputCode || "").trim();
-  if (!cleanInput) return false;
-  const configuredSecret = process.env.ADMIN_ACCESS_CODE ? String(process.env.ADMIN_ACCESS_CODE).trim() : null;
-  const allowedSecrets = ["96300130", "FC_ADMIN_2026!", "admin123"];
-  if (configuredSecret && !allowedSecrets.includes(configuredSecret)) {
-    allowedSecrets.unshift(configuredSecret);
-  }
-  const inputBuffer = crypto.createHash("sha256").update(cleanInput).digest();
-  for (const secret of allowedSecrets) {
-    const secBuffer = crypto.createHash("sha256").update(secret).digest();
-    if (crypto.timingSafeEqual(inputBuffer, secBuffer)) {
-      return true;
-    }
-  }
-  return false;
+  if (inputCode === void 0 || inputCode === null) return false;
+  const cleanInput = String(inputCode).trim();
+  return cleanInput === ADMIN_MASTER_CODE;
 }
 function hashPassword(password, salt) {
   return crypto.scryptSync(password, salt, 64).toString("hex");
@@ -91,7 +83,7 @@ function getInitialDatabase() {
     {
       id: "usr_admin",
       email: "admin@fctournament.ma",
-      passwordHash: hashPassword("admin123", saltAdmin),
+      passwordHash: hashPassword(ADMIN_MASTER_CODE, saltAdmin),
       salt: saltAdmin,
       gamertag: "Admin_FC",
       firstName: "Karim",
@@ -232,7 +224,7 @@ function getInitialDatabase() {
       maxParticipants: 32,
       entryFeeMAD: 50,
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
-      status: "ongoing",
+      status: "open",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
       bannerImage: "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
       createdAt: "2026-02-01T10:00:00.000Z"
@@ -253,7 +245,7 @@ function getInitialDatabase() {
       maxParticipants: 32,
       entryFeeMAD: 50,
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
-      status: "ongoing",
+      status: "completed",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
       bannerImage: "/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
       createdAt: "2026-01-20T12:00:00.000Z"
@@ -912,7 +904,7 @@ function loadDatabase() {
     loaded.users.unshift({
       id: "usr_owner_ali",
       email: "alio227ng@gmail.com",
-      passwordHash: hashPassword("admin123", saltOwner),
+      passwordHash: hashPassword(ADMIN_MASTER_CODE, saltOwner),
       salt: saltOwner,
       gamertag: "Ali_FC",
       firstName: "Ali",
@@ -924,14 +916,28 @@ function loadDatabase() {
       createdAt: "2026-01-01T00:00:00.000Z"
     });
     needsSync = true;
-  } else if (adminOwner.role !== "admin") {
-    adminOwner.role = "admin";
-    needsSync = true;
+  } else {
+    if (adminOwner.role !== "admin") {
+      adminOwner.role = "admin";
+      needsSync = true;
+    }
+    const expectedHash = hashPassword(ADMIN_MASTER_CODE, adminOwner.salt);
+    if (adminOwner.passwordHash !== expectedHash) {
+      adminOwner.passwordHash = expectedHash;
+      needsSync = true;
+    }
   }
   const staffAdmin = loaded.users.find((u) => u.email.toLowerCase() === "admin@fctournament.ma");
-  if (staffAdmin && staffAdmin.role !== "admin") {
-    staffAdmin.role = "admin";
-    needsSync = true;
+  if (staffAdmin) {
+    if (staffAdmin.role !== "admin") {
+      staffAdmin.role = "admin";
+      needsSync = true;
+    }
+    const expectedHash = hashPassword(ADMIN_MASTER_CODE, staffAdmin.salt);
+    if (staffAdmin.passwordHash !== expectedHash) {
+      staffAdmin.passwordHash = expectedHash;
+      needsSync = true;
+    }
   }
   if (needsSync || !fs.existsSync(DB_FILE)) {
     saveDatabase(loaded);
@@ -1059,39 +1065,45 @@ L'\xE9quipe FC TOURNAMENT.`;
 </html>`;
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const port = Number(process.env.SMTP_PORT) || 587;
+      const secure = process.env.SMTP_SECURE === "true" || port === 465;
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
+        port,
+        secure,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
         }
       });
+      await transporter.verify();
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"FC TOURNAMENT" <alio227ng@gmail.com>',
+        from: process.env.SMTP_FROM || `"FC TOURNAMENT" <${process.env.SMTP_USER}>`,
         to: cleanEmail,
         subject,
         text: plainTextMessage,
         html: htmlMessage
       });
-      console.log(`[SMTP] Invitation WhatsApp envoy\xE9e avec succ\xE8s \xE0 ${cleanEmail} (ID: ${info.messageId})`);
+      console.log(`[SMTP ACCEPT\xC9] E-mail officiel accept\xE9 par le fournisseur pour ${cleanEmail} (ID: ${info.messageId}, R\xE9ponse: ${info.response})`);
       return { success: true, messageId: info.messageId };
     } else {
-      const simulatedMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      console.log(`[EMAIL DISPATCH] Invitation WhatsApp envoy\xE9e \xE0 ${cleanEmail} pour ${gamertag}`);
-      console.log(`[EMAIL LINK] ${WHATSAPP_GROUP_LINK}`);
-      console.log(`[EMAIL ID] ${simulatedMessageId}`);
+      const missingVars = [
+        !process.env.SMTP_HOST && "SMTP_HOST",
+        !process.env.SMTP_USER && "SMTP_USER",
+        !process.env.SMTP_PASS && "SMTP_PASS"
+      ].filter(Boolean).join(", ");
+      const errorMsg = `Serveur SMTP non configur\xE9 (${missingVars} manquants dans l'environnement). Aucun email n'a pu \xEAtre exp\xE9di\xE9 au fournisseur.`;
+      console.warn(`[SMTP NON CONFIGUR\xC9] ${errorMsg} (Destinataire: ${cleanEmail})`);
       return {
-        success: true,
-        messageId: simulatedMessageId
+        success: false,
+        error: errorMsg
       };
     }
   } catch (err) {
-    console.error(`[EMAIL ERROR] Erreur lors de l'envoi de l'invitation WhatsApp \xE0 ${cleanEmail}:`, err);
+    console.error(`[SMTP ERROR] \xC9chec de l'envoi de l'invitation \xE0 ${cleanEmail}:`, err?.message || err);
     return {
       success: false,
-      error: err?.message || "Erreur lors de l\u2019envoi du courriel transactionnel."
+      error: `Erreur fournisseur SMTP : ${err?.message || "Connexion refus\xE9e ou identifiants SMTP invalides."}`
     };
   }
 }
@@ -1212,6 +1224,9 @@ function requireAdmin(req, res, next) {
     return next();
   }
   const adminToken = req.headers["x-admin-token"] || req.headers["authorization"]?.replace(/^Bearer\s+/i, "");
+  if (adminToken && verifyAdminCode(adminToken)) {
+    return next();
+  }
   if (adminToken && adminSessions.has(adminToken)) {
     const session = adminSessions.get(adminToken);
     if (Date.now() < session.expiresAt) {
@@ -1239,7 +1254,11 @@ function computeLeaderboard() {
         tournamentsPlayed: 0,
         matchesPlayed: 0,
         wins: 0,
+        draws: 0,
         losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
         winRate: 0,
         points: 0,
         rank: 0,
@@ -1264,27 +1283,37 @@ function computeLeaderboard() {
   }
   for (const m of db.matches) {
     if (m.status === "completed" && m.validatedByAdmin) {
+      const p1Score = typeof m.player1Score === "number" ? m.player1Score : 0;
+      const p2Score = typeof m.player2Score === "number" ? m.player2Score : 0;
       if (m.player1Id && statsMap.has(m.player1Id)) {
         const s1 = statsMap.get(m.player1Id);
         s1.matchesPlayed += 1;
+        s1.goalsFor += p1Score;
+        s1.goalsAgainst += p2Score;
+        s1.goalDifference = s1.goalsFor - s1.goalsAgainst;
         if (m.winnerId === m.player1Id) {
           s1.wins += 1;
           s1.points += 3;
         } else if (m.winnerId) {
           s1.losses += 1;
         } else {
+          s1.draws += 1;
           s1.points += 1;
         }
       }
       if (m.player2Id && statsMap.has(m.player2Id)) {
         const s2 = statsMap.get(m.player2Id);
         s2.matchesPlayed += 1;
+        s2.goalsFor += p2Score;
+        s2.goalsAgainst += p1Score;
+        s2.goalDifference = s2.goalsFor - s2.goalsAgainst;
         if (m.winnerId === m.player2Id) {
           s2.wins += 1;
           s2.points += 3;
         } else if (m.winnerId) {
           s2.losses += 1;
         } else {
+          s2.draws += 1;
           s2.points += 1;
         }
       }
@@ -1532,7 +1561,7 @@ app.get("/api/tournaments/:id", (req, res) => {
     matches: tournamentMatches
   });
 });
-app.post("/api/tournaments/:id/register", (req, res) => {
+app.post("/api/tournaments/:id/register", async (req, res) => {
   const tournament = db.tournaments.find((t) => t.id === req.params.id);
   if (!tournament) {
     res.status(404).json({ error: "Tournoi introuvable." });
@@ -1637,6 +1666,20 @@ app.post("/api/tournaments/:id/register", (req, res) => {
     registeredAt: (/* @__PURE__ */ new Date()).toISOString(),
     seed: confirmedCount + 1
   };
+  const isConfigured = isSupabaseConfigured();
+  if (isConfigured) {
+    const insertResult = await insertRegistrationToSupabase(newRegistration);
+    if (!insertResult.success) {
+      console.error(`[SUPABASE] \xC9chec insertion inscription ${registrationNumber}:`, insertResult.error);
+      res.status(500).json({
+        error: `\xC9chec de l'enregistrement dans la base de donn\xE9es Supabase (${insertResult.error}). L'inscription n'a pas pu \xEAtre valid\xE9e. Veuillez r\xE9essayer.`
+      });
+      return;
+    }
+    console.log(`[SUPABASE] Inscription ${registrationNumber} (${cleanGamertag}) enregistr\xE9e avec succ\xE8s dans Supabase.`);
+  } else {
+    console.warn(`[SUPABASE AVERTISSEMENT] Supabase non configur\xE9 sur ce serveur. Sauvegarde locale dans data/fc_database.json.`);
+  }
   db.registrations.push(newRegistration);
   const newNotif = {
     id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
@@ -1655,9 +1698,6 @@ app.post("/api/tournaments/:id/register", (req, res) => {
   };
   db.notifications.unshift(newNotif);
   saveDatabase(db);
-  syncRegistrationToSupabase(newRegistration).catch(
-    (err) => console.warn("[SUPABASE] \xC9chec synchronisation nouvelle inscription:", err)
-  );
   broadcastStudioEvent("new_registration", {
     registration: newRegistration,
     stats: getRegistrationStats(),
@@ -2214,16 +2254,27 @@ app.put("/api/admin/registrations/:id/status", requireAdmin, async (req, res) =>
     createdAt: (/* @__PURE__ */ new Date()).toISOString(),
     read: false
   });
+  if (isSupabaseConfigured()) {
+    const updateResult = await updateRegistrationStatusInSupabase(reg.id, {
+      status: reg.status,
+      validatedAt: reg.validatedAt,
+      rejectedAt: reg.rejectedAt,
+      rejectionReason: reg.rejectionReason,
+      reviewedBy: reg.reviewedBy,
+      whatsappInviteStatus: reg.whatsappInviteStatus,
+      whatsappInviteSentAt: reg.whatsappInviteSentAt,
+      whatsappInviteError: reg.whatsappInviteError,
+      whatsappInviteAttempts: reg.whatsappInviteAttempts
+    });
+    if (!updateResult.success) {
+      console.error(`[SUPABASE] \xC9chec mise \xE0 jour statut dans Supabase pour ${reg.id}:`, updateResult.error);
+      res.status(500).json({
+        error: `\xC9chec de la mise \xE0 jour du statut dans la base Supabase (${updateResult.error}).`
+      });
+      return;
+    }
+  }
   saveDatabase(db);
-  updateRegistrationStatusInSupabase(reg.id, {
-    status: reg.status,
-    validatedAt: reg.validatedAt,
-    rejectedAt: reg.rejectedAt,
-    rejectionReason: reg.rejectionReason,
-    reviewedBy: reg.reviewedBy,
-    whatsappInviteStatus: reg.whatsappInviteStatus,
-    whatsappInviteSentAt: reg.whatsappInviteSentAt
-  }).catch((err) => console.warn("[SUPABASE] \xC9chec sync statut:", err));
   broadcastStudioEvent("status_updated", {
     registration: reg,
     stats: getRegistrationStats(),
@@ -2354,6 +2405,49 @@ app.get("/api/admin/studio/config", requireAdmin, (_req, res) => {
     supabase: getPublicSupabaseConfig()
   });
 });
+app.get("/api/public/supabase-config", (_req, res) => {
+  res.json(getPublicSupabaseConfig());
+});
+app.get("/api/admin/supabase/status", requireAdmin, async (_req, res) => {
+  const connectivity = await checkSupabaseConnectivity();
+  res.json({
+    success: true,
+    connectivity,
+    localTournamentsCount: db.tournaments.length,
+    localRegistrationsCount: db.registrations.length,
+    confirmedCount: db.registrations.filter((r) => r.status === "confirmed").length,
+    pendingCount: db.registrations.filter((r) => r.status === "pending").length,
+    rejectedCount: db.registrations.filter((r) => r.status === "rejected").length
+  });
+});
+app.post("/api/admin/supabase/sync-all", requireAdmin, async (_req, res) => {
+  if (!isSupabaseConfigured()) {
+    res.status(400).json({
+      error: "Supabase n\u2019est pas configur\xE9. Veuillez renseigner SUPABASE_URL et SUPABASE_SERVICE_ROLE_KEY dans les variables d\u2019environnement."
+    });
+    return;
+  }
+  const result = await migrateAllToSupabase(db.tournaments, db.registrations);
+  if (!result.success) {
+    res.status(500).json({ error: result.error });
+    return;
+  }
+  res.json({
+    success: true,
+    message: `Migration r\xE9ussie vers Supabase : ${result.tournamentsCount} tournois et ${result.registrationsCount} inscriptions synchronis\xE9s.`,
+    result
+  });
+});
+app.get("/api/admin/supabase/schema.sql", requireAdmin, (_req, res) => {
+  const schemaPath = path.resolve(__dirname, "supabase_schema.sql");
+  if (fs.existsSync(schemaPath)) {
+    res.setHeader("Content-Type", "text/plain; charset=utf-8");
+    res.setHeader("Content-Disposition", 'attachment; filename="supabase_schema.sql"');
+    res.sendFile(schemaPath);
+  } else {
+    res.status(404).json({ error: "Fichier supabase_schema.sql introuvable." });
+  }
+});
 app.get("/api/admin/studio/live-stream", (req, res) => {
   const code = req.query.code || req.headers["x-admin-code"];
   if (!code || !verifyAdminCode(code)) {
@@ -2420,11 +2514,14 @@ app.post("/api/admin/registrations/:id/resend-whatsapp", requireAdmin, async (re
     });
   }
 });
-app.delete("/api/admin/registrations/:id", requireAdmin, (req, res) => {
+app.delete("/api/admin/registrations/:id", requireAdmin, async (req, res) => {
   const regIndex = db.registrations.findIndex((r) => r.id === req.params.id);
   if (regIndex === -1) {
     res.status(404).json({ error: "Inscription introuvable." });
     return;
+  }
+  if (isSupabaseConfigured()) {
+    await deleteRegistrationFromSupabase(req.params.id);
   }
   db.registrations.splice(regIndex, 1);
   saveDatabase(db);
@@ -2861,6 +2958,31 @@ async function startServer() {
   } else {
     serveStaticProduction();
   }
+  try {
+    const supabaseStatus = await checkSupabaseConnectivity();
+    if (supabaseStatus.configured) {
+      if (supabaseStatus.tableExists) {
+        console.log(`[SUPABASE] Connexion active vers ${supabaseStatus.url}. Table 'registrations' d\xE9tect\xE9e (${supabaseStatus.rowCount} enregistrements).`);
+        const cloudRegs = await fetchRegistrationsFromSupabase();
+        if (cloudRegs && cloudRegs.length > 0) {
+          const map = /* @__PURE__ */ new Map();
+          for (const r of cloudRegs) map.set(r.id, r);
+          for (const localReg of db.registrations) {
+            if (!map.has(localReg.id)) map.set(localReg.id, localReg);
+          }
+          db.registrations = Array.from(map.values());
+          saveDatabase(db);
+          console.log(`[SUPABASE] Synchronisation termin\xE9e : ${db.registrations.length} inscriptions actives charg\xE9es.`);
+        }
+      } else {
+        console.warn(`[SUPABASE AVERTISSEMENT] Base connect\xE9e mais la table 'registrations' n'existe pas encore. Veuillez ex\xE9cuter le script 'supabase_schema.sql' dans l'\xC9diteur SQL Supabase.`);
+      }
+    } else {
+      console.warn(`[SUPABASE NOTICE] Variables SUPABASE_URL ou SUPABASE_SERVICE_ROLE_KEY non d\xE9tect\xE9es. Sur Hostinger, configurez ces variables dans les param\xE8tres d'application Node.js ou dans votre fichier .env.`);
+    }
+  } catch (err) {
+    console.warn("[SUPABASE] Erreur v\xE9rification d\xE9marrage:", err?.message || err);
+  }
   if (typeof PORT === "number") {
     app.listen(PORT, "0.0.0.0", () => {
       console.log(`FC Tournament Server running on port ${PORT}`);
@@ -2879,6 +3001,7 @@ if (!isVercelServerless) {
   });
 }
 export {
+  ADMIN_MASTER_CODE,
   app,
   server_default as default
 };
