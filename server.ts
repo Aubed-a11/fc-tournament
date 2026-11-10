@@ -24,7 +24,7 @@ import {
   fetchRegistrationsFromSupabase,
   getPublicSupabaseConfig,
   isSupabaseConfigured,
-} from './src/services/supabaseServer.ts';
+} from './src/services/supabaseServer.js';
 
 dotenv.config();
 

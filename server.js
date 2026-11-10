@@ -12,7 +12,7 @@ import {
   fetchRegistrationsFromSupabase,
   getPublicSupabaseConfig,
   isSupabaseConfigured
-} from "./src/services/supabaseServer.ts";
+} from "./src/services/supabaseServer.js";
 dotenv.config();
 const __filename = fileURLToPath(import.meta.url);
 const __dirname = path.dirname(__filename);
