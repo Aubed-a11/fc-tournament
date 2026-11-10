@@ -1676,7 +1676,7 @@ function computeLeaderboard() {
       }
     }
   }
-  const list = Array.from(statsMap.values()).map((p) => {
+  const list = Array.from(statsMap.values()).filter((p) => p.matchesPlayed > 0).map((p) => {
     const rate = p.matchesPlayed > 0 ? Math.round(p.wins / p.matchesPlayed * 100) : 0;
     return {
       ...p,
@@ -2179,7 +2179,7 @@ app.post("/api/payments/submit", (req, res) => {
     const paymentMethodNames = {
       cih: "CIH BANK (RIB: 6046878211016200)",
       bmce: "BMCE BANK (RIB: 011570000007200000447220)",
-      mtn_momo: "MTN MOMO (Num\xE9ro: 0162403071)"
+      mtn_momo: "MTN MOMO (Num\xE9ro: +229 0162403071)"
     };
     const tourn = tournamentId ? db.tournaments.find((t) => t.id === tournamentId) : void 0;
     const submission = {

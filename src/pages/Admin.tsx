@@ -719,9 +719,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
           setSelectedTournamentId(loadedTournaments[0].id);
         }
       }
-      if (loadedMatches.length > 0) {
-        setMatches(loadedMatches);
-      }
+      setMatches(loadedMatches);
     } catch (err) {
       console.error('Error fetching admin data, using client fallback:', err);
       const [fallbackT, fallbackM] = await Promise.all([

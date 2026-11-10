@@ -112,7 +112,7 @@ export const apiClient = {
         const text = await res.text();
         if (text.startsWith('[') || text.startsWith('{')) {
           const data = JSON.parse(text);
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             return data;
           }
         }
@@ -131,7 +131,7 @@ export const apiClient = {
         const text = await res.text();
         if (text.startsWith('[') || text.startsWith('{')) {
           const data = JSON.parse(text);
-          if (Array.isArray(data) && data.length > 0) {
+          if (Array.isArray(data)) {
             return data;
           }
         }
@@ -286,7 +286,7 @@ export const apiClient = {
             ? 'CIH BANK (RIB: 6046878211016200)'
             : payload.paymentMethod === 'bmce'
             ? 'BMCE BANK (RIB: 011570000007200000447220)'
-            : 'MTN MOMO (Numéro: 0162403071)',
+            : 'MTN MOMO (Numéro: +229 0162403071)',
         amountMAD: 50,
         proofData: payload.proofData,
         proofName: payload.proofName,

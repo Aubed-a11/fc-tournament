@@ -90,50 +90,6 @@ export const Navbar: React.FC<NavbarProps> = ({ currentPage, onNavigate }) => {
 
         {/* Zone 3: Primary Action / User Profile */}
         <div className="hidden lg:flex items-center gap-3 shrink-0">
-          {/* Quick Demo Selector for evaluation convenience */}
-          <div className="relative">
-            <button
-              onClick={() => setDemoDropdownOpen(!demoDropdownOpen)}
-              className="text-xs px-2.5 py-1.5 rounded bg-[#131924] border border-[#222c40] text-slate-300 hover:text-white hover:border-[#00ff66]/40 flex items-center gap-1.5 transition-colors cursor-pointer"
-              title="Tester avec un compte de démonstration"
-            >
-              <span>Accès Démo</span>
-              <ChevronDown className="w-3 h-3 text-slate-400" />
-            </button>
-            {demoDropdownOpen && (
-              <div
-                className="absolute right-0 mt-2 w-52 bg-[#0e131d] border border-[#222c40] rounded-xl shadow-2xl py-2 z-50 text-xs"
-                onMouseLeave={() => setDemoDropdownOpen(false)}
-              >
-                <div className="px-3 py-1.5 text-slate-400 border-b border-[#1c2333]">
-                  Connexion instantanée :
-                </div>
-                <button
-                  onClick={async () => {
-                    await quickLoginAdmin();
-                    setDemoDropdownOpen(false);
-                    onNavigate('admin');
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-[#182133] hover:text-[#00ff66] flex items-center gap-2 cursor-pointer"
-                >
-                  <Shield className="w-3.5 h-3.5 text-[#00ff66]" />
-                  <span>Admin FC (Organisateur)</span>
-                </button>
-                <button
-                  onClick={async () => {
-                    await quickLoginPlayer();
-                    setDemoDropdownOpen(false);
-                    onNavigate('dashboard');
-                  }}
-                  className="w-full text-left px-3 py-2 text-slate-200 hover:bg-[#182133] hover:text-[#00ff66] flex items-center gap-2 cursor-pointer"
-                >
-                  <Trophy className="w-3.5 h-3.5 text-[#00ff66]" />
-                  <span>Amine_FC (Joueur démo)</span>
-                </button>
-              </div>
-            )}
-          </div>
-
           {user?.role === 'admin' && (
             <button
               onClick={() => onNavigate('admin')}

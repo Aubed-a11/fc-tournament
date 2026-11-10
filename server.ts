@@ -1943,7 +1943,8 @@ function computeLeaderboard(): PlayerLeaderboard[] {
     }
   }
 
-  const list = Array.from(statsMap.values()).map((p) => {
+  // Seuls les joueurs avec au moins un match valide apparaissent au classement
+  const list = Array.from(statsMap.values()).filter((p) => p.matchesPlayed > 0).map((p) => {
     const rate = p.matchesPlayed > 0 ? Math.round((p.wins / p.matchesPlayed) * 100) : 0;
     return {
       ...p,
@@ -2592,7 +2593,7 @@ app.get('/auth/me', handleMe);
       const paymentMethodNames: Record<string, string> = {
         cih: 'CIH BANK (RIB: 6046878211016200)',
         bmce: 'BMCE BANK (RIB: 011570000007200000447220)',
-        mtn_momo: 'MTN MOMO (Numéro: 0162403071)',
+        mtn_momo: 'MTN MOMO (Numéro: +229 0162403071)',
       };
 
       const tourn = tournamentId ? db.tournaments.find((t) => t.id === tournamentId) : undefined;

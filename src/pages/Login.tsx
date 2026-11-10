@@ -48,46 +48,6 @@ export const Login: React.FC<LoginProps> = ({ onNavigate }) => {
           </p>
         </div>
 
-        {/* Quick Demo Login Cards for 1-click evaluation */}
-        <div className="p-4 rounded-2xl bg-[#0d121c] border border-[#1d273a] space-y-2.5">
-          <div className="text-[11px] font-mono uppercase tracking-wider text-slate-400 flex items-center justify-between">
-            <span>Connexion Rapide Démo :</span>
-            <span className="text-[#00ff66]">1-Clic</span>
-          </div>
-
-          <div className="grid grid-cols-2 gap-2">
-            <button
-              onClick={async () => {
-                await quickLoginAdmin();
-                onNavigate('admin');
-              }}
-              type="button"
-              className="p-2.5 rounded-xl bg-[#131a26] hover:bg-[#1a2333] border border-[#222e42] hover:border-[#00ff66]/40 transition-all text-left cursor-pointer group"
-            >
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-[#00ff66]">
-                <Shield className="w-3.5 h-3.5 text-[#00ff66]" />
-                <span>Admin Staff</span>
-              </div>
-              <span className="text-[10px] text-slate-400 block mt-0.5">Organisateur / Administrateur</span>
-            </button>
-
-            <button
-              onClick={async () => {
-                await quickLoginPlayer();
-                onNavigate('dashboard');
-              }}
-              type="button"
-              className="p-2.5 rounded-xl bg-[#131a26] hover:bg-[#1a2333] border border-[#222e42] hover:border-[#00ff66]/40 transition-all text-left cursor-pointer group"
-            >
-              <div className="flex items-center gap-1.5 text-xs font-semibold text-white group-hover:text-[#00ff66]">
-                <Trophy className="w-3.5 h-3.5 text-[#00ff66]" />
-                <span>Amine_FC</span>
-              </div>
-              <span className="text-[10px] text-slate-400 block mt-0.5">Joueur démo qualifié</span>
-            </button>
-          </div>
-        </div>
-
         {/* Form Card */}
         <div className="p-8 rounded-3xl bg-[#0b0f16] border border-[#1b2333] shadow-2xl space-y-6">
           {error && (
@@ -119,7 +79,7 @@ export const Login: React.FC<LoginProps> = ({ onNavigate }) => {
                 </label>
                 <button
                   type="button"
-                  onClick={() => setError("Pour la démo, créez un nouveau compte !")}
+                  onClick={() => setError("Mot de passe oublié ? Contactez l'organisation via la page Contact pour le réinitialiser.")}
                   className="text-[11px] text-slate-400 hover:text-[#00ff66]"
                 >
                   Mot de passe oublié ?

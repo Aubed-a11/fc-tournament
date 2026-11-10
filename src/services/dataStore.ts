@@ -7,7 +7,7 @@ import {
 } from '../data/initialData.ts';
 
 // Increment this version whenever code source defaults change to purge/refresh stale browser cache
-export const CURRENT_DATA_VERSION = '2026-11-10-v5';
+export const CURRENT_DATA_VERSION = '2026-11-11-v6-sans-demo';
 
 const KEY_DATA_VERSION = 'fc_data_version';
 const KEY_TOURNAMENTS = 'fc_store_tournaments';
@@ -52,6 +52,8 @@ export function ensureDataVersionSynced(): void {
       for (const r of INITIAL_REGISTRATIONS) {
         mergedRegsMap.set(r.id, r);
       }
+      // Retire les anciennes inscriptions de demonstration gardees en cache
+      localRegs = localRegs.filter((r) => !/@(fctournament\.ma|example\.com)$/i.test(r.userEmail || ''));
       for (const r of localRegs) {
         // Also update tournament names if present
         if (r.tournamentName === 'Championnat' || r.tournamentId === 'tourn_spring_2026') {

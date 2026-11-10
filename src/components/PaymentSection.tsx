@@ -469,13 +469,13 @@ export const PaymentSection: React.FC<PaymentSectionProps> = ({ tournaments = []
                   <span className="text-slate-400 text-[11px]">Numéro MoMo :</span>
                   <div className="flex items-center justify-between gap-2 bg-[#121926] px-2.5 py-1.5 rounded-lg border border-[#222e42]">
                     <span className="text-[#00ff66] font-bold text-sm tracking-wider select-all">
-                      0162403071
+                      +229 0162403071
                     </span>
                     <button
                       type="button"
                       onClick={(e) => {
                         e.stopPropagation();
-                        copyToClipboard('0162403071', 'mtn_num');
+                        copyToClipboard('+2290162403071', 'mtn_num');
                       }}
                       className="px-2.5 py-1 rounded bg-[#182335] hover:bg-[#00ff66] hover:text-black text-slate-300 text-[11px] font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer"
                     >
