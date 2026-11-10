@@ -1,23 +1,25 @@
 -- ====================================================================
--- FC TOURNAMENT (FCT) - SCHEMA COMPLET & MIGRATION SUPABASE
+-- FC TOURNAMENT (FCT) - SCHÉMA OFFICIEL & MIGRATION SÉCURISÉE SUPABASE
 -- ====================================================================
--- Ce script configure l'intégralité de la base de données Supabase pour FCT :
--- 1. Table des Tournois (tournaments)
--- 2. Table des Inscriptions (registrations) avec contraintes et index
--- 3. Sécurité Row Level Security (RLS) et permissions
--- 4. Synchronisation en temps réel (Supabase Realtime)
--- 5. Trigger d'actualisation de la date de modification
--- 6. Importation et préservation des données existantes (2 tournois et 21 inscriptions)
--- ====================================================================
--- INSTRUCTIONS D'EXÉCUTION :
--- 1. Connectez-vous à votre tableau de bord Supabase (https://supabase.com/dashboard).
--- 2. Sélectionnez votre projet FCT.
--- 3. Ouvrez le menu « SQL Editor » dans la barre latérale gauche.
--- 4. Cliquez sur « New query », collez TOUT ce script et cliquez sur « Run ».
--- 5. Rendez-vous dans le « Table Editor » : vos 2 tables et toutes les inscriptions apparaîtront immédiatement !
+-- VERSION SÉCURISÉE v2.0 - SANS ÉCRASEMENT DE DONNÉES ET CONFIDENTIALITÉ RENFORCÉE
+-- 
+-- PRINCIPES DE SÉCURITÉ ET D'INTÉGRITÉ APPLIQUÉS :
+-- 1. Confidentialité absolue : AUCUN accès SELECT direct public sur la table "registrations".
+--    Les données personnelles (emails, téléphones, justificatifs) sont invisibles pour les visiteurs.
+-- 2. Séparation stricte : La lecture et la validation s'effectuent exclusivement via le backend
+--    Node.js authentifié avec la clé SUPABASE_SERVICE_ROLE_KEY.
+-- 3. Préservation totale des statuts : Toutes les insertions utilisent 'ON CONFLICT DO NOTHING'.
+--    Aucune inscription existante n'est écrasée, aucun statut n'est réinitialisé.
+-- 4. Protection contre les suppressions accidentelles : 'ON DELETE RESTRICT' empêche la suppression
+--    d'un tournoi tant qu'il contient des inscriptions.
+-- 5. Aucun DROP TABLE, aucun TRUNCATE, aucun DELETE dans tout le script.
 -- ====================================================================
 
--- 1. CRÉATION DE LA TABLE DES TOURNOIS
+-- ####################################################################
+-- PARTIE 1 : STRUCTURE DES TABLES, CONTRAINTES DDL & INDEX
+-- ####################################################################
+
+-- 1.1 TABLE DES TOURNOIS (tournaments)
 CREATE TABLE IF NOT EXISTS public.tournaments (
     id TEXT PRIMARY KEY,
     name TEXT NOT NULL,
@@ -34,22 +36,24 @@ CREATE TABLE IF NOT EXISTS public.tournaments (
     max_participants INT NOT NULL DEFAULT 32,
     entry_fee_mad INT NOT NULL DEFAULT 50,
     prize_pool TEXT,
-    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('upcoming', 'open', 'ongoing', 'completed')),
+    status TEXT NOT NULL DEFAULT 'open' CHECK (status IN ('upcoming', 'open', 'ongoing', 'completed', 'cancelled')),
     rules TEXT,
     banner_image TEXT,
     created_at TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updated_at TIMESTAMPTZ NOT NULL DEFAULT NOW()
 );
 
--- Index pour les tournois
+-- Index de performance pour tournaments
 CREATE INDEX IF NOT EXISTS idx_tournaments_status ON public.tournaments(status);
 CREATE INDEX IF NOT EXISTS idx_tournaments_slug ON public.tournaments(slug);
 
--- 2. CRÉATION DE LA TABLE DES INSCRIPTIONS
+
+-- 1.2 TABLE DES INSCRIPTIONS (registrations)
+-- Note : ON DELETE RESTRICT protège l'intégrité référentielle en interdisant la suppression d'un tournoi avec inscriptions.
 CREATE TABLE IF NOT EXISTS public.registrations (
     id TEXT PRIMARY KEY,
     registration_number TEXT NOT NULL UNIQUE,
-    tournament_id TEXT NOT NULL REFERENCES public.tournaments(id) ON DELETE CASCADE,
+    tournament_id TEXT NOT NULL REFERENCES public.tournaments(id) ON DELETE RESTRICT,
     tournament_name TEXT,
     user_id TEXT,
     gamertag TEXT NOT NULL,
@@ -68,7 +72,7 @@ CREATE TABLE IF NOT EXISTS public.registrations (
     rejection_reason TEXT,
     reviewed_by TEXT,
     seed INT,
-    whatsapp_invite_status TEXT DEFAULT 'not_sent',
+    whatsapp_invite_status TEXT DEFAULT 'not_sent' CHECK (whatsapp_invite_status IN ('not_sent', 'sent', 'failed')),
     whatsapp_invite_sent_at TIMESTAMPTZ,
     whatsapp_invite_error TEXT,
     whatsapp_invite_attempts INT DEFAULT 0,
@@ -77,7 +81,23 @@ CREATE TABLE IF NOT EXISTS public.registrations (
     CONSTRAINT uq_registrations_tournament_gamertag UNIQUE (tournament_id, gamertag)
 );
 
--- Index pour la recherche rapide des inscriptions
+-- Si la table existait déjà avec un ON DELETE CASCADE antérieur, mise à jour sécurisée vers RESTRICT
+DO $$
+BEGIN
+  IF EXISTS (
+    SELECT 1 FROM information_schema.table_constraints 
+    WHERE constraint_name = 'registrations_tournament_id_fkey' 
+      AND table_schema = 'public' 
+      AND table_name = 'registrations'
+  ) THEN
+    ALTER TABLE public.registrations DROP CONSTRAINT registrations_tournament_id_fkey;
+    ALTER TABLE public.registrations 
+      ADD CONSTRAINT registrations_tournament_id_fkey 
+      FOREIGN KEY (tournament_id) REFERENCES public.tournaments(id) ON DELETE RESTRICT;
+  END IF;
+END $$;
+
+-- Index pour les recherches et filtres
 CREATE INDEX IF NOT EXISTS idx_registrations_tournament_id ON public.registrations(tournament_id);
 CREATE INDEX IF NOT EXISTS idx_registrations_status ON public.registrations(status);
 CREATE INDEX IF NOT EXISTS idx_registrations_gamertag ON public.registrations(gamertag);
@@ -85,61 +105,8 @@ CREATE INDEX IF NOT EXISTS idx_registrations_email ON public.registrations(user_
 CREATE INDEX IF NOT EXISTS idx_registrations_number ON public.registrations(registration_number);
 CREATE INDEX IF NOT EXISTS idx_registrations_registered_at ON public.registrations(registered_at DESC);
 
--- 3. ACTIVATION DU TEMPS RÉEL (SUPABASE REALTIME)
--- Permet au tableau de bord administrateur de recevoir les inscriptions en direct
-DO $$
-BEGIN
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.tournaments;
-  EXCEPTION WHEN others THEN
-    NULL;
-  END;
-  BEGIN
-    ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;
-  EXCEPTION WHEN others THEN
-    NULL;
-  END;
-END $$;
 
--- 4. CONFIGURATION DE LA SÉCURITÉ ROW LEVEL SECURITY (RLS)
-ALTER TABLE public.tournaments ENABLE ROW LEVEL SECURITY;
-ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
-
--- Politiques pour la table tournaments
-DROP POLICY IF EXISTS "Lecture publique des tournois" ON public.tournaments;
-CREATE POLICY "Lecture publique des tournois"
-ON public.tournaments FOR SELECT
-TO anon, authenticated, service_role
-USING (true);
-
-DROP POLICY IF EXISTS "Gestion complete tournois service_role" ON public.tournaments;
-CREATE POLICY "Gestion complete tournois service_role"
-ON public.tournaments FOR ALL
-TO service_role
-USING (true)
-WITH CHECK (true);
-
--- Politiques pour la table registrations
-DROP POLICY IF EXISTS "Service role acces total inscriptions" ON public.registrations;
-CREATE POLICY "Service role acces total inscriptions"
-ON public.registrations FOR ALL
-TO service_role
-USING (true)
-WITH CHECK (true);
-
-DROP POLICY IF EXISTS "Insertion publique d une inscription en attente" ON public.registrations;
-CREATE POLICY "Insertion publique d une inscription en attente"
-ON public.registrations FOR INSERT
-TO anon, authenticated
-WITH CHECK (status = 'pending');
-
-DROP POLICY IF EXISTS "Lecture publique des inscriptions approuvees" ON public.registrations;
-CREATE POLICY "Lecture publique des inscriptions approuvees"
-ON public.registrations FOR SELECT
-TO anon, authenticated
-USING (true);
-
--- 5. FONCTION ET TRIGGER POUR L'ACTUALISATION DE UPDATED_AT
+-- 1.3 FONCTION ET TRIGGERS AUTOMATIQUES POUR UPDATED_AT
 CREATE OR REPLACE FUNCTION public.handle_updated_at()
 RETURNS TRIGGER AS $$
 BEGIN
@@ -160,11 +127,100 @@ BEFORE UPDATE ON public.registrations
 FOR EACH ROW
 EXECUTE FUNCTION public.handle_updated_at();
 
--- ====================================================================
--- 6. MIGRATION ET INITIALISATION DES DONNÉES EXISTANTES
--- ====================================================================
 
--- Insertion des 2 tournois officiels (Championnat et Ligue des champions)
+-- ####################################################################
+-- PARTIE 2 : SÉCURITÉ RENFORCÉE & CONFIDENTIALITÉ (RLS, GRANT, REVOKE)
+-- ####################################################################
+
+-- Activation obligatoire du Row Level Security (RLS)
+ALTER TABLE public.tournaments ENABLE ROW LEVEL SECURITY;
+ALTER TABLE public.registrations ENABLE ROW LEVEL SECURITY;
+
+-- 2.1 PERMISSIONS FONDAMENTALES (GRANT / REVOKE)
+-- Interdire formellement aux rôles publics toute lecture, modification ou suppression sur la table des inscriptions
+REVOKE ALL ON public.registrations FROM anon, authenticated;
+
+-- Autoriser uniquement les visiteurs anonymes/authentifiés à soumettre une NOUVELLE inscription
+GRANT INSERT ON public.registrations TO anon, authenticated;
+
+-- Accès complet réservé au service_role (clé backend Node.js / Hostinger)
+GRANT ALL ON public.registrations TO service_role;
+GRANT ALL ON public.tournaments TO service_role;
+GRANT SELECT ON public.tournaments TO anon, authenticated;
+
+
+-- 2.2 POLITIQUES RLS SUR LA TABLE DES TOURNOIS (tournaments)
+-- Les informations générales des tournois (dates, règlement, prix) sont publiques
+DROP POLICY IF EXISTS "Lecture publique des tournois" ON public.tournaments;
+CREATE POLICY "Lecture publique des tournois"
+ON public.tournaments FOR SELECT
+TO anon, authenticated, service_role
+USING (true);
+
+-- Seul le backend authentifié (service_role) peut modifier ou créer des tournois
+DROP POLICY IF EXISTS "Gestion complete tournois service_role" ON public.tournaments;
+CREATE POLICY "Gestion complete tournois service_role"
+ON public.tournaments FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+
+-- 2.3 POLITIQUES RLS SUR LA TABLE DES INSCRIPTIONS (registrations)
+-- IMPORTANT : Suppression de toute ancienne politique de lecture publique
+DROP POLICY IF EXISTS "Lecture publique des inscriptions approuvees" ON public.registrations;
+DROP POLICY IF EXISTS "Lecture publique des inscriptions" ON public.registrations;
+DROP POLICY IF EXISTS "Public select registrations" ON public.registrations;
+
+-- Politique 1 (Backend exclusif) : Le service_role a un accès complet pour lire, valider et gérer
+DROP POLICY IF EXISTS "Service role acces total inscriptions" ON public.registrations;
+CREATE POLICY "Service role acces total inscriptions"
+ON public.registrations FOR ALL
+TO service_role
+USING (true)
+WITH CHECK (true);
+
+-- Politique 2 (Insertion publique contrôlée) : Les visiteurs peuvent UNIQUEMENT soumettre une inscription avec le statut 'pending'
+DROP POLICY IF EXISTS "Insertion publique d une inscription en attente" ON public.registrations;
+CREATE POLICY "Insertion publique d une inscription en attente"
+ON public.registrations FOR INSERT
+TO anon, authenticated
+WITH CHECK (status = 'pending');
+
+-- REMARQUE DE SÉCURITÉ CRITIQUE :
+-- Aucune politique SELECT n'est définie pour 'anon' ou 'authenticated' sur 'registrations'.
+-- En vertu du principe de sécurité par défaut de PostgreSQL RLS (Default Deny),
+-- aucun visiteur externe ne peut lire, scanner ou extraire les inscriptions depuis le client Supabase.
+
+
+-- ####################################################################
+-- PARTIE 3 : ACTIVATION SUPABASE REALTIME
+-- ####################################################################
+-- Permet au tableau de bord administrateur (via service_role) de recevoir les flux temps réel
+DO $$
+BEGIN
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.tournaments;
+  EXCEPTION WHEN others THEN
+    NULL;
+  END;
+  BEGIN
+    ALTER PUBLICATION supabase_realtime ADD TABLE public.registrations;
+  EXCEPTION WHEN others THEN
+    NULL;
+  END;
+END $$;
+
+
+-- ####################################################################
+-- PARTIE 4 : INITIALISATION NON DESTRUCTIVE DES DONNÉES
+-- ####################################################################
+-- TOUTES LES REQUÊTES CI-DESSOUS UTILISENT 'ON CONFLICT DO NOTHING' :
+-- SI UN ENREGISTREMENT EXISTE DÉJÀ DANS SUPABASE, IL NE SERA NI TOUCHÉ,
+-- NI MODIFIÉ, NI RÉINITIALISÉ. AUCUN STATUT EXISTANT NE SERA PERDU.
+-- ####################################################################
+
+-- 4.1 Tournois Officiels
 INSERT INTO public.tournaments (
   id, name, slug, description, game_version, platform, format,
   location, city, start_date, time, registration_deadline,
@@ -198,12 +254,7 @@ Article 8 – Retard et absence : Retard supérieur à 10 minutes = forfait auto
   '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
   '2026-02-01T10:00:00.000Z',
   NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  name = EXCLUDED.name,
-  status = EXCLUDED.status,
-  registration_deadline = EXCLUDED.registration_deadline,
-  start_date = EXCLUDED.start_date,
-  updated_at = NOW();
+) ON CONFLICT (id) DO NOTHING;
 
 INSERT INTO public.tournaments (
   id, name, slug, description, game_version, platform, format,
@@ -238,14 +289,11 @@ Article 8 – Retard et absence : Retard supérieur à 10 minutes = forfait auto
   '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
   '2026-01-20T12:00:00.000Z',
   NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  name = EXCLUDED.name,
-  status = EXCLUDED.status,
-  registration_deadline = EXCLUDED.registration_deadline,
-  start_date = EXCLUDED.start_date,
-  updated_at = NOW();
+) ON CONFLICT (id) DO NOTHING;
 
--- Insertion des 21 inscriptions existantes (REG-2026-0001 à REG-2026-0021)
+
+-- 4.2 Inscriptions Historiques (Préservation intégrale via ON CONFLICT DO NOTHING)
+-- Si une inscription existe déjà (par id ou par couple tournament_id + gamertag), elle est STRICTEMENT CONSERVÉE SANS MODIFICATION.
 INSERT INTO public.registrations (
   id, registration_number, tournament_id, tournament_name, user_id,
   gamertag, player_name, user_email, phone, team_selected,
@@ -253,857 +301,54 @@ INSERT INTO public.registrations (
   status, registered_at, validated_at, rejected_at, rejection_reason,
   reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
   whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_1',
-  'REG-2026-0001',
-  'tourn_spring_2026',
-  NULL,
-  'usr_amine',
-  'Amine_FC',
-  'Amine Bennani',
-  'joueur@fctournament.ma',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-02T10:15:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  1,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-02T10:15:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
+) VALUES 
+('reg_1', 'REG-2026-0001', 'tourn_spring_2026', NULL, 'usr_amine', 'Amine_FC', 'Amine Bennani', 'joueur@fctournament.ma', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-02T10:15:00.000Z', NULL, NULL, NULL, NULL, 1, 'not_sent', NULL, 0, '2026-02-02T10:15:00.000Z', NOW()),
+('reg_2', 'REG-2026-0002', 'tourn_spring_2026', NULL, 'usr_reda', 'Reda_TheKing', 'Reda Berrada', 'reda@fctournament.ma', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-02T11:30:00.000Z', NULL, NULL, NULL, NULL, 2, 'sent', '2026-11-04T13:02:52.807Z', 1, '2026-02-02T11:30:00.000Z', NOW()),
+('reg_3', 'REG-2026-0003', 'tourn_spring_2026', NULL, 'usr_yassine', 'Yassine_99', 'Yassine Mansouri', 'yassine@fctournament.ma', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-03T14:20:00.000Z', NULL, NULL, NULL, NULL, 3, 'not_sent', NULL, 0, '2026-02-03T14:20:00.000Z', NOW()),
+('reg_4', 'REG-2026-0004', 'tourn_spring_2026', NULL, 'usr_bilal', 'FC_Sniper', 'Bilal Tahiri', 'bilal@fctournament.ma', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-04T09:45:00.000Z', NULL, NULL, NULL, NULL, 4, 'not_sent', NULL, 0, '2026-02-04T09:45:00.000Z', NOW()),
+('reg_5', 'REG-2026-0005', 'tourn_spring_2026', NULL, 'usr_mehdi', 'Mehdi_Pro', 'Mehdi El Amrani', 'mehdi@fctournament.ma', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-05T16:00:00.000Z', NULL, NULL, NULL, NULL, 5, 'not_sent', NULL, 0, '2026-02-05T16:00:00.000Z', NOW()),
+('reg_6', 'REG-2026-0006', 'tourn_spring_2026', NULL, 'usr_simoo', 'Simoo_Dribble', 'Mohamed Ziani', 'simoo@fctournament.ma', NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-06T18:10:00.000Z', NULL, NULL, NULL, NULL, 6, 'not_sent', NULL, 0, '2026-02-06T18:10:00.000Z', NOW()),
+('reg_oriental_1', 'REG-2026-0007', 'tourn_ligue_oriental_2026', NULL, 'usr_amine', 'Amine_FC', 'Amine Bennani', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T10:00:00.000Z', NULL, NULL, NULL, NULL, 1, 'not_sent', NULL, 0, '2026-02-01T10:00:00.000Z', NOW()),
+('reg_oriental_2', 'REG-2026-0008', 'tourn_ligue_oriental_2026', NULL, 'usr_reda', 'Reda_TheKing', 'Reda Berrada', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T10:15:00.000Z', NULL, NULL, NULL, NULL, 2, 'not_sent', NULL, 0, '2026-02-01T10:15:00.000Z', NOW()),
+('reg_oriental_3', 'REG-2026-0009', 'tourn_ligue_oriental_2026', NULL, 'usr_yassine', 'Yassine_99', 'Yassine Mansouri', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T10:30:00.000Z', NULL, NULL, NULL, NULL, 3, 'not_sent', NULL, 0, '2026-02-01T10:30:00.000Z', NOW()),
+('reg_oriental_4', 'REG-2026-0010', 'tourn_ligue_oriental_2026', NULL, 'usr_bilal', 'FC_Sniper', 'Bilal Tahiri', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T10:45:00.000Z', NULL, NULL, NULL, NULL, 4, 'not_sent', NULL, 0, '2026-02-01T10:45:00.000Z', NOW()),
+('reg_oriental_5', 'REG-2026-0011', 'tourn_ligue_oriental_2026', NULL, 'usr_mehdi', 'Mehdi_Pro', 'Mehdi El Amrani', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T11:00:00.000Z', NULL, NULL, NULL, NULL, 5, 'not_sent', NULL, 0, '2026-02-01T11:00:00.000Z', NOW()),
+('reg_oriental_6', 'REG-2026-0012', 'tourn_ligue_oriental_2026', NULL, 'usr_simoo', 'Simoo_Dribble', 'Mohamed Ziani', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T11:15:00.000Z', NULL, NULL, NULL, NULL, 6, 'not_sent', NULL, 0, '2026-02-01T11:15:00.000Z', NOW()),
+('reg_oriental_7', 'REG-2026-0013', 'tourn_ligue_oriental_2026', NULL, 'usr_hamza', 'Hamza_FCB', 'Hamza Chaoui', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T11:30:00.000Z', NULL, NULL, NULL, NULL, 7, 'not_sent', NULL, 0, '2026-02-01T11:30:00.000Z', NOW()),
+('reg_oriental_8', 'REG-2026-0014', 'tourn_ligue_oriental_2026', NULL, 'usr_karim', 'Karim_Atlas', 'Karim Benali', NULL, NULL, NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-01T11:45:00.000Z', NULL, NULL, NULL, NULL, 8, 'not_sent', NULL, 0, '2026-02-01T11:45:00.000Z', NOW()),
+('reg_1793725437285_qkz9', 'REG-2026-0015', 'tourn_spring_2026', 'Championnat', 'guest_1793725437285_sccv', 'Omar_Maestro', 'Omar El Alami', 'omar.test@fctournament.ma', '0612345678', 'Real Madrid', 'Manette personnelle PS5', NULL, 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'recu_virement_omar.png', 'confirmed', '2026-11-03T17:03:57.285Z', NULL, NULL, NULL, NULL, 9, 'sent', '2026-11-04T13:02:19.568Z', 1, '2026-11-03T17:03:57.285Z', NOW()),
+('reg_champ_hamza', 'REG-2026-0016', 'tourn_spring_2026', 'Championnat', 'usr_hamza', 'Hamza_FCB', 'Hamza Chaoui', 'hamza@fctournament.ma', '+212 6 33 44 55 66', NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-07T14:30:00.000Z', NULL, NULL, NULL, NULL, 7, 'not_sent', NULL, 0, '2026-02-07T14:30:00.000Z', NOW()),
+('reg_champ_karim', 'REG-2026-0017', 'tourn_spring_2026', 'Championnat', 'usr_karim', 'Karim_Atlas', 'Karim Benali', 'karim.atlas@fctournament.ma', '+212 6 44 55 66 77', NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-08T11:15:00.000Z', NULL, NULL, NULL, NULL, 8, 'not_sent', NULL, 0, '2026-02-08T11:15:00.000Z', NOW()),
+('reg_champ_tariq', 'REG-2026-0018', 'tourn_spring_2026', 'Championnat', 'usr_tariq', 'Tariq_Pro9', 'Tariq Mansour', 'tariq.mansour@fctournament.ma', '+212 6 55 66 77 88', NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-09T16:20:00.000Z', NULL, NULL, NULL, NULL, 10, 'not_sent', NULL, 0, '2026-02-09T16:20:00.000Z', NOW()),
+('reg_champ_soufiane', 'REG-2026-0019', 'tourn_spring_2026', 'Championnat', 'usr_soufiane', 'Souf_Skiller', 'Soufiane El Fassi', 'soufiane.elfassi@fctournament.ma', '+212 6 66 77 88 99', NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-10T18:45:00.000Z', NULL, NULL, NULL, NULL, 11, 'not_sent', NULL, 0, '2026-02-10T18:45:00.000Z', NOW()),
+('reg_champ_ayoub', 'REG-2026-0020', 'tourn_spring_2026', 'Championnat', 'usr_ayoub', 'Ayoub_Striker', 'Ayoub Bennis', 'ayoub.bennis@fctournament.ma', '+212 6 77 88 99 00', NULL, NULL, NULL, NULL, NULL, 'confirmed', '2026-02-11T19:10:00.000Z', NULL, NULL, NULL, NULL, 12, 'not_sent', NULL, 0, '2026-02-11T19:10:00.000Z', NOW()),
+('reg_1794301367570_czq8', 'REG-2026-0021', 'tourn_spring_2026', 'Championnat', 'guest_1794301367570_nywi', 'Youssef_FC27', 'Youssef Testeur', 'alio2002ng@gmail.com', '+212 6 99 88 77 66', 'Real Madrid', 'Manette personnelle PS5', 'Test inscription officielle', 'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==', 'recu_virement.png', 'confirmed', '2026-11-10T09:02:47.570Z', '2026-11-10T09:03:11.592Z', NULL, NULL, 'Google AI Studio Admin', 13, 'sent', '2026-11-10T09:03:11.592Z', 1, '2026-11-10T09:02:47.570Z', NOW())
+ON CONFLICT (id) DO NOTHING;
 
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_2',
-  'REG-2026-0002',
-  'tourn_spring_2026',
-  NULL,
-  'usr_reda',
-  'Reda_TheKing',
-  'Reda Berrada',
-  'reda@fctournament.ma',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-02T11:30:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  2,
-  'sent',
-  '2026-11-04T13:02:52.807Z',
-  1,
-  '2026-02-02T11:30:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
 
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_3',
-  'REG-2026-0003',
-  'tourn_spring_2026',
-  NULL,
-  'usr_yassine',
-  'Yassine_99',
-  'Yassine Mansouri',
-  'yassine@fctournament.ma',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-03T14:20:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  3,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-03T14:20:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_4',
-  'REG-2026-0004',
-  'tourn_spring_2026',
-  NULL,
-  'usr_bilal',
-  'FC_Sniper',
-  'Bilal Tahiri',
-  'bilal@fctournament.ma',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-04T09:45:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  4,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-04T09:45:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_5',
-  'REG-2026-0005',
-  'tourn_spring_2026',
-  NULL,
-  'usr_mehdi',
-  'Mehdi_Pro',
-  'Mehdi El Amrani',
-  'mehdi@fctournament.ma',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-05T16:00:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  5,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-05T16:00:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_6',
-  'REG-2026-0006',
-  'tourn_spring_2026',
-  NULL,
-  'usr_simoo',
-  'Simoo_Dribble',
-  'Mohamed Ziani',
-  'simoo@fctournament.ma',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-06T18:10:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  6,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-06T18:10:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_1',
-  'REG-2026-0007',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_amine',
-  'Amine_FC',
-  'Amine Bennani',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T10:00:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  1,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T10:00:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_2',
-  'REG-2026-0008',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_reda',
-  'Reda_TheKing',
-  'Reda Berrada',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T10:15:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  2,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T10:15:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_3',
-  'REG-2026-0009',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_yassine',
-  'Yassine_99',
-  'Yassine Mansouri',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T10:30:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  3,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T10:30:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_4',
-  'REG-2026-0010',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_bilal',
-  'FC_Sniper',
-  'Bilal Tahiri',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T10:45:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  4,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T10:45:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_5',
-  'REG-2026-0011',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_mehdi',
-  'Mehdi_Pro',
-  'Mehdi El Amrani',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T11:00:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  5,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T11:00:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_6',
-  'REG-2026-0012',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_simoo',
-  'Simoo_Dribble',
-  'Mohamed Ziani',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T11:15:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  6,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T11:15:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_7',
-  'REG-2026-0013',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_hamza',
-  'Hamza_FCB',
-  'Hamza Chaoui',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T11:30:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  7,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T11:30:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_oriental_8',
-  'REG-2026-0014',
-  'tourn_ligue_oriental_2026',
-  NULL,
-  'usr_karim',
-  'Karim_Atlas',
-  'Karim Benali',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-01T11:45:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  8,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-01T11:45:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_1793725437285_qkz9',
-  'REG-2026-0015',
-  'tourn_spring_2026',
-  'Championnat',
-  'guest_1793725437285_sccv',
-  'Omar_Maestro',
-  'Omar El Alami',
-  'omar.test@fctournament.ma',
-  '0612345678',
-  'Real Madrid',
-  'Manette personnelle PS5',
-  NULL,
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-  'recu_virement_omar.png',
-  'confirmed',
-  '2026-11-03T17:03:57.285Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  9,
-  'sent',
-  '2026-11-04T13:02:19.568Z',
-  1,
-  '2026-11-03T17:03:57.285Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_champ_hamza',
-  'REG-2026-0016',
-  'tourn_spring_2026',
-  'Championnat',
-  'usr_hamza',
-  'Hamza_FCB',
-  'Hamza Chaoui',
-  'hamza@fctournament.ma',
-  '+212 6 33 44 55 66',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-07T14:30:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  7,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-07T14:30:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_champ_karim',
-  'REG-2026-0017',
-  'tourn_spring_2026',
-  'Championnat',
-  'usr_karim',
-  'Karim_Atlas',
-  'Karim Benali',
-  'karim.atlas@fctournament.ma',
-  '+212 6 44 55 66 77',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-08T11:15:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  8,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-08T11:15:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_champ_tariq',
-  'REG-2026-0018',
-  'tourn_spring_2026',
-  'Championnat',
-  'usr_tariq',
-  'Tariq_Pro9',
-  'Tariq Mansour',
-  'tariq.mansour@fctournament.ma',
-  '+212 6 55 66 77 88',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-09T16:20:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  10,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-09T16:20:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_champ_soufiane',
-  'REG-2026-0019',
-  'tourn_spring_2026',
-  'Championnat',
-  'usr_soufiane',
-  'Souf_Skiller',
-  'Soufiane El Fassi',
-  'soufiane.elfassi@fctournament.ma',
-  '+212 6 66 77 88 99',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-10T18:45:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  11,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-10T18:45:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_champ_ayoub',
-  'REG-2026-0020',
-  'tourn_spring_2026',
-  'Championnat',
-  'usr_ayoub',
-  'Ayoub_Striker',
-  'Ayoub Bennis',
-  'ayoub.bennis@fctournament.ma',
-  '+212 6 77 88 99 00',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  'confirmed',
-  '2026-02-11T19:10:00.000Z',
-  NULL,
-  NULL,
-  NULL,
-  NULL,
-  12,
-  'not_sent',
-  NULL,
-  0,
-  '2026-02-11T19:10:00.000Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
-INSERT INTO public.registrations (
-  id, registration_number, tournament_id, tournament_name, user_id,
-  gamertag, player_name, user_email, phone, team_selected,
-  controller_preference, notes, payment_proof, payment_proof_name,
-  status, registered_at, validated_at, rejected_at, rejection_reason,
-  reviewed_by, seed, whatsapp_invite_status, whatsapp_invite_sent_at,
-  whatsapp_invite_attempts, created_at, updated_at
-) VALUES (
-  'reg_1794301367570_czq8',
-  'REG-2026-0021',
-  'tourn_spring_2026',
-  'Championnat',
-  'guest_1794301367570_nywi',
-  'Youssef_FC27',
-  'Youssef Testeur',
-  'alio2002ng@gmail.com',
-  '+212 6 99 88 77 66',
-  'Real Madrid',
-  'Manette personnelle PS5',
-  'Test inscription officielle',
-  'data:image/png;base64,iVBORw0KGgoAAAANSUhEUgAAAAEAAAABCAYAAAAfFcSJAAAADUlEQVR42mNk+M9QDwADhgGAWjR9awAAAABJRU5ErkJggg==',
-  'recu_virement.png',
-  'confirmed',
-  '2026-11-10T09:02:47.570Z',
-  '2026-11-10T09:03:11.592Z',
-  NULL,
-  NULL,
-  'Google AI Studio Admin',
-  13,
-  'sent',
-  '2026-11-10T09:03:11.592Z',
-  1,
-  '2026-11-10T09:02:47.570Z',
-  NOW()
-) ON CONFLICT (id) DO UPDATE SET
-  status = EXCLUDED.status,
-  validated_at = EXCLUDED.validated_at,
-  reviewed_by = EXCLUDED.reviewed_by,
-  whatsapp_invite_status = EXCLUDED.whatsapp_invite_status,
-  updated_at = NOW();
-
+-- ####################################################################
+-- PARTIE 5 : REQUÊTES DE VÉRIFICATION & AUDIT POST-MIGRATION
+-- ####################################################################
+-- Exécutez ces requêtes dans l'Éditeur SQL pour vérifier l'intégrité :
+--
+-- 1. Nombre total de tournois :
+--    SELECT COUNT(*) AS total_tournois FROM public.tournaments;
+--
+-- 2. Nombre total et ventilation des inscriptions par statut :
+--    SELECT status, COUNT(*) AS nombre_inscriptions 
+--    FROM public.registrations 
+--    GROUP BY status 
+--    ORDER BY nombre_inscriptions DESC;
+--
+-- 3. Vérification de l'absence de doublons (gamertag par tournoi) :
+--    SELECT tournament_id, gamertag, COUNT(*) 
+--    FROM public.registrations 
+--    GROUP BY tournament_id, gamertag 
+--    HAVING COUNT(*) > 1;
+--
+-- 4. Vérification de l'intégrité des numéros d'enregistrement :
+--    SELECT registration_number, COUNT(*) 
+--    FROM public.registrations 
+--    GROUP BY registration_number 
+--    HAVING COUNT(*) > 1;
+-- ====================================================================

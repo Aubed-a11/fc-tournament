@@ -51,6 +51,8 @@ import {
   Send,
   MessageSquare,
   Share2,
+  Copy,
+  FileCode,
 } from 'lucide-react';
 
 interface AdminProps {
@@ -110,6 +112,10 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     error?: string;
   } | null>(null);
   const [syncingSupabase, setSyncingSupabase] = useState<boolean>(false);
+  const [downloadingSchema, setDownloadingSchema] = useState<boolean>(false);
+  const [showSqlSchemaModal, setShowSqlSchemaModal] = useState<boolean>(false);
+  const [sqlSchemaCode, setSqlSchemaCode] = useState<string>('');
+  const [copiedSql, setCopiedSql] = useState<boolean>(false);
 
   // Create tournament modal state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -499,6 +505,109 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       setMessage({ type: 'error', text: 'Impossible de joindre le serveur pour la synchronisation Supabase.' });
     } finally {
       setSyncingSupabase(false);
+    }
+  };
+
+  const handleDownloadSqlSchema = async () => {
+    try {
+      setDownloadingSchema(true);
+      setMessage(null);
+
+      // 1. Fetch directly from the dedicated server route with admin headers
+      const res = await fetch('/api/admin/download-schema', {
+        headers: getAdminHeaders(),
+      });
+
+      if (!res.ok) {
+        let errMessage = `Erreur HTTP ${res.status}`;
+        try {
+          const errData = await res.json();
+          if (errData.error) errMessage = errData.error;
+        } catch {}
+        throw new Error(errMessage);
+      }
+
+      // 2. Read the full SQL text
+      const sqlText = await res.text();
+      const trimmed = sqlText.trim();
+
+      // 3. Strict verification: ensure it contains valid SQL and NEVER HTML / Cookie check
+      if (
+        trimmed.startsWith('<!doctype') ||
+        trimmed.startsWith('<!DOCTYPE') ||
+        trimmed.startsWith('<html') ||
+        trimmed.includes('<title>Cookie check</title>')
+      ) {
+        throw new Error(
+          'La réponse reçue contient du HTML (« Cookie check ») au lieu du code SQL. Utilisez le bouton "Copier le SQL" pour coller directement le schéma dans Supabase.'
+        );
+      }
+
+      // 4. Client-side native file download with exact MIME type and filename
+      const blob = new Blob([sqlText], { type: 'application/sql; charset=utf-8' });
+      const downloadUrl = window.URL.createObjectURL(blob);
+      const tempLink = document.createElement('a');
+      tempLink.href = downloadUrl;
+      tempLink.setAttribute('download', 'supabase_schema.sql');
+      document.body.appendChild(tempLink);
+      tempLink.click();
+      document.body.removeChild(tempLink);
+      window.URL.revokeObjectURL(downloadUrl);
+
+      setSqlSchemaCode(sqlText);
+      setMessage({
+        type: 'success',
+        text: 'Fichier « supabase_schema.sql » téléchargé avec succès (100% SQL PostgreSQL authentique, 0% HTML) !',
+      });
+    } catch (err: any) {
+      console.error('Erreur téléchargement schéma SQL:', err);
+      setMessage({
+        type: 'error',
+        text: `Échec du téléchargement SQL : ${err?.message || err}`,
+      });
+    } finally {
+      setDownloadingSchema(false);
+    }
+  };
+
+  const handleOpenSqlModal = async () => {
+    try {
+      if (!sqlSchemaCode) {
+        const res = await fetch('/api/admin/download-schema', {
+          headers: getAdminHeaders(),
+        });
+        if (res.ok) {
+          const text = await res.text();
+          if (!text.trim().startsWith('<')) {
+            setSqlSchemaCode(text);
+          }
+        }
+      }
+    } catch (err) {
+      console.warn('Could not pre-fetch schema:', err);
+    }
+    setShowSqlSchemaModal(true);
+  };
+
+  const handleCopySqlToClipboard = async () => {
+    try {
+      let codeToCopy = sqlSchemaCode;
+      if (!codeToCopy) {
+        const res = await fetch('/api/admin/download-schema', {
+          headers: getAdminHeaders(),
+        });
+        if (res.ok) {
+          codeToCopy = await res.text();
+          setSqlSchemaCode(codeToCopy);
+        }
+      }
+      if (codeToCopy && !codeToCopy.trim().startsWith('<')) {
+        await navigator.clipboard.writeText(codeToCopy);
+        setCopiedSql(true);
+        setTimeout(() => setCopiedSql(false), 3000);
+      }
+    } catch (err: any) {
+      console.error('Erreur lors de la copie du SQL:', err);
     }
   };
 
@@ -1583,15 +1692,30 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               </div>
 
               <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
-                <a
-                  href="/api/admin/supabase/schema.sql"
-                  download="supabase_schema.sql"
-                  className="px-3 py-2 rounded-xl bg-[#162032] hover:bg-[#1d2a42] border border-[#2a3a54] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors"
-                  title="Télécharger le script SQL complet prêt à coller dans Supabase SQL Editor"
+                <button
+                  type="button"
+                  onClick={handleDownloadSqlSchema}
+                  disabled={downloadingSchema}
+                  className="px-3 py-2 rounded-xl bg-[#162032] hover:bg-[#1d2a42] border border-[#2a3a54] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  title="Télécharger le véritable fichier supabase_schema.sql (100% SQL, garanti sans HTML)"
                 >
-                  <Download className="w-3.5 h-3.5 text-[#00ff66]" />
-                  <span>Script SQL Supabase</span>
-                </a>
+                  {downloadingSchema ? (
+                    <RefreshCw className="w-3.5 h-3.5 text-[#00ff66] animate-spin" />
+                  ) : (
+                    <Download className="w-3.5 h-3.5 text-[#00ff66]" />
+                  )}
+                  <span>{downloadingSchema ? 'Téléchargement...' : 'Télécharger SQL'}</span>
+                </button>
+
+                <button
+                  type="button"
+                  onClick={handleOpenSqlModal}
+                  className="px-3 py-2 rounded-xl bg-[#121927] hover:bg-[#192336] border border-[#23324a] text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
+                  title="Afficher et copier le script SQL prêt à coller dans Supabase"
+                >
+                  <Copy className="w-3.5 h-3.5 text-[#00ff66]" />
+                  <span>Copier le SQL</span>
+                </button>
 
                 <button
                   onClick={handleSyncAllToSupabase}
@@ -3251,6 +3375,90 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                     Toutes les inscriptions soumises sur le site Hostinger seront écrites directement dans la table <strong className="text-white">registrations</strong> de Supabase et récupérables en temps réel dans votre panneau administrateur.
                   </p>
                 </div>
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* ======================================================== */}
+        {/* MODAL: SUPABASE SQL SCHEMA VIEWER & INSTANT COPIER       */}
+        {/* ======================================================== */}
+        {showSqlSchemaModal && (
+          <div
+            className="fixed inset-0 z-50 flex items-center justify-center p-4 bg-black/85 backdrop-blur-md animate-in fade-in duration-200"
+            onClick={() => setShowSqlSchemaModal(false)}
+          >
+            <div
+              className="relative w-full max-w-4xl bg-[#0b0f17] border border-[#1f2b3f] rounded-3xl overflow-hidden shadow-[0_0_60px_rgba(0,0,0,0.9)] flex flex-col max-h-[90vh]"
+              onClick={(e) => e.stopPropagation()}
+            >
+              {/* Modal Header */}
+              <div className="px-6 py-5 bg-[#101725] border-b border-[#1c2638] flex items-center justify-between">
+                <div className="flex items-center gap-3">
+                  <div className="w-10 h-10 rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/30 flex items-center justify-center text-[#00ff66]">
+                    <FileCode className="w-5 h-5" />
+                  </div>
+                  <div>
+                    <h3 className="font-display text-lg font-bold text-white uppercase tracking-tight">
+                      Schéma SQL Supabase Officiel (supabase_schema.sql)
+                    </h3>
+                    <p className="text-xs text-slate-400">
+                      Code SQL PostgreSQL prêt à coller dans Supabase SQL Editor
+                    </p>
+                  </div>
+                </div>
+                <button
+                  onClick={() => setShowSqlSchemaModal(false)}
+                  className="p-2 rounded-xl text-slate-400 hover:text-white hover:bg-[#1a2333] transition-colors cursor-pointer"
+                >
+                  <X className="w-5 h-5" />
+                </button>
+              </div>
+
+              {/* Instructions banner */}
+              <div className="px-6 py-3 bg-[#0d1420] border-b border-[#1b2537] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
+                <div className="flex items-center gap-2">
+                  <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
+                  <span><strong>Instructions :</strong> Ouvrez Supabase &rarr; SQL Editor &rarr; New query &rarr; Collez et cliquez sur « Run ».</span>
+                </div>
+                <div className="flex items-center gap-2">
+                  <button
+                    onClick={handleCopySqlToClipboard}
+                    className="px-3 py-1.5 rounded-lg bg-[#00ff66] hover:bg-[#00dd55] text-black font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
+                  >
+                    {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
+                    <span>{copiedSql ? 'Copié !' : 'Copier tout le SQL'}</span>
+                  </button>
+                  <button
+                    onClick={handleDownloadSqlSchema}
+                    disabled={downloadingSchema}
+                    className="px-3 py-1.5 rounded-lg bg-[#182335] hover:bg-[#202e46] border border-[#2c3d59] text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
+                  >
+                    <Download className="w-3.5 h-3.5 text-[#00ff66]" />
+                    <span>Télécharger .sql</span>
+                  </button>
+                </div>
+              </div>
+
+              {/* Modal Body */}
+              <div className="p-6 overflow-y-auto flex-1 font-mono text-xs">
+                <div className="p-4 rounded-xl bg-[#06090e] border border-[#162030] text-slate-300 overflow-x-auto whitespace-pre leading-relaxed select-all">
+                  {sqlSchemaCode || 'Chargement du script SQL officiel en cours...'}
+                </div>
+              </div>
+
+              {/* Modal Footer */}
+              <div className="px-6 py-4 bg-[#0e1420] border-t border-[#1a2436] flex items-center justify-between text-xs text-slate-400">
+                <div className="flex items-center gap-2">
+                  <CheckCircle2 className="w-4 h-4 text-[#00ff66]" />
+                  <span>Script garanti 100% SQL PostgreSQL (aucun DROP TABLE, aucun TRUNCATE).</span>
+                </div>
+                <button
+                  onClick={() => setShowSqlSchemaModal(false)}
+                  className="px-4 py-2 rounded-xl bg-[#172132] hover:bg-[#202d44] text-white font-semibold transition-colors cursor-pointer"
+                >
+                  Fermer
+                </button>
               </div>
             </div>
           </div>
