@@ -300,7 +300,7 @@ function getInitialDatabase(): DatabaseSchema {
       maxParticipants: 32,
       entryFeeMAD: 50,
       prizePool: '**** MAD + Trophée + T-shirt',
-      status: 'open',
+      status: 'completed',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
       bannerImage: '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
@@ -1163,43 +1163,52 @@ L'équipe FC TOURNAMENT.`;
 
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const port = Number(process.env.SMTP_PORT) || 587;
+      const secure = process.env.SMTP_SECURE === 'true' || port === 465;
+
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
+        port,
+        secure,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
         },
       });
 
+      // Verify SMTP connection and credentials with provider before sending
+      await transporter.verify();
+
       const info = await transporter.sendMail({
-        from: process.env.SMTP_FROM || '"FC TOURNAMENT" <alio227ng@gmail.com>',
+        from: process.env.SMTP_FROM || `"FC TOURNAMENT" <${process.env.SMTP_USER}>`,
         to: cleanEmail,
         subject,
         text: plainTextMessage,
         html: htmlMessage,
       });
 
-      console.log(`[SMTP] Invitation WhatsApp envoyée avec succès à ${cleanEmail} (ID: ${info.messageId})`);
+      console.log(`[SMTP ACCEPTÉ] E-mail officiel accepté par le fournisseur pour ${cleanEmail} (ID: ${info.messageId}, Réponse: ${info.response})`);
       return { success: true, messageId: info.messageId };
     } else {
-      // In development / preview mode: simulated transactional dispatch
-      const simulatedMessageId = `msg_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
-      console.log(`[EMAIL DISPATCH] Invitation WhatsApp envoyée à ${cleanEmail} pour ${gamertag}`);
-      console.log(`[EMAIL LINK] ${WHATSAPP_GROUP_LINK}`);
-      console.log(`[EMAIL ID] ${simulatedMessageId}`);
+      const missingVars = [
+        !process.env.SMTP_HOST && 'SMTP_HOST',
+        !process.env.SMTP_USER && 'SMTP_USER',
+        !process.env.SMTP_PASS && 'SMTP_PASS',
+      ].filter(Boolean).join(', ');
+
+      const errorMsg = `Serveur SMTP non configuré (${missingVars} manquants dans l'environnement). Aucun email n'a pu être expédié au fournisseur.`;
+      console.warn(`[SMTP NON CONFIGURÉ] ${errorMsg} (Destinataire: ${cleanEmail})`);
 
       return {
-        success: true,
-        messageId: simulatedMessageId,
+        success: false,
+        error: errorMsg,
       };
     }
   } catch (err: any) {
-    console.error(`[EMAIL ERROR] Erreur lors de l'envoi de l'invitation WhatsApp à ${cleanEmail}:`, err);
+    console.error(`[SMTP ERROR] Échec de l'envoi de l'invitation à ${cleanEmail}:`, err?.message || err);
     return {
       success: false,
-      error: err?.message || 'Erreur lors de l’envoi du courriel transactionnel.',
+      error: `Erreur fournisseur SMTP : ${err?.message || 'Connexion refusée ou identifiants SMTP invalides.'}`,
     };
   }
 }
@@ -1389,7 +1398,11 @@ function computeLeaderboard(): PlayerLeaderboard[] {
         tournamentsPlayed: 0,
         matchesPlayed: 0,
         wins: 0,
+        draws: 0,
         losses: 0,
+        goalsFor: 0,
+        goalsAgainst: 0,
+        goalDifference: 0,
         winRate: 0,
         points: 0,
         rank: 0,
@@ -1419,15 +1432,23 @@ function computeLeaderboard(): PlayerLeaderboard[] {
   // Count matches
   for (const m of db.matches) {
     if (m.status === 'completed' && m.validatedByAdmin) {
+      const p1Score = typeof m.player1Score === 'number' ? m.player1Score : 0;
+      const p2Score = typeof m.player2Score === 'number' ? m.player2Score : 0;
+
       if (m.player1Id && statsMap.has(m.player1Id)) {
         const s1 = statsMap.get(m.player1Id)!;
         s1.matchesPlayed += 1;
+        s1.goalsFor += p1Score;
+        s1.goalsAgainst += p2Score;
+        s1.goalDifference = s1.goalsFor - s1.goalsAgainst;
+
         if (m.winnerId === m.player1Id) {
           s1.wins += 1;
           s1.points += 3; // 3 pts per win
         } else if (m.winnerId) {
           s1.losses += 1; // 0 pt per loss
         } else {
+          s1.draws += 1;
           s1.points += 1; // Match nul = +1 pt
         }
       }
@@ -1435,12 +1456,17 @@ function computeLeaderboard(): PlayerLeaderboard[] {
       if (m.player2Id && statsMap.has(m.player2Id)) {
         const s2 = statsMap.get(m.player2Id)!;
         s2.matchesPlayed += 1;
+        s2.goalsFor += p2Score;
+        s2.goalsAgainst += p1Score;
+        s2.goalDifference = s2.goalsFor - s2.goalsAgainst;
+
         if (m.winnerId === m.player2Id) {
           s2.wins += 1;
           s2.points += 3; // 3 pts per win
         } else if (m.winnerId) {
           s2.losses += 1; // 0 pt per loss
         } else {
+          s2.draws += 1;
           s2.points += 1; // Match nul = +1 pt
         }
       }
