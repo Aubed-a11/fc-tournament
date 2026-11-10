@@ -138,9 +138,31 @@ export interface ContactSubmission {
   replied?: boolean;
 }
 
+// Score envoye par un joueur avec capture d'ecran, en attente de validation par l'admin
+export interface ScoreSubmission {
+  id: string;
+  matchId: string;
+  tournamentId: string;
+  tournamentName: string;
+  stageName: string;
+  player1Gamertag: string;
+  player2Gamertag: string;
+  submittedByUserId: string;
+  submittedByGamertag: string;
+  score1: number;
+  score2: number;
+  note?: string;
+  proofId: string;
+  status: 'pending' | 'approved' | 'rejected';
+  createdAt: string;
+  reviewedAt?: string;
+  reviewedBy?: string;
+  rejectionReason?: string;
+}
+
 export interface AdminNotification {
   id: string;
-  type: 'new_registration' | 'registration_cancelled' | 'contact_message' | 'system' | 'security';
+  type: 'new_registration' | 'registration_cancelled' | 'contact_message' | 'system' | 'security' | 'score_submission';
   title: string;
   message: string;
   playerName?: string;

@@ -2,6 +2,7 @@ import React, { useState, useEffect, useRef } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
 import type { Tournament, Registration, Match, AdminNotification, User, PaymentSubmission } from '../types/index.ts';
 import { ScoreModal } from '../components/ScoreModal.tsx';
+import { AdminScoreSubmissions } from '../components/AdminScoreSubmissions.tsx';
 import { formatDateFrench, formatMAD } from '../utils/format.ts';
 import { apiClient, getLocalRegistrations } from '../services/apiClient.ts';
 import { INITIAL_REGISTRATIONS } from '../data/initialData.ts';
@@ -55,6 +56,7 @@ import {
   FileCode,
   CreditCard,
   FileText,
+  Camera,
 } from 'lucide-react';
 
 interface AdminProps {
@@ -74,7 +76,8 @@ interface TournamentsStatsItem {
 
 export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const { user, token, login } = useAuth();
-  const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'payments' | 'users' | 'matches'>('registrations');
+  const [adminTab, setAdminTab] = useState<'tournaments' | 'registrations' | 'payments' | 'users' | 'matches' | 'scores'>('registrations');
+  const [pendingScoreCount, setPendingScoreCount] = useState<number>(0);
 
   const [tournaments, setTournaments] = useState<Tournament[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
@@ -945,6 +948,10 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       fetchUsers();
       fetchPayments();
       fetchSupabaseLiveStatus();
+      fetch('/api/admin/score-submissions', { headers: getAdminHeaders() })
+        .then((r) => (r.ok ? r.json() : null))
+        .then((d) => d && setPendingScoreCount(d.pendingCount || 0))
+        .catch(() => {});
     }
   }, [adminVerified]);
 
@@ -1822,6 +1829,12 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               label: 'Gestion des Matchs & Scores',
               badge: matches.length,
               icon: Gamepad2,
+            },
+            {
+              id: 'scores',
+              label: 'Scores envoyés',
+              badge: pendingScoreCount,
+              icon: Camera,
             },
           ].map((tab) => {
             const Icon = tab.icon;
@@ -3042,6 +3055,14 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         {/* ======================================================== */}
         {/* TAB 3: GESTION DES MATCHS & SCORES                       */}
         {/* ======================================================== */}
+        {adminTab === 'scores' && (
+          <AdminScoreSubmissions
+            getAdminHeaders={getAdminHeaders as any}
+            onScoreValidated={() => fetchAdminData()}
+            onPendingCountChange={setPendingScoreCount}
+          />
+        )}
+
         {adminTab === 'matches' && (
           <div className="space-y-6">
             <div className="p-4 rounded-2xl bg-[#0c1017] border border-[#1b2538] flex flex-col sm:flex-row sm:items-center justify-between gap-4">

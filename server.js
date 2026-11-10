@@ -160,6 +160,47 @@ class SyncedMap extends Map {
     });
   }
 }
+let proofTableReady = null;
+function ensureProofTable() {
+  if (!pgPool) return Promise.resolve();
+  if (!proofTableReady) {
+    proofTableReady = ensureSchema().then(
+      () => pgPool.query(
+        `CREATE TABLE IF NOT EXISTS fc_proofs (
+            id TEXT PRIMARY KEY,
+            data TEXT NOT NULL,
+            created_at TIMESTAMPTZ NOT NULL DEFAULT now()
+          )`
+      )
+    ).then(() => void 0).catch((err) => {
+      proofTableReady = null;
+      throw err;
+    });
+  }
+  return proofTableReady;
+}
+function proofFilePath(id) {
+  return path.join(process.env.VERCEL ? path.join("/tmp", "fc_data") : path.join(__dirname, "data"), "proofs", `${id}.txt`);
+}
+async function saveProofImage(id, dataUrl) {
+  if (pgPool) {
+    await ensureProofTable();
+    await pgPool.query("INSERT INTO fc_proofs (id, data) VALUES ($1, $2) ON CONFLICT (id) DO UPDATE SET data = EXCLUDED.data", [id, dataUrl]);
+    return;
+  }
+  const file = proofFilePath(id);
+  fs.mkdirSync(path.dirname(file), { recursive: true });
+  fs.writeFileSync(file, dataUrl, "utf-8");
+}
+async function loadProofImage(id) {
+  if (pgPool) {
+    await ensureProofTable();
+    const { rows } = await pgPool.query("SELECT data FROM fc_proofs WHERE id = $1", [id]);
+    return rows[0]?.data ?? null;
+  }
+  const file = proofFilePath(id);
+  return fs.existsSync(file) ? fs.readFileSync(file, "utf-8") : null;
+}
 const sessions = new SyncedMap("sessions");
 const MAX_ADMIN_ATTEMPTS = 5;
 const LOCKOUT_DURATION_MS = 15 * 60 * 1e3;
@@ -973,7 +1014,7 @@ function getInitialDatabase() {
       read: true
     }
   ];
-  return { users, tournaments, registrations, matches, contacts, notifications, paymentSubmissions: [] };
+  return { users, tournaments, registrations, matches, contacts, notifications, paymentSubmissions: [], scoreSubmissions: [] };
 }
 function loadDatabase() {
   let loaded;
@@ -1002,6 +1043,9 @@ function loadDatabase() {
   }
   if (!Array.isArray(loaded.paymentSubmissions)) {
     loaded.paymentSubmissions = [];
+  }
+  if (!Array.isArray(loaded.scoreSubmissions)) {
+    loaded.scoreSubmissions = [];
   }
   let needsSync = false;
   loaded.registrations.forEach((r, idx) => {
@@ -1114,7 +1158,8 @@ function normalizeDatabase(raw) {
     matches: Array.isArray(d.matches) ? d.matches : [],
     contacts: Array.isArray(d.contacts) ? d.contacts : [],
     notifications: Array.isArray(d.notifications) ? d.notifications : [],
-    paymentSubmissions: Array.isArray(d.paymentSubmissions) ? d.paymentSubmissions : []
+    paymentSubmissions: Array.isArray(d.paymentSubmissions) ? d.paymentSubmissions : [],
+    scoreSubmissions: Array.isArray(d.scoreSubmissions) ? d.scoreSubmissions : []
   };
 }
 function applyTournamentMigrations(data) {
@@ -1435,6 +1480,67 @@ function authenticateToken(req, res, next) {
     req.user = userSafe;
   }
   next();
+}
+async function applyMatchScore(matchId, score1, score2, adminName, note) {
+  const matchIndex = db.matches.findIndex((m) => m.id === matchId);
+  if (matchIndex === -1) {
+    return { ok: false, status: 404, error: "Match introuvable." };
+  }
+  const match = db.matches[matchIndex];
+  const s1 = parseInt(score1, 10);
+  const s2 = parseInt(score2, 10);
+  if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
+    return { ok: false, status: 400, error: "Scores invalides. Veuillez entrer des nombres entiers positifs." };
+  }
+  const isKnockout = match.stage === "quarter_final" || match.stage === "semi_final" || match.stage === "final" || match.stageName && match.stageName.toLowerCase().includes("finale");
+  if (isKnockout && s1 === s2) {
+    return { ok: false, status: 400, error: "En phase \xE9liminatoire directe, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but)." };
+  }
+  const winnerId = s1 > s2 ? match.player1Id : s2 > s1 ? match.player2Id : null;
+  const winnerGamertag = s1 > s2 ? match.player1Gamertag : s2 > s1 ? match.player2Gamertag : null;
+  const isDraw = s1 === s2;
+  match.player1Score = s1;
+  match.player2Score = s2;
+  match.winnerId = winnerId;
+  match.status = "completed";
+  match.validatedByAdmin = true;
+  const auditEntry = {
+    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
+    adminName,
+    action: "SCORE_UPDATE_AND_VALIDATION",
+    note: note || (isDraw ? `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag} (Match nul).` : `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`)
+  };
+  match.auditLog.push(auditEntry);
+  if (match.nextMatchId && winnerId && winnerGamertag) {
+    const nextMatch = db.matches.find((m) => m.id === match.nextMatchId);
+    if (nextMatch) {
+      if (match.nextMatchSlot === 1) {
+        nextMatch.player1Id = winnerId;
+        nextMatch.player1Gamertag = winnerGamertag;
+      } else if (match.nextMatchSlot === 2) {
+        nextMatch.player2Id = winnerId;
+        nextMatch.player2Gamertag = winnerGamertag;
+      }
+    }
+  }
+  saveDatabase(db);
+  try {
+    const client = getSupabaseServerClient();
+    if (client && match.tournamentId) {
+      const tournMatches = db.matches.filter((m) => m.tournamentId === match.tournamentId);
+      const { error: sbErr } = await client.from("tournaments").update({ bracket_data: tournMatches, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", match.tournamentId);
+      if (sbErr) {
+        console.warn("[SUPABASE] Synchro bracket_data match score:", sbErr.message);
+      }
+    }
+  } catch (e) {
+    console.warn("[SUPABASE] Exception client:", e?.message || e);
+  }
+  return {
+    ok: true,
+    match,
+    message: isDraw ? `Score officiellement valid\xE9 ! Match nul : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}.` : `Score officiellement valid\xE9 ! Vainqueur qualifi\xE9 : ${winnerGamertag}.`
+  };
 }
 function requireAuth(req, res, next) {
   if (!req.user) {
@@ -3376,67 +3482,186 @@ app.post("/api/admin/tournaments/:id/generate-bracket", requireAdmin, (req, res)
 });
 app.put("/api/admin/matches/:id/score", requireAdmin, async (req, res) => {
   const { score1, score2, note } = req.body;
-  const matchIndex = db.matches.findIndex((m) => m.id === req.params.id);
-  if (matchIndex === -1) {
-    res.status(404).json({ error: "Match introuvable." });
+  const result = await applyMatchScore(req.params.id, score1, score2, req.user?.gamertag || "Admin_Staff", note);
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
     return;
   }
-  const match = db.matches[matchIndex];
-  const s1 = parseInt(score1, 10);
-  const s2 = parseInt(score2, 10);
-  if (isNaN(s1) || isNaN(s2) || s1 < 0 || s2 < 0) {
-    res.status(400).json({ error: "Scores invalides. Veuillez entrer des nombres entiers positifs." });
+  res.json({ match: result.match, message: result.message });
+});
+app.post("/api/matches/:id/score-submissions", requireAuth, async (req, res) => {
+  try {
+    const user = req.user;
+    const match = db.matches.find((m) => m.id === req.params.id);
+    if (!match) {
+      res.status(404).json({ error: "Match introuvable." });
+      return;
+    }
+    if (match.player1Id !== user.id && match.player2Id !== user.id) {
+      res.status(403).json({ error: "Vous ne pouvez envoyer un score que pour vos propres matchs." });
+      return;
+    }
+    if (!match.player1Id || !match.player2Id) {
+      res.status(400).json({ error: "Les deux adversaires de ce match ne sont pas encore connus." });
+      return;
+    }
+    if (match.status === "completed") {
+      res.status(400).json({ error: "Le score de ce match a d\xE9j\xE0 \xE9t\xE9 valid\xE9 par l\u2019organisation." });
+      return;
+    }
+    const { score1, score2, proofData, note } = req.body || {};
+    const s1 = Number(score1);
+    const s2 = Number(score2);
+    if (!Number.isInteger(s1) || !Number.isInteger(s2) || s1 < 0 || s2 < 0 || s1 > 99 || s2 > 99) {
+      res.status(400).json({ error: "Scores invalides. Saisissez des nombres entiers entre 0 et 99." });
+      return;
+    }
+    if (typeof proofData !== "string" || !/^data:image\/(png|jpe?g|webp);base64,/.test(proofData)) {
+      res.status(400).json({ error: "Veuillez joindre la capture d\u2019\xE9cran du score final (image PNG, JPG ou WEBP)." });
+      return;
+    }
+    if (proofData.length > 6e6) {
+      res.status(400).json({ error: "Image trop lourde (maximum environ 4 Mo)." });
+      return;
+    }
+    const now = (/* @__PURE__ */ new Date()).toISOString();
+    const tournament = db.tournaments.find((t) => t.id === match.tournamentId);
+    const existing = db.scoreSubmissions.find(
+      (s) => s.matchId === match.id && s.submittedByUserId === user.id && s.status === "pending"
+    );
+    const id = existing?.id || `scs_${Date.now()}_${Math.random().toString(36).substring(2, 8)}`;
+    const proofId = `proof_${id}`;
+    await saveProofImage(proofId, proofData);
+    const submission = {
+      id,
+      matchId: match.id,
+      tournamentId: match.tournamentId,
+      tournamentName: tournament?.name || "",
+      stageName: match.stageName,
+      player1Gamertag: match.player1Gamertag,
+      player2Gamertag: match.player2Gamertag,
+      submittedByUserId: user.id,
+      submittedByGamertag: user.gamertag,
+      score1: s1,
+      score2: s2,
+      note: typeof note === "string" ? note.trim().slice(0, 500) : void 0,
+      proofId,
+      status: "pending",
+      createdAt: now
+    };
+    if (existing) {
+      Object.assign(existing, submission);
+    } else {
+      db.scoreSubmissions.unshift(submission);
+    }
+    db.notifications.unshift({
+      id: `notif_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      type: "score_submission",
+      title: "Nouveau score envoy\xE9 par un joueur",
+      message: `${user.gamertag} a envoy\xE9 le score ${match.player1Gamertag} ${s1} - ${s2} ${match.player2Gamertag} (${match.stageName}). Capture \xE0 v\xE9rifier.`,
+      gamertag: user.gamertag,
+      tournamentId: match.tournamentId,
+      tournamentName: tournament?.name,
+      createdAt: now,
+      read: false
+    });
+    saveDatabase(db);
+    res.json({
+      success: true,
+      submission,
+      message: "Score envoy\xE9 ! L\u2019organisation va v\xE9rifier votre capture puis publier le r\xE9sultat."
+    });
+  } catch (err) {
+    console.error("[SCORES] Erreur envoi score joueur:", err);
+    res.status(500).json({ error: "Erreur lors de l\u2019envoi du score. Veuillez r\xE9essayer." });
+  }
+});
+app.get("/api/player/score-submissions", requireAuth, (req, res) => {
+  res.json({ submissions: db.scoreSubmissions.filter((s) => s.submittedByUserId === req.user.id) });
+});
+app.get("/api/admin/score-submissions", requireAdmin, (_req, res) => {
+  const submissions = db.scoreSubmissions.map((s) => {
+    const match = db.matches.find((m) => m.id === s.matchId);
+    return { ...s, matchStatus: match?.status || "unknown" };
+  });
+  res.json({
+    submissions,
+    pendingCount: submissions.filter((s) => s.status === "pending").length
+  });
+});
+app.get("/api/admin/score-submissions/:id/proof", requireAdmin, async (req, res) => {
+  const sub = db.scoreSubmissions.find((s) => s.id === req.params.id);
+  if (!sub) {
+    res.status(404).json({ error: "Envoi introuvable." });
     return;
   }
-  const isKnockout = match.stage === "quarter_final" || match.stage === "semi_final" || match.stage === "final" || match.stageName && match.stageName.toLowerCase().includes("finale");
-  if (isKnockout && s1 === s2) {
-    res.status(400).json({ error: "En phase \xE9liminatoire directe, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but)." });
+  try {
+    const proofData = await loadProofImage(sub.proofId);
+    if (!proofData) {
+      res.status(404).json({ error: "Capture d\u2019\xE9cran introuvable." });
+      return;
+    }
+    res.json({ proofData });
+  } catch (err) {
+    console.error("[SCORES] Erreur lecture capture:", err);
+    res.status(500).json({ error: "Impossible de charger la capture." });
+  }
+});
+app.post("/api/admin/score-submissions/:id/approve", requireAdmin, async (req, res) => {
+  const sub = db.scoreSubmissions.find((s) => s.id === req.params.id);
+  if (!sub) {
+    res.status(404).json({ error: "Envoi introuvable." });
     return;
   }
-  const winnerId = s1 > s2 ? match.player1Id : s2 > s1 ? match.player2Id : null;
-  const winnerGamertag = s1 > s2 ? match.player1Gamertag : s2 > s1 ? match.player2Gamertag : null;
-  const isDraw = s1 === s2;
-  match.player1Score = s1;
-  match.player2Score = s2;
-  match.winnerId = winnerId;
-  match.status = "completed";
-  match.validatedByAdmin = true;
-  const auditEntry = {
-    timestamp: (/* @__PURE__ */ new Date()).toISOString(),
-    adminName: req.user?.gamertag || "Admin_Staff",
-    action: "SCORE_UPDATE_AND_VALIDATION",
-    note: note || (isDraw ? `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag} (Match nul).` : `Score valid\xE9 : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`)
-  };
-  match.auditLog.push(auditEntry);
-  if (match.nextMatchId && winnerId && winnerGamertag) {
-    const nextMatch = db.matches.find((m) => m.id === match.nextMatchId);
-    if (nextMatch) {
-      if (match.nextMatchSlot === 1) {
-        nextMatch.player1Id = winnerId;
-        nextMatch.player1Gamertag = winnerGamertag;
-      } else if (match.nextMatchSlot === 2) {
-        nextMatch.player2Id = winnerId;
-        nextMatch.player2Gamertag = winnerGamertag;
-      }
+  if (sub.status !== "pending") {
+    res.status(400).json({ error: "Cet envoi a d\xE9j\xE0 \xE9t\xE9 trait\xE9." });
+    return;
+  }
+  const s1 = req.body?.score1 ?? sub.score1;
+  const s2 = req.body?.score2 ?? sub.score2;
+  const adminName = req.user?.gamertag || "Admin_Staff";
+  const result = await applyMatchScore(
+    sub.matchId,
+    s1,
+    s2,
+    adminName,
+    `Score valid\xE9 \xE0 partir de la capture envoy\xE9e par ${sub.submittedByGamertag}.`
+  );
+  if (!result.ok) {
+    res.status(result.status).json({ error: result.error });
+    return;
+  }
+  const now = (/* @__PURE__ */ new Date()).toISOString();
+  sub.status = "approved";
+  sub.reviewedAt = now;
+  sub.reviewedBy = adminName;
+  for (const other of db.scoreSubmissions) {
+    if (other.id !== sub.id && other.matchId === sub.matchId && other.status === "pending") {
+      other.status = "rejected";
+      other.reviewedAt = now;
+      other.reviewedBy = adminName;
+      other.rejectionReason = "Le score de ce match a d\xE9j\xE0 \xE9t\xE9 valid\xE9.";
     }
   }
   saveDatabase(db);
-  try {
-    const client = getSupabaseServerClient();
-    if (client && match.tournamentId) {
-      const tournMatches = db.matches.filter((m) => m.tournamentId === match.tournamentId);
-      const { error: sbErr } = await client.from("tournaments").update({ bracket_data: tournMatches, updated_at: (/* @__PURE__ */ new Date()).toISOString() }).eq("id", match.tournamentId);
-      if (sbErr) {
-        console.warn("[SUPABASE] Synchro bracket_data match score:", sbErr.message);
-      }
-    }
-  } catch (e) {
-    console.warn("[SUPABASE] Exception client:", e?.message || e);
+  res.json({ success: true, match: result.match, message: result.message });
+});
+app.post("/api/admin/score-submissions/:id/reject", requireAdmin, (req, res) => {
+  const sub = db.scoreSubmissions.find((s) => s.id === req.params.id);
+  if (!sub) {
+    res.status(404).json({ error: "Envoi introuvable." });
+    return;
   }
-  res.json({
-    match,
-    message: isDraw ? `Score officiellement valid\xE9 ! Match nul : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}.` : `Score officiellement valid\xE9 ! Vainqueur qualifi\xE9 : ${winnerGamertag}.`
-  });
+  if (sub.status !== "pending") {
+    res.status(400).json({ error: "Cet envoi a d\xE9j\xE0 \xE9t\xE9 trait\xE9." });
+    return;
+  }
+  sub.status = "rejected";
+  sub.reviewedAt = (/* @__PURE__ */ new Date()).toISOString();
+  sub.reviewedBy = req.user?.gamertag || "Admin_Staff";
+  sub.rejectionReason = String(req.body?.reason || "").trim().slice(0, 300) || "Capture non conforme ou illisible.";
+  saveDatabase(db);
+  res.json({ success: true, message: "Envoi refus\xE9. Le joueur verra le motif dans son espace." });
 });
 app.get("/api/admin/stats", requireAdmin, (_req, res) => {
   res.json({

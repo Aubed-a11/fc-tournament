@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useAuth } from '../context/AuthContext.tsx';
-import type { Tournament, Registration, Match, PlayerLeaderboard } from '../types/index.ts';
+import type { Tournament, Registration, Match, PlayerLeaderboard, ScoreSubmission } from '../types/index.ts';
+import { ScoreSubmitModal } from '../components/ScoreSubmitModal.tsx';
 import { formatDateFrench, formatMAD } from '../utils/format.ts';
 import {
   Trophy,
@@ -12,6 +13,8 @@ import {
   Shield,
   Gamepad2,
   Award,
+  Camera,
+  XCircle,
 } from 'lucide-react';
 
 interface DashboardProps {
@@ -27,17 +30,26 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
     matches: Match[];
   } | null>(null);
   const [loading, setLoading] = useState(true);
+  const [scoreSubmissions, setScoreSubmissions] = useState<ScoreSubmission[]>([]);
+  const [scoreMatch, setScoreMatch] = useState<Match | null>(null);
+  const [scoreMessage, setScoreMessage] = useState<string | null>(null);
+  const [reloadKey, setReloadKey] = useState(0);
 
   useEffect(() => {
     async function loadDashboard() {
       if (!token) return;
       try {
-        const res = await fetch('/api/player/dashboard', {
-          headers: { Authorization: `Bearer ${token}` },
-        });
+        const [res, subsRes] = await Promise.all([
+          fetch('/api/player/dashboard', { headers: { Authorization: `Bearer ${token}` } }),
+          fetch('/api/player/score-submissions', { headers: { Authorization: `Bearer ${token}` } }).catch(() => null),
+        ]);
         if (res.ok) {
           const data = await res.json();
           setDashboardData(data);
+        }
+        if (subsRes && subsRes.ok) {
+          const subs = await subsRes.json();
+          setScoreSubmissions(subs.submissions || []);
         }
       } catch (err) {
         console.error('Error fetching dashboard:', err);
@@ -46,7 +58,7 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
       }
     }
     loadDashboard();
-  }, [token]);
+  }, [token, reloadKey]);
 
   if (!user) {
     return (
@@ -69,6 +81,12 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
 
   const upcomingMatches = userMatches.filter((m) => m.status !== 'completed');
   const pastMatches = userMatches.filter((m) => m.status === 'completed');
+  // Matchs a jouer d'abord, puis les derniers matchs termines
+  const displayedMatches = [...upcomingMatches, ...pastMatches].slice(0, 6);
+  const latestSubmissionFor = (matchId: string) =>
+    scoreSubmissions
+      .filter((s) => s.matchId === matchId)
+      .sort((a, b) => b.createdAt.localeCompare(a.createdAt))[0];
 
   return (
     <div className="min-h-screen bg-[#07090e] py-10 px-4 sm:px-6 lg:px-8 text-slate-200">
@@ -228,21 +246,28 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
               </button>
             </div>
 
+            {scoreMessage && (
+              <div className="p-3 rounded-xl bg-[#00ff66]/10 border border-[#00ff66]/30 text-xs text-[#00ff66] flex items-center gap-2">
+                <CheckCircle2 className="w-4 h-4 shrink-0" />
+                <span>{scoreMessage}</span>
+              </div>
+            )}
+
             {userMatches.length === 0 ? (
               <div className="p-8 text-center rounded-2xl bg-[#0b0f16] border border-[#1b2333] text-slate-400 text-xs">
                 Aucun match n'est encore programmé pour votre compte. Dès le tirage au sort officiel, vos rencontres apparaîtront ici.
               </div>
             ) : (
               <div className="space-y-3">
-                {userMatches.slice(0, 4).map((m) => {
+                {displayedMatches.map((m) => {
                   const isCompleted = m.status === 'completed';
                   const isWon = isCompleted && m.winnerId === user.id;
+                  const submission = latestSubmissionFor(m.id);
+                  const canSubmit = !isCompleted && Boolean(m.player1Id && m.player2Id);
 
                   return (
-                    <div
-                      key={m.id}
-                      className="p-4 rounded-2xl bg-[#0b0f16] border border-[#1c2538] flex items-center justify-between gap-4 text-xs shadow-md"
-                    >
+                    <div key={m.id} className="p-4 rounded-2xl bg-[#0b0f16] border border-[#1c2538] text-xs shadow-md space-y-3">
+                    <div className="flex items-center justify-between gap-4">
                       <div className="space-y-1">
                         <span className="font-bold text-white block">{m.stageName}</span>
                         <span className="text-[11px] font-mono text-slate-400">
@@ -267,6 +292,35 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
                         )}
                       </div>
                     </div>
+
+                    {canSubmit && (
+                      <div className="flex flex-wrap items-center justify-between gap-2 pt-3 border-t border-[#161f2e]">
+                        {submission?.status === 'pending' ? (
+                          <span className="flex items-center gap-1.5 text-[11px] text-amber-400">
+                            <Clock className="w-3.5 h-3.5" />
+                            Score envoyé ({submission.score1} - {submission.score2}), en cours de vérification
+                          </span>
+                        ) : submission?.status === 'rejected' ? (
+                          <span className="flex items-center gap-1.5 text-[11px] text-rose-400" title={submission.rejectionReason}>
+                            <XCircle className="w-3.5 h-3.5" />
+                            Envoi refusé : {submission.rejectionReason}
+                          </span>
+                        ) : (
+                          <span className="text-[11px] text-slate-500">Match joué ? Envoyez la capture du score final.</span>
+                        )}
+                        <button
+                          onClick={() => {
+                            setScoreMessage(null);
+                            setScoreMatch(m);
+                          }}
+                          className="px-3 py-1.5 rounded-lg bg-[#00ff66]/15 text-[#00ff66] hover:bg-[#00ff66] hover:text-black font-semibold text-[11px] transition-all cursor-pointer flex items-center gap-1.5"
+                        >
+                          <Camera className="w-3.5 h-3.5" />
+                          <span>{submission?.status === 'pending' ? 'Renvoyer' : 'Envoyer le score'}</span>
+                        </button>
+                      </div>
+                    )}
+                    </div>
                   );
                 })}
               </div>
@@ -274,6 +328,19 @@ export const Dashboard: React.FC<DashboardProps> = ({ onNavigate }) => {
           </div>
         </div>
       </div>
+
+      {scoreMatch && token && (
+        <ScoreSubmitModal
+          match={scoreMatch}
+          token={token}
+          onClose={() => setScoreMatch(null)}
+          onSubmitted={(msg) => {
+            setScoreMatch(null);
+            setScoreMessage(msg);
+            setReloadKey((k) => k + 1);
+          }}
+        />
+      )}
     </div>
   );
 };
