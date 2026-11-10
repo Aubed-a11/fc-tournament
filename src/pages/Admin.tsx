@@ -2574,58 +2574,159 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                 </p>
               </div>
             ) : (
-              <div className="grid grid-cols-1 md:grid-cols-2 gap-4">
-                {currentTournMatches.map((m) => (
-                  <div
-                    key={m.id}
-                    className="p-5 rounded-2xl bg-[#0c1017] border border-[#1b2538] space-y-4 shadow-xl"
-                  >
-                    <div className="flex items-center justify-between text-xs border-b border-[#161f2c] pb-2">
-                      <span className="font-mono text-slate-400">{m.stageName}</span>
-                      <span
-                        className={`px-2 py-0.5 rounded text-[10px] font-mono uppercase font-bold border ${
-                          m.status === 'completed'
-                            ? 'bg-[#00ff66]/15 text-[#00ff66] border-[#00ff66]/30'
-                            : m.status === 'live'
-                            ? 'bg-rose-500/15 text-rose-400 border-rose-500/30'
-                            : 'bg-slate-800 text-slate-400 border-slate-700'
-                        }`}
-                      >
-                        {m.status === 'completed' ? 'Validé' : m.status === 'live' ? 'En Direct' : 'Programmé'}
-                      </span>
-                    </div>
+              <div className="grid grid-cols-1 lg:grid-cols-2 gap-4">
+                {currentTournMatches.map((m) => {
+                  const isCompleted = m.status === 'completed' && m.player1Score !== null && m.player2Score !== null;
+                  const isLive = m.status === 'live';
+                  const s1 = m.player1Score;
+                  const s2 = m.player2Score;
+                  const p1Won = isCompleted && s1! > s2!;
+                  const p2Won = isCompleted && s2! > s1!;
+                  const isDraw = isCompleted && s1! === s2!;
 
-                    <div className="flex items-center justify-between gap-4 py-2">
-                      <div className="flex-1 text-center">
-                        <span className="font-display text-lg font-bold text-white block truncate">
-                          {m.player1Gamertag}
-                        </span>
+                  return (
+                    <div
+                      key={m.id}
+                      className="p-5 rounded-2xl bg-[#0c1017] border border-[#1b2538] hover:border-[#2a374d] transition-all duration-200 shadow-xl flex flex-col justify-between gap-4"
+                    >
+                      {/* Top: Stage & Date */}
+                      <div className="flex items-center justify-between text-xs border-b border-[#161f2e] pb-2.5">
+                        <div className="flex items-center gap-2">
+                          <span className="font-mono font-bold text-white bg-[#151c2b] px-2.5 py-0.5 rounded-lg border border-[#222e42]">
+                            {m.stageName}
+                          </span>
+                          <span className="text-slate-400 font-mono text-[11px]">
+                            Match #{m.matchNumber || 1}
+                          </span>
+                        </div>
+
+                        <div className="flex items-center gap-2 font-mono text-[11px]">
+                          <Clock className="w-3.5 h-3.5 text-slate-400" />
+                          <span className="text-slate-300">
+                            {m.scheduledDate} · {m.scheduledTime || '15:00'}
+                          </span>
+                        </div>
                       </div>
 
-                      <div className="px-4 py-2 rounded-xl bg-[#121824] border border-[#222e44] font-mono text-xl font-black text-[#00ff66]">
-                        {m.player1Score !== null ? m.player1Score : '-'} : {m.player2Score !== null ? m.player2Score : '-'}
+                      {/* Middle: Face to Face */}
+                      <div className="flex items-center justify-between gap-3 py-1">
+                        {/* Player 1 */}
+                        <div className="flex items-center gap-3 flex-1 min-w-0">
+                          <div className="w-10 h-10 rounded-full bg-[#151c2b] border border-[#232f45] flex items-center justify-center font-bold text-xs text-[#00ff66] shrink-0">
+                            {(m.player1Gamertag || 'P1').substring(0, 2).toUpperCase()}
+                          </div>
+                          <div className="truncate">
+                            <div className="flex items-center gap-1.5">
+                              <span
+                                className={`font-bold text-sm truncate ${
+                                  p1Won ? 'text-[#00ff66]' : 'text-white'
+                                }`}
+                              >
+                                {m.player1Gamertag}
+                              </span>
+                              {p1Won && <Trophy className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />}
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              Joueur 1
+                            </span>
+                          </div>
+                        </div>
+
+                        {/* Score or VS Badge */}
+                        <div className="shrink-0 px-3 text-center">
+                          {isCompleted ? (
+                            <div className="flex items-center gap-2">
+                              <span
+                                className={`font-mono text-xl sm:text-2xl font-black tabular-nums px-3 py-1 rounded-xl border ${
+                                  p1Won
+                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                    : isDraw
+                                    ? 'bg-amber-400/10 border-amber-400/30 text-amber-300'
+                                    : 'bg-[#151c2b] border-[#222e42] text-slate-300'
+                                }`}
+                              >
+                                {s1}
+                              </span>
+                              <span className="font-mono text-slate-500 font-bold">:</span>
+                              <span
+                                className={`font-mono text-xl sm:text-2xl font-black tabular-nums px-3 py-1 rounded-xl border ${
+                                  p2Won
+                                    ? 'bg-[#00ff66]/15 border-[#00ff66]/40 text-[#00ff66]'
+                                    : isDraw
+                                    ? 'bg-amber-400/10 border-amber-400/30 text-amber-300'
+                                    : 'bg-[#151c2b] border-[#222e42] text-slate-300'
+                                }`}
+                              >
+                                {s2}
+                              </span>
+                            </div>
+                          ) : isLive ? (
+                            <span className="px-3 py-1.5 rounded-xl bg-rose-500/20 border border-rose-500/40 text-rose-400 font-mono font-bold text-xs flex items-center gap-1.5 animate-pulse">
+                              <span className="w-2 h-2 rounded-full bg-rose-500 inline-block" />
+                              EN DIRECT
+                            </span>
+                          ) : (
+                            <div className="px-3.5 py-1.5 rounded-xl bg-[#121824] border border-[#222e42] font-mono text-xs font-bold text-slate-400">
+                              VS
+                            </div>
+                          )}
+                        </div>
+
+                        {/* Player 2 */}
+                        <div className="flex items-center justify-end gap-3 flex-1 min-w-0 text-right">
+                          <div className="truncate">
+                            <div className="flex items-center justify-end gap-1.5">
+                              {p2Won && <Trophy className="w-3.5 h-3.5 text-[#00ff66] shrink-0" />}
+                              <span
+                                className={`font-bold text-sm truncate ${
+                                  p2Won ? 'text-[#00ff66]' : 'text-white'
+                                }`}
+                              >
+                                {m.player2Gamertag}
+                              </span>
+                            </div>
+                            <span className="text-[10px] text-slate-400 font-mono block">
+                              Joueur 2
+                            </span>
+                          </div>
+                          <div className="w-10 h-10 rounded-full bg-[#151c2b] border border-[#232f45] flex items-center justify-center font-bold text-xs text-cyan-400 shrink-0">
+                            {(m.player2Gamertag || 'P2').substring(0, 2).toUpperCase()}
+                          </div>
+                        </div>
                       </div>
 
-                      <div className="flex-1 text-center">
-                        <span className="font-display text-lg font-bold text-white block truncate">
-                          {m.player2Gamertag}
-                        </span>
+                      {/* Bottom: Status & Action Button */}
+                      <div className="flex items-center justify-between text-xs pt-2.5 border-t border-[#161f2e]">
+                        <div>
+                          {isCompleted ? (
+                            <span className="text-[11px] font-mono text-[#00ff66] flex items-center gap-1 font-semibold">
+                              <CheckCircle2 className="w-3.5 h-3.5" />
+                              <span>Score officiel homologué</span>
+                            </span>
+                          ) : isLive ? (
+                            <span className="text-[11px] font-mono text-rose-400 flex items-center gap-1 font-semibold">
+                              <span className="w-1.5 h-1.5 rounded-full bg-rose-500 animate-ping inline-block" />
+                              <span>En direct</span>
+                            </span>
+                          ) : (
+                            <span className="text-[11px] font-mono text-slate-400 flex items-center gap-1">
+                              <Clock className="w-3.5 h-3.5 text-slate-500" />
+                              <span>Programmé</span>
+                            </span>
+                          )}
+                        </div>
+
+                        <button
+                          onClick={() => setScoreModalMatch(m)}
+                          className="px-3.5 py-1.5 rounded-xl bg-[#141b27] hover:bg-[#00ff66] hover:text-black border border-[#222e44] text-xs font-semibold text-white transition-all cursor-pointer flex items-center gap-1.5 shadow-sm"
+                        >
+                          <Shield className="w-3.5 h-3.5" />
+                          <span>{isCompleted ? 'Modifier le score' : 'Homologuer le score'}</span>
+                        </button>
                       </div>
                     </div>
-
-                    <div className="flex items-center justify-between text-xs pt-2 border-t border-[#161f2c]">
-                      <span className="text-slate-500 font-mono">
-                        {m.scheduledDate} · {m.scheduledTime}
-                      </span>
-                      <button
-                        onClick={() => setScoreModalMatch(m)}
-                        className="px-3.5 py-1.5 rounded-xl bg-[#141b27] hover:bg-[#00ff66] hover:text-black border border-[#222e44] text-xs font-semibold text-white transition-all cursor-pointer"
-                      >
-                        {m.status === 'completed' ? 'Modifier le score' : 'Homologuer le score'}
-                      </button>
-                    </div>
-                  </div>
-                ))}
+                  );
+                })}
               </div>
             )}
           </div>

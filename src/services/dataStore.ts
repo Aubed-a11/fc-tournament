@@ -7,7 +7,7 @@ import {
 } from '../data/initialData.ts';
 
 // Increment this version whenever code source defaults change to purge/refresh stale browser cache
-export const CURRENT_DATA_VERSION = '2026-11-09-v2';
+export const CURRENT_DATA_VERSION = '2026-11-10-v3';
 
 const KEY_DATA_VERSION = 'fc_data_version';
 const KEY_TOURNAMENTS = 'fc_store_tournaments';
@@ -28,7 +28,7 @@ export function ensureDataVersionSynced(): void {
       console.log(`[FC DataStore] Synchronisation nouvelle version du code (${savedVersion} -> ${CURRENT_DATA_VERSION})`);
       localStorage.setItem(KEY_DATA_VERSION, CURRENT_DATA_VERSION);
 
-      // Initialize / Update tournaments
+      // Initialize / Update tournaments with new official names
       localStorage.setItem(KEY_TOURNAMENTS, JSON.stringify(INITIAL_TOURNAMENTS));
 
       // Initialize / Update matches
@@ -48,6 +48,16 @@ export function ensureDataVersionSynced(): void {
         mergedRegsMap.set(r.id, r);
       }
       for (const r of localRegs) {
+        // Also update tournament names if present
+        if (r.tournamentName === 'Championnat' || r.tournamentId === 'tourn_spring_2026') {
+          r.tournamentName = 'Championnat sur téléphone';
+        } else if (
+          r.tournamentName === 'Ligue des champions' ||
+          r.tournamentName === 'Ligue des championnat' ||
+          r.tournamentId === 'tourn_ligue_oriental_2026'
+        ) {
+          r.tournamentName = 'Championnat sur PC';
+        }
         if (!mergedRegsMap.has(r.id)) {
           mergedRegsMap.set(r.id, r);
         }

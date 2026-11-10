@@ -27,6 +27,7 @@ import {
   migrateAllToSupabase,
   getPublicSupabaseConfig,
   isSupabaseConfigured,
+  getSupabaseServerClient,
 } from './src/services/supabaseServer.ts';
 
 dotenv.config();
@@ -266,12 +267,12 @@ function getInitialDatabase(): DatabaseSchema {
   const tournaments: Tournament[] = [
     {
       id: 'tourn_spring_2026',
-      name: 'Championnat',
-      slug: 'championnat-fc-2026',
+      name: 'Championnat sur téléphone',
+      slug: 'championnat-sur-telephone',
       description:
-        'Le tournoi e-sport incontournable de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
+        'Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
       gameVersion: 'EA SPORTS 27',
-      platform: 'e-Football',
+      platform: 'Téléphone (Mobile)',
       format: 'aller_retour',
       location: 'Gaming Arena',
       city: 'Maroc',
@@ -289,12 +290,12 @@ function getInitialDatabase(): DatabaseSchema {
     },
     {
       id: 'tourn_ligue_oriental_2026',
-      name: 'Ligue des champions',
-      slug: 'ligue-des-champions',
+      name: 'Championnat sur PC',
+      slug: 'championnat-sur-pc',
       description:
-        'La compétition d’élite qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
+        'La compétition d’élite sur PC qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
       gameVersion: 'EA SPORTS 27',
-      platform: 'e-Football',
+      platform: 'PC',
       format: 'aller_retour',
       location: 'Gaming Arena',
       city: 'Maroc',
@@ -972,6 +973,31 @@ function loadDatabase(): DatabaseSchema {
     }
   });
 
+  // Ensure tournament names are migrated to official names
+  loaded.tournaments?.forEach((t) => {
+    if (t.id === 'tourn_spring_2026' && t.name !== 'Championnat sur téléphone') {
+      t.name = 'Championnat sur téléphone';
+      t.slug = 'championnat-sur-telephone';
+      t.platform = 'Téléphone (Mobile)';
+      needsSync = true;
+    } else if (t.id === 'tourn_ligue_oriental_2026' && t.name !== 'Championnat sur PC') {
+      t.name = 'Championnat sur PC';
+      t.slug = 'championnat-sur-pc';
+      t.platform = 'PC';
+      needsSync = true;
+    }
+  });
+
+  loaded.registrations?.forEach((r) => {
+    if (r.tournamentId === 'tourn_spring_2026' && r.tournamentName !== 'Championnat sur téléphone') {
+      r.tournamentName = 'Championnat sur téléphone';
+      needsSync = true;
+    } else if (r.tournamentId === 'tourn_ligue_oriental_2026' && r.tournamentName !== 'Championnat sur PC') {
+      r.tournamentName = 'Championnat sur PC';
+      needsSync = true;
+    }
+  });
+
   // Ensure owner account alio227ng@gmail.com and admin@fctournament.ma exist with role: admin
   const adminOwner = loaded.users.find((u) => u.email.toLowerCase() === 'alio227ng@gmail.com');
   if (!adminOwner) {
@@ -1352,6 +1378,26 @@ function requireAuth(req: AuthenticatedRequest, res: Response, next: NextFunctio
 }
 
 function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFunction): void {
+  function attachAdminUser() {
+    if (!req.user) {
+      const adminUser = db.users.find((u) => u.role === 'admin');
+      if (adminUser) {
+        const { passwordHash: _, salt: __, ...userSafe } = adminUser;
+        req.user = userSafe;
+      } else {
+        req.user = {
+          id: 'usr_owner_ali',
+          email: 'alio227ng@gmail.com',
+          gamertag: 'Ali_FC',
+          role: 'admin',
+          firstName: 'Ali',
+          lastName: 'O.',
+          createdAt: new Date().toISOString(),
+        };
+      }
+    }
+  }
+
   // 1. Direct authorization from Google AI Studio / programmatic tools via server-side ADMIN_ACCESS_CODE
   const directCode =
     (req.headers['x-admin-code'] as string) ||
@@ -1361,6 +1407,7 @@ function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFuncti
     (req.query?.admin_code as string);
 
   if (directCode && verifyAdminCode(directCode)) {
+    attachAdminUser();
     return next();
   }
 
@@ -1372,6 +1419,7 @@ function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFuncti
 
   // 1b. Direct master code in admin token or bearer header
   if (adminToken && verifyAdminCode(adminToken)) {
+    attachAdminUser();
     return next();
   }
 
@@ -1379,6 +1427,7 @@ function requireAdmin(req: AuthenticatedRequest, res: Response, next: NextFuncti
   if (adminToken && adminSessions.has(adminToken)) {
     const session = adminSessions.get(adminToken)!;
     if (Date.now() < session.expiresAt) {
+      attachAdminUser();
       return next();
     } else {
       adminSessions.delete(adminToken);
@@ -1773,7 +1822,13 @@ app.get('/auth/me', handleMe);
 
   // Get single tournament detail
   app.get('/api/tournaments/:id', (req: AuthenticatedRequest, res: Response) => {
-    const tournament = db.tournaments.find((t) => t.id === req.params.id || t.slug === req.params.id);
+    const tournament = db.tournaments.find(
+      (t) =>
+        t.id === req.params.id ||
+        t.slug === req.params.id ||
+        (req.params.id === 'championnat-fc-2026' && t.id === 'tourn_spring_2026') ||
+        (req.params.id === 'ligue-des-champions' && t.id === 'tourn_ligue_oriental_2026')
+    );
     if (!tournament) {
       res.status(404).json({ error: 'Tournoi introuvable.' });
       return;
@@ -3467,7 +3522,7 @@ app.get('/auth/me', handleMe);
   });
 
   // Enter / Validate match score (Server-verified admin validation with audit log)
-  app.put('/api/admin/matches/:id/score', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.put('/api/admin/matches/:id/score', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     const { score1, score2, note } = req.body;
     const matchIndex = db.matches.findIndex((m) => m.id === req.params.id);
 
@@ -3485,13 +3540,20 @@ app.get('/auth/me', handleMe);
       return;
     }
 
-    if (s1 === s2) {
-      res.status(400).json({ error: 'En phase éliminatoire, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but).' });
+    const isKnockout =
+      match.stage === 'quarter_final' ||
+      match.stage === 'semi_final' ||
+      match.stage === 'final' ||
+      (match.stageName && match.stageName.toLowerCase().includes('finale'));
+
+    if (isKnockout && s1 === s2) {
+      res.status(400).json({ error: 'En phase éliminatoire directe, un match ne peut se terminer sur un score nul (veuillez inclure les tirs au but).' });
       return;
     }
 
-    const winnerId = s1 > s2 ? match.player1Id : match.player2Id;
-    const winnerGamertag = s1 > s2 ? match.player1Gamertag : match.player2Gamertag;
+    const winnerId = s1 > s2 ? match.player1Id : s2 > s1 ? match.player2Id : null;
+    const winnerGamertag = s1 > s2 ? match.player1Gamertag : s2 > s1 ? match.player2Gamertag : null;
+    const isDraw = s1 === s2;
 
     match.player1Score = s1;
     match.player2Score = s2;
@@ -3501,14 +3563,18 @@ app.get('/auth/me', handleMe);
 
     const auditEntry: MatchAuditEntry = {
       timestamp: new Date().toISOString(),
-      adminName: req.user!.gamertag,
+      adminName: req.user?.gamertag || 'Admin_Staff',
       action: 'SCORE_UPDATE_AND_VALIDATION',
-      note: note || `Score validé : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`,
+      note:
+        note ||
+        (isDraw
+          ? `Score validé : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag} (Match nul).`
+          : `Score validé : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}. Vainqueur : ${winnerGamertag}.`),
     };
     match.auditLog.push(auditEntry);
 
     // Propagate winner to next match if configured
-    if (match.nextMatchId && winnerId) {
+    if (match.nextMatchId && winnerId && winnerGamertag) {
       const nextMatch = db.matches.find((m) => m.id === match.nextMatchId);
       if (nextMatch) {
         if (match.nextMatchSlot === 1) {
@@ -3523,7 +3589,29 @@ app.get('/auth/me', handleMe);
 
     saveDatabase(db);
 
-    res.json({ match, message: `Score officiellement validé ! Vainqueur qualifié : ${winnerGamertag}.` });
+    // Synchronisation en temps réel vers Supabase bracket_data si configuré
+    try {
+      const client = getSupabaseServerClient();
+      if (client && match.tournamentId) {
+        const tournMatches = db.matches.filter((m) => m.tournamentId === match.tournamentId);
+        const { error: sbErr } = await client
+          .from('tournaments')
+          .update({ bracket_data: tournMatches, updated_at: new Date().toISOString() })
+          .eq('id', match.tournamentId);
+        if (sbErr) {
+          console.warn('[SUPABASE] Synchro bracket_data match score:', sbErr.message);
+        }
+      }
+    } catch (e: any) {
+      console.warn('[SUPABASE] Exception client:', e?.message || e);
+    }
+
+    res.json({
+      match,
+      message: isDraw
+        ? `Score officiellement validé ! Match nul : ${match.player1Gamertag} (${s1}) - (${s2}) ${match.player2Gamertag}.`
+        : `Score officiellement validé ! Vainqueur qualifié : ${winnerGamertag}.`,
+    });
   });
 
   // Admin dashboard summary stats

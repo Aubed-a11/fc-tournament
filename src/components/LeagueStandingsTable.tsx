@@ -31,7 +31,7 @@ export interface PlayerStanding {
 export const LeagueStandingsTable: React.FC<LeagueStandingsTableProps> = ({
   matches,
   registrations,
-  tournamentName = 'Championnat',
+  tournamentName = 'Championnat sur téléphone',
   onSelectPlayer,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');
@@ -190,7 +190,7 @@ export const LeagueStandingsTable: React.FC<LeagueStandingsTableProps> = ({
       });
     });
 
-    // Sort LaLiga style:
+    // Sort FCT official league style:
     // 1. Points DESC
     // 2. Goal Difference DESC
     // 3. Goals For DESC
@@ -224,7 +224,7 @@ export const LeagueStandingsTable: React.FC<LeagueStandingsTableProps> = ({
 
   return (
     <div className="space-y-6">
-      {/* Header Banner - LaLiga Style */}
+      {/* Header Banner - FCT Official Standings */}
       <div className="p-6 rounded-3xl bg-gradient-to-r from-[#0d121c] via-[#101726] to-[#0d121c] border border-[#1e2738] shadow-2xl relative overflow-hidden">
         <div className="absolute top-0 right-0 w-96 h-96 bg-[#00ff66]/5 rounded-full blur-3xl pointer-events-none" />
         <div className="flex flex-col md:flex-row md:items-center justify-between gap-4 relative z-10">
@@ -412,7 +412,7 @@ export const LeagueStandingsTable: React.FC<LeagueStandingsTableProps> = ({
                       </span>
                     </td>
 
-                    {/* Form Guide - Last 5 matches (LaLiga badge style) */}
+                    {/* Form Guide - Last 5 matches (FCT badge style) */}
                     <td className="py-3 px-4 text-center hidden sm:table-cell">
                       {s.form.length === 0 ? (
                         <span className="text-[10px] text-slate-500 font-mono">En attente</span>

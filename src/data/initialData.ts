@@ -3,11 +3,11 @@ import type { Tournament, Match, PlayerLeaderboard, Registration } from "../type
 export const INITIAL_TOURNAMENTS: Tournament[] = [
   {
     "id": "tourn_spring_2026",
-    "name": "Championnat",
-    "slug": "championnat-fc-2026",
+    "name": "Championnat sur téléphone",
+    "slug": "championnat-sur-telephone",
     "description": "Le tournoi e-sport incontournable de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.",
     "gameVersion": "EA SPORTS 27",
-    "platform": "e-Football",
+    "platform": "Téléphone (Mobile)",
     "format": "aller_retour",
     "location": "Gaming Arena",
     "city": "Maroc",
@@ -27,11 +27,11 @@ export const INITIAL_TOURNAMENTS: Tournament[] = [
   },
   {
     "id": "tourn_ligue_oriental_2026",
-    "name": "Ligue des champions",
-    "slug": "ligue-des-champions",
+    "name": "Championnat sur PC",
+    "slug": "championnat-sur-pc",
     "description": "La compétition d’élite qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.",
     "gameVersion": "EA SPORTS 27",
-    "platform": "e-Football",
+    "platform": "PC",
     "format": "aller_retour",
     "location": "Gaming Arena",
     "city": "Maroc",
@@ -270,7 +270,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 1 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #1."
       },
       {
         "timestamp": "2026-11-03T17:47:48.042Z",
@@ -303,7 +303,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 1 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #2."
       }
     ]
   },
@@ -330,7 +330,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 1 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #3."
       },
       {
         "timestamp": "2026-11-03T17:47:48.048Z",
@@ -363,7 +363,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 1 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #4."
       },
       {
         "timestamp": "2026-11-03T17:47:48.052Z",
@@ -396,7 +396,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 1 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #5."
       }
     ]
   },
@@ -423,7 +423,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 1 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #6."
       },
       {
         "timestamp": "2026-11-03T17:47:48.057Z",
@@ -456,7 +456,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 2 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #1."
       },
       {
         "timestamp": "2026-11-03T17:47:48.061Z",
@@ -489,7 +489,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 2 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #2."
       },
       {
         "timestamp": "2026-11-03T17:47:48.066Z",
@@ -522,7 +522,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 2 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #3."
       }
     ]
   },
@@ -549,7 +549,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 2 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #4."
       },
       {
         "timestamp": "2026-11-03T17:47:48.071Z",
@@ -582,7 +582,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 2 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #5."
       },
       {
         "timestamp": "2026-11-03T17:47:48.073Z",
@@ -615,7 +615,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 2 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #6."
       }
     ]
   },
@@ -642,7 +642,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 3 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #1."
       }
     ]
   },
@@ -669,7 +669,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 3 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #2."
       }
     ]
   },
@@ -696,7 +696,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 3 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #3."
       }
     ]
   },
@@ -723,7 +723,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 3 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #4."
       }
     ]
   },
@@ -750,7 +750,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 3 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #5."
       }
     ]
   },
@@ -777,7 +777,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 3 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #6."
       }
     ]
   },
@@ -804,7 +804,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 4 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #1."
       }
     ]
   },
@@ -831,7 +831,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 4 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #2."
       }
     ]
   },
@@ -858,7 +858,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 4 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #3."
       }
     ]
   },
@@ -885,7 +885,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 4 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #4."
       }
     ]
   },
@@ -912,7 +912,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 4 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #5."
       }
     ]
   },
@@ -939,7 +939,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 4 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #6."
       }
     ]
   },
@@ -966,7 +966,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 5 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #1."
       }
     ]
   },
@@ -993,7 +993,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 5 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #2."
       }
     ]
   },
@@ -1020,7 +1020,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 5 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #3."
       }
     ]
   },
@@ -1047,7 +1047,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 5 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #4."
       }
     ]
   },
@@ -1074,7 +1074,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 5 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #5."
       }
     ]
   },
@@ -1101,7 +1101,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 5 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #6."
       }
     ]
   },
@@ -1128,7 +1128,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 6 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #1."
       }
     ]
   },
@@ -1155,7 +1155,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 6 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #2."
       }
     ]
   },
@@ -1182,7 +1182,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 6 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #3."
       }
     ]
   },
@@ -1209,7 +1209,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 6 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #4."
       }
     ]
   },
@@ -1236,7 +1236,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 6 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #5."
       }
     ]
   },
@@ -1263,7 +1263,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 6 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #6."
       }
     ]
   },
@@ -1290,7 +1290,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 7 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #1."
       }
     ]
   },
@@ -1317,7 +1317,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 7 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #2."
       }
     ]
   },
@@ -1344,7 +1344,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 7 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #3."
       }
     ]
   },
@@ -1371,7 +1371,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 7 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #4."
       }
     ]
   },
@@ -1398,7 +1398,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 7 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #5."
       }
     ]
   },
@@ -1425,7 +1425,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 7 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #6."
       }
     ]
   },
@@ -1452,7 +1452,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 8 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #1."
       }
     ]
   },
@@ -1479,7 +1479,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 8 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #2."
       }
     ]
   },
@@ -1506,7 +1506,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 8 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #3."
       }
     ]
   },
@@ -1533,7 +1533,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 8 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #4."
       }
     ]
   },
@@ -1560,7 +1560,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 8 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #5."
       }
     ]
   },
@@ -1587,7 +1587,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 8 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #6."
       }
     ]
   },
@@ -1614,7 +1614,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 9 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #1."
       }
     ]
   },
@@ -1641,7 +1641,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 9 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #2."
       }
     ]
   },
@@ -1668,7 +1668,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 9 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #3."
       }
     ]
   },
@@ -1695,7 +1695,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 9 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #4."
       }
     ]
   },
@@ -1722,7 +1722,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 9 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #5."
       }
     ]
   },
@@ -1749,7 +1749,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 9 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #6."
       }
     ]
   },
@@ -1776,7 +1776,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 10 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #1."
       }
     ]
   },
@@ -1803,7 +1803,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 10 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #2."
       }
     ]
   },
@@ -1830,7 +1830,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 10 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #3."
       }
     ]
   },
@@ -1857,7 +1857,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 10 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #4."
       }
     ]
   },
@@ -1884,7 +1884,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 10 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #5."
       }
     ]
   },
@@ -1911,7 +1911,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 10 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #6."
       }
     ]
   },
@@ -1938,7 +1938,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 11 match #1."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #1."
       }
     ]
   },
@@ -1965,7 +1965,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 11 match #2."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #2."
       }
     ]
   },
@@ -1992,7 +1992,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 11 match #3."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #3."
       }
     ]
   },
@@ -2019,7 +2019,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 11 match #4."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #4."
       }
     ]
   },
@@ -2046,7 +2046,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 11 match #5."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #5."
       }
     ]
   },
@@ -2073,7 +2073,7 @@ export const INITIAL_MATCHES: Match[] = [
         "timestamp": "2026-11-03T17:47:35.037Z",
         "adminName": "Admin_FC",
         "action": "LEAGUE_DRAW_GENERATION",
-        "note": "Calendrier officiel Championnat - Journée 11 match #6."
+        "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #6."
       }
     ]
   }
@@ -2483,7 +2483,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
   {
     "id": "reg_1793725437285_qkz9",
     "tournamentId": "tourn_spring_2026",
-    "tournamentName": "Championnat",
+    "tournamentName": "Championnat sur téléphone",
     "userId": "guest_1793725437285_sccv",
     "gamertag": "Omar_Maestro",
     "playerName": "Omar El Alami",
@@ -2504,7 +2504,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
   {
     "id": "reg_champ_hamza",
     "tournamentId": "tourn_spring_2026",
-    "tournamentName": "Championnat",
+    "tournamentName": "Championnat sur téléphone",
     "userId": "usr_hamza",
     "gamertag": "Hamza_FCB",
     "playerName": "Hamza Chaoui",
@@ -2518,7 +2518,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
   {
     "id": "reg_champ_karim",
     "tournamentId": "tourn_spring_2026",
-    "tournamentName": "Championnat",
+    "tournamentName": "Championnat sur téléphone",
     "userId": "usr_karim",
     "gamertag": "Karim_Atlas",
     "playerName": "Karim Benali",
@@ -2532,7 +2532,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
   {
     "id": "reg_champ_tariq",
     "tournamentId": "tourn_spring_2026",
-    "tournamentName": "Championnat",
+    "tournamentName": "Championnat sur téléphone",
     "userId": "usr_tariq",
     "gamertag": "Tariq_Pro9",
     "playerName": "Tariq Mansour",
@@ -2546,7 +2546,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
   {
     "id": "reg_champ_soufiane",
     "tournamentId": "tourn_spring_2026",
-    "tournamentName": "Championnat",
+    "tournamentName": "Championnat sur téléphone",
     "userId": "usr_soufiane",
     "gamertag": "Souf_Skiller",
     "playerName": "Soufiane El Fassi",
@@ -2560,7 +2560,7 @@ export const INITIAL_REGISTRATIONS: Registration[] = [
   {
     "id": "reg_champ_ayoub",
     "tournamentId": "tourn_spring_2026",
-    "tournamentName": "Championnat",
+    "tournamentName": "Championnat sur téléphone",
     "userId": "usr_ayoub",
     "gamertag": "Ayoub_Striker",
     "playerName": "Ayoub Bennis",

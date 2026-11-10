@@ -158,11 +158,11 @@
   "tournaments": [
     {
       "id": "tourn_spring_2026",
-      "name": "Championnat",
-      "slug": "championnat-fc-2026",
+      "name": "Championnat sur téléphone",
+      "slug": "championnat-sur-telephone",
       "description": "Le tournoi e-sport incontournable de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.",
       "gameVersion": "EA SPORTS 27",
-      "platform": "e-Football",
+      "platform": "Téléphone (Mobile)",
       "format": "aller_retour",
       "location": "Gaming Arena",
       "city": "Maroc",
@@ -182,11 +182,11 @@
     },
     {
       "id": "tourn_ligue_oriental_2026",
-      "name": "Ligue des champions",
-      "slug": "ligue-des-champions",
+      "name": "Championnat sur PC",
+      "slug": "championnat-sur-pc",
       "description": "La compétition d’élite qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.",
       "gameVersion": "EA SPORTS 27",
-      "platform": "e-Football",
+      "platform": "PC",
       "format": "aller_retour",
       "location": "Gaming Arena",
       "city": "Maroc",
@@ -216,7 +216,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-02T10:15:00.000Z",
       "seed": 1,
-      "registrationNumber": "REG-2026-0001"
+      "registrationNumber": "REG-2026-0001",
+      "tournamentName": "Championnat sur téléphone"
     },
     {
       "id": "reg_2",
@@ -231,7 +232,8 @@
       "whatsappInviteAttempts": 1,
       "whatsappInviteStatus": "sent",
       "whatsappInviteSentAt": "2026-11-04T13:02:52.807Z",
-      "registrationNumber": "REG-2026-0002"
+      "registrationNumber": "REG-2026-0002",
+      "tournamentName": "Championnat sur téléphone"
     },
     {
       "id": "reg_3",
@@ -243,7 +245,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-03T14:20:00.000Z",
       "seed": 3,
-      "registrationNumber": "REG-2026-0003"
+      "registrationNumber": "REG-2026-0003",
+      "tournamentName": "Championnat sur téléphone"
     },
     {
       "id": "reg_4",
@@ -255,7 +258,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-04T09:45:00.000Z",
       "seed": 4,
-      "registrationNumber": "REG-2026-0004"
+      "registrationNumber": "REG-2026-0004",
+      "tournamentName": "Championnat sur téléphone"
     },
     {
       "id": "reg_5",
@@ -267,7 +271,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-05T16:00:00.000Z",
       "seed": 5,
-      "registrationNumber": "REG-2026-0005"
+      "registrationNumber": "REG-2026-0005",
+      "tournamentName": "Championnat sur téléphone"
     },
     {
       "id": "reg_6",
@@ -279,7 +284,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-06T18:10:00.000Z",
       "seed": 6,
-      "registrationNumber": "REG-2026-0006"
+      "registrationNumber": "REG-2026-0006",
+      "tournamentName": "Championnat sur téléphone"
     },
     {
       "id": "reg_oriental_1",
@@ -290,7 +296,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:00:00.000Z",
       "seed": 1,
-      "registrationNumber": "REG-2026-0007"
+      "registrationNumber": "REG-2026-0007",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_2",
@@ -301,7 +308,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:15:00.000Z",
       "seed": 2,
-      "registrationNumber": "REG-2026-0008"
+      "registrationNumber": "REG-2026-0008",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_3",
@@ -312,7 +320,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:30:00.000Z",
       "seed": 3,
-      "registrationNumber": "REG-2026-0009"
+      "registrationNumber": "REG-2026-0009",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_4",
@@ -323,7 +332,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T10:45:00.000Z",
       "seed": 4,
-      "registrationNumber": "REG-2026-0010"
+      "registrationNumber": "REG-2026-0010",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_5",
@@ -334,7 +344,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:00:00.000Z",
       "seed": 5,
-      "registrationNumber": "REG-2026-0011"
+      "registrationNumber": "REG-2026-0011",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_6",
@@ -345,7 +356,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:15:00.000Z",
       "seed": 6,
-      "registrationNumber": "REG-2026-0012"
+      "registrationNumber": "REG-2026-0012",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_7",
@@ -356,7 +368,8 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:30:00.000Z",
       "seed": 7,
-      "registrationNumber": "REG-2026-0013"
+      "registrationNumber": "REG-2026-0013",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_oriental_8",
@@ -367,12 +380,13 @@
       "status": "confirmed",
       "registeredAt": "2026-02-01T11:45:00.000Z",
       "seed": 8,
-      "registrationNumber": "REG-2026-0014"
+      "registrationNumber": "REG-2026-0014",
+      "tournamentName": "Championnat sur PC"
     },
     {
       "id": "reg_1793725437285_qkz9",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "guest_1793725437285_sccv",
       "gamertag": "Omar_Maestro",
       "playerName": "Omar El Alami",
@@ -393,7 +407,7 @@
     {
       "id": "reg_champ_hamza",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "usr_hamza",
       "gamertag": "Hamza_FCB",
       "playerName": "Hamza Chaoui",
@@ -407,7 +421,7 @@
     {
       "id": "reg_champ_karim",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "usr_karim",
       "gamertag": "Karim_Atlas",
       "playerName": "Karim Benali",
@@ -421,7 +435,7 @@
     {
       "id": "reg_champ_tariq",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "usr_tariq",
       "gamertag": "Tariq_Pro9",
       "playerName": "Tariq Mansour",
@@ -435,7 +449,7 @@
     {
       "id": "reg_champ_soufiane",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "usr_soufiane",
       "gamertag": "Souf_Skiller",
       "playerName": "Soufiane El Fassi",
@@ -449,7 +463,7 @@
     {
       "id": "reg_champ_ayoub",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "usr_ayoub",
       "gamertag": "Ayoub_Striker",
       "playerName": "Ayoub Bennis",
@@ -464,7 +478,7 @@
       "id": "reg_1794301367570_czq8",
       "registrationNumber": "REG-2026-0021",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "userId": "guest_1794301367570_nywi",
       "gamertag": "Youssef_FC27",
       "playerName": "Youssef Testeur",
@@ -704,7 +718,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 1 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #1."
         },
         {
           "timestamp": "2026-11-03T17:47:48.042Z",
@@ -737,7 +751,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 1 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #2."
         }
       ]
     },
@@ -764,7 +778,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 1 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #3."
         },
         {
           "timestamp": "2026-11-03T17:47:48.048Z",
@@ -797,7 +811,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 1 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #4."
         },
         {
           "timestamp": "2026-11-03T17:47:48.052Z",
@@ -830,7 +844,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 1 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #5."
         }
       ]
     },
@@ -857,7 +871,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 1 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 1 match #6."
         },
         {
           "timestamp": "2026-11-03T17:47:48.057Z",
@@ -890,7 +904,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 2 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #1."
         },
         {
           "timestamp": "2026-11-03T17:47:48.061Z",
@@ -923,7 +937,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 2 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #2."
         },
         {
           "timestamp": "2026-11-03T17:47:48.066Z",
@@ -956,7 +970,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 2 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #3."
         }
       ]
     },
@@ -983,7 +997,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 2 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #4."
         },
         {
           "timestamp": "2026-11-03T17:47:48.071Z",
@@ -1016,7 +1030,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 2 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #5."
         },
         {
           "timestamp": "2026-11-03T17:47:48.073Z",
@@ -1049,7 +1063,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 2 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 2 match #6."
         }
       ]
     },
@@ -1076,7 +1090,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 3 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #1."
         }
       ]
     },
@@ -1103,7 +1117,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 3 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #2."
         }
       ]
     },
@@ -1130,7 +1144,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 3 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #3."
         }
       ]
     },
@@ -1157,7 +1171,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 3 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #4."
         }
       ]
     },
@@ -1184,7 +1198,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 3 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #5."
         }
       ]
     },
@@ -1211,7 +1225,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 3 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 3 match #6."
         }
       ]
     },
@@ -1238,7 +1252,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 4 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #1."
         }
       ]
     },
@@ -1265,7 +1279,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 4 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #2."
         }
       ]
     },
@@ -1292,7 +1306,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 4 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #3."
         }
       ]
     },
@@ -1319,7 +1333,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 4 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #4."
         }
       ]
     },
@@ -1346,7 +1360,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 4 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #5."
         }
       ]
     },
@@ -1373,7 +1387,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 4 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 4 match #6."
         }
       ]
     },
@@ -1400,7 +1414,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 5 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #1."
         }
       ]
     },
@@ -1427,7 +1441,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 5 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #2."
         }
       ]
     },
@@ -1454,7 +1468,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 5 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #3."
         }
       ]
     },
@@ -1481,7 +1495,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 5 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #4."
         }
       ]
     },
@@ -1508,7 +1522,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 5 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #5."
         }
       ]
     },
@@ -1535,7 +1549,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 5 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 5 match #6."
         }
       ]
     },
@@ -1562,7 +1576,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 6 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #1."
         }
       ]
     },
@@ -1589,7 +1603,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 6 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #2."
         }
       ]
     },
@@ -1616,7 +1630,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 6 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #3."
         }
       ]
     },
@@ -1643,7 +1657,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 6 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #4."
         }
       ]
     },
@@ -1670,7 +1684,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 6 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #5."
         }
       ]
     },
@@ -1697,7 +1711,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 6 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 6 match #6."
         }
       ]
     },
@@ -1724,7 +1738,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 7 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #1."
         }
       ]
     },
@@ -1751,7 +1765,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 7 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #2."
         }
       ]
     },
@@ -1778,7 +1792,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 7 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #3."
         }
       ]
     },
@@ -1805,7 +1819,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 7 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #4."
         }
       ]
     },
@@ -1832,7 +1846,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 7 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #5."
         }
       ]
     },
@@ -1859,7 +1873,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 7 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 7 match #6."
         }
       ]
     },
@@ -1886,7 +1900,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 8 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #1."
         }
       ]
     },
@@ -1913,7 +1927,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 8 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #2."
         }
       ]
     },
@@ -1940,7 +1954,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 8 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #3."
         }
       ]
     },
@@ -1967,7 +1981,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 8 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #4."
         }
       ]
     },
@@ -1994,7 +2008,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 8 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #5."
         }
       ]
     },
@@ -2021,7 +2035,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 8 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 8 match #6."
         }
       ]
     },
@@ -2048,7 +2062,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 9 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #1."
         }
       ]
     },
@@ -2075,7 +2089,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 9 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #2."
         }
       ]
     },
@@ -2102,7 +2116,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 9 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #3."
         }
       ]
     },
@@ -2129,7 +2143,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 9 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #4."
         }
       ]
     },
@@ -2156,7 +2170,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 9 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #5."
         }
       ]
     },
@@ -2183,7 +2197,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 9 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 9 match #6."
         }
       ]
     },
@@ -2210,7 +2224,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 10 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #1."
         }
       ]
     },
@@ -2237,7 +2251,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 10 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #2."
         }
       ]
     },
@@ -2264,7 +2278,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 10 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #3."
         }
       ]
     },
@@ -2291,7 +2305,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 10 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #4."
         }
       ]
     },
@@ -2318,7 +2332,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 10 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #5."
         }
       ]
     },
@@ -2345,7 +2359,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 10 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 10 match #6."
         }
       ]
     },
@@ -2372,7 +2386,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 11 match #1."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #1."
         }
       ]
     },
@@ -2399,7 +2413,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 11 match #2."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #2."
         }
       ]
     },
@@ -2426,7 +2440,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 11 match #3."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #3."
         }
       ]
     },
@@ -2453,7 +2467,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 11 match #4."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #4."
         }
       ]
     },
@@ -2480,7 +2494,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 11 match #5."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #5."
         }
       ]
     },
@@ -2507,7 +2521,7 @@
           "timestamp": "2026-11-03T17:47:35.037Z",
           "adminName": "Admin_FC",
           "action": "LEAGUE_DRAW_GENERATION",
-          "note": "Calendrier officiel Championnat - Journée 11 match #6."
+          "note": "Calendrier officiel Championnat sur téléphone - Journée 11 match #6."
         }
       ]
     }
@@ -2537,13 +2551,13 @@
       "id": "notif_1794301367570_3kwg",
       "type": "new_registration",
       "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
-      "message": "Youssef Testeur (Youssef_FC27) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "message": "Youssef Testeur (Youssef_FC27) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat sur téléphone ».",
       "playerName": "Youssef Testeur",
       "gamertag": "Youssef_FC27",
       "userEmail": "alio2002ng@gmail.com",
       "phone": "+212 6 99 88 77 66",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "registrationId": "reg_1794301367570_czq8",
       "createdAt": "2026-11-10T09:02:47.570Z",
       "read": false
@@ -2561,13 +2575,13 @@
       "id": "notif_1794072438189_nscb",
       "type": "new_registration",
       "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
-      "message": "Nassim Visiteur 1794072438185 (Nassim_1794072438185) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "message": "Nassim Visiteur 1794072438185 (Nassim_1794072438185) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat sur téléphone ».",
       "playerName": "Nassim Visiteur 1794072438185",
       "gamertag": "Nassim_1794072438185",
       "userEmail": "nassim.1794072438185@visiteur-fct.ma",
       "phone": "+212 6 11 22 33 44",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "registrationId": "reg_1794072438189_nv43",
       "createdAt": "2026-11-07T17:27:18.189Z",
       "read": false
@@ -2610,13 +2624,13 @@
       "id": "notif_1794061839322_8njf",
       "type": "new_registration",
       "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
-      "message": "Tariq Test 1794061839179 (Tariq_1794061839179) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "message": "Tariq Test 1794061839179 (Tariq_1794061839179) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat sur téléphone ».",
       "playerName": "Tariq Test 1794061839179",
       "gamertag": "Tariq_1794061839179",
       "userEmail": "tariq.1794061839179@fctournament.ma",
       "phone": "+212 6 99 88 77 66",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "registrationId": "reg_1794061839322_e6r8",
       "createdAt": "2026-11-07T14:30:39.322Z",
       "read": false
@@ -2625,13 +2639,13 @@
       "id": "notif_1794061781146_pf1b",
       "type": "new_registration",
       "title": "Nouvelle Inscription Tournoi (REG-2026-0021 - En attente)",
-      "message": "Tariq Test Realtime (TariqAtlas99) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat ».",
+      "message": "Tariq Test Realtime (TariqAtlas99) vient de déposer l'inscription n° REG-2026-0021 avec capture de paiement pour le tournoi « Championnat sur téléphone ».",
       "playerName": "Tariq Test Realtime",
       "gamertag": "TariqAtlas99",
       "userEmail": "tariq.test@fctournament.ma",
       "phone": "+212 6 99 88 77 66",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "registrationId": "reg_1794061781146_sazj",
       "createdAt": "2026-11-07T14:29:41.146Z",
       "read": false
@@ -2648,13 +2662,13 @@
       "id": "notif_1793725437285_jxn9",
       "type": "new_registration",
       "title": "Nouvelle Inscription Tournoi (En attente de validation)",
-      "message": "Omar El Alami (Omar_Maestro) vient de déposer son inscription avec capture de paiement pour le tournoi « Championnat ».",
+      "message": "Omar El Alami (Omar_Maestro) vient de déposer son inscription avec capture de paiement pour le tournoi « Championnat sur téléphone ».",
       "playerName": "Omar El Alami",
       "gamertag": "Omar_Maestro",
       "userEmail": "omar.test@fctournament.ma",
       "phone": "0612345678",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "registrationId": "reg_1793725437285_qkz9",
       "createdAt": "2026-11-03T17:03:57.285Z",
       "read": false
@@ -2663,13 +2677,13 @@
       "id": "notif_1793700526444_gurw",
       "type": "new_registration",
       "title": "Nouvelle Inscription Tournoi",
-      "message": "Tariq Alami (Tariq_Pro) vient de s'inscrire au tournoi « Championnat ».",
+      "message": "Tariq Alami (Tariq_Pro) vient de s'inscrire au tournoi « Championnat sur téléphone ».",
       "playerName": "Tariq Alami",
       "gamertag": "Tariq_Pro",
       "userEmail": "tariq@test.ma",
       "phone": "0655443322",
       "tournamentId": "tourn_spring_2026",
-      "tournamentName": "Championnat",
+      "tournamentName": "Championnat sur téléphone",
       "registrationId": "reg_1793700526443_cfvw",
       "createdAt": "2026-11-03T10:08:46.444Z",
       "read": true
