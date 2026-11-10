@@ -116,6 +116,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [showSqlSchemaModal, setShowSqlSchemaModal] = useState<boolean>(false);
   const [sqlSchemaCode, setSqlSchemaCode] = useState<string>('');
   const [copiedSql, setCopiedSql] = useState<boolean>(false);
+  const [activeSqlScript, setActiveSqlScript] = useState<'schema' | 'audit' | 'migration' | 'seeding' | 'verification'>('schema');
 
   // Create tournament modal state
   const [showCreateModal, setShowCreateModal] = useState<boolean>(false);
@@ -508,13 +509,40 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleDownloadSqlSchema = async () => {
+  const loadSqlScript = async (fileKey: 'schema' | 'audit' | 'migration' | 'seeding' | 'verification') => {
+    setActiveSqlScript(fileKey);
+    try {
+      const res = await fetch(`/api/admin/download-schema?file=${fileKey}`, {
+        headers: getAdminHeaders(),
+      });
+      if (res.ok) {
+        const text = await res.text();
+        if (!text.trim().startsWith('<')) {
+          setSqlSchemaCode(text);
+        }
+      }
+    } catch (e) {
+      console.warn('Erreur chargement script SQL:', e);
+    }
+  };
+
+  const handleDownloadSqlSchema = async (targetFile?: 'schema' | 'audit' | 'migration' | 'seeding' | 'verification') => {
+    const fileToDownload = targetFile || activeSqlScript || 'schema';
+    const fileNames: Record<string, string> = {
+      schema: 'supabase_schema.sql',
+      audit: 'audit_pre_migration.sql',
+      migration: 'migration_colonnes_contraintes.sql',
+      seeding: 'seeding_donnees_securisees.sql',
+      verification: 'verification_post_migration.sql',
+    };
+    const downloadFileName = fileNames[fileToDownload] || 'supabase_schema.sql';
+
     try {
       setDownloadingSchema(true);
       setMessage(null);
 
-      // 1. Fetch directly from the dedicated server route with admin headers
-      const res = await fetch('/api/admin/download-schema', {
+      // Fetch directly from the dedicated server route with admin headers
+      const res = await fetch(`/api/admin/download-schema?file=${fileToDownload}`, {
         headers: getAdminHeaders(),
       });
 
@@ -527,11 +555,11 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         throw new Error(errMessage);
       }
 
-      // 2. Read the full SQL text
+      // Read the full SQL text
       const sqlText = await res.text();
       const trimmed = sqlText.trim();
 
-      // 3. Strict verification: ensure it contains valid SQL and NEVER HTML / Cookie check
+      // Strict verification: ensure it contains valid SQL and NEVER HTML / Cookie check
       if (
         trimmed.startsWith('<!doctype') ||
         trimmed.startsWith('<!DOCTYPE') ||
@@ -543,12 +571,12 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
         );
       }
 
-      // 4. Client-side native file download with exact MIME type and filename
+      // Client-side native file download with exact MIME type and filename
       const blob = new Blob([sqlText], { type: 'application/sql; charset=utf-8' });
       const downloadUrl = window.URL.createObjectURL(blob);
       const tempLink = document.createElement('a');
       tempLink.href = downloadUrl;
-      tempLink.setAttribute('download', 'supabase_schema.sql');
+      tempLink.setAttribute('download', downloadFileName);
       document.body.appendChild(tempLink);
       tempLink.click();
       document.body.removeChild(tempLink);
@@ -557,7 +585,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
       setSqlSchemaCode(sqlText);
       setMessage({
         type: 'success',
-        text: 'Fichier « supabase_schema.sql » téléchargé avec succès (100% SQL PostgreSQL authentique, 0% HTML) !',
+        text: `Fichier « ${downloadFileName} » téléchargé avec succès (100% SQL PostgreSQL authentique, 0% HTML) !`,
       });
     } catch (err: any) {
       console.error('Erreur téléchargement schéma SQL:', err);
@@ -570,22 +598,9 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
-  const handleOpenSqlModal = async () => {
-    try {
-      if (!sqlSchemaCode) {
-        const res = await fetch('/api/admin/download-schema', {
-          headers: getAdminHeaders(),
-        });
-        if (res.ok) {
-          const text = await res.text();
-          if (!text.trim().startsWith('<')) {
-            setSqlSchemaCode(text);
-          }
-        }
-      }
-    } catch (err) {
-      console.warn('Could not pre-fetch schema:', err);
-    }
+  const handleOpenSqlModal = async (initialTab: 'schema' | 'audit' | 'migration' | 'seeding' | 'verification' = 'schema') => {
+    setActiveSqlScript(initialTab);
+    await loadSqlScript(initialTab);
     setShowSqlSchemaModal(true);
   };
 
@@ -593,7 +608,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     try {
       let codeToCopy = sqlSchemaCode;
       if (!codeToCopy) {
-        const res = await fetch('/api/admin/download-schema', {
+        const res = await fetch(`/api/admin/download-schema?file=${activeSqlScript}`, {
           headers: getAdminHeaders(),
         });
         if (res.ok) {
@@ -1694,10 +1709,10 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
               <div className="flex items-center gap-2 shrink-0 w-full md:w-auto justify-end">
                 <button
                   type="button"
-                  onClick={handleDownloadSqlSchema}
+                  onClick={() => handleDownloadSqlSchema('schema')}
                   disabled={downloadingSchema}
                   className="px-3 py-2 rounded-xl bg-[#162032] hover:bg-[#1d2a42] border border-[#2a3a54] text-xs font-semibold text-slate-200 flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
-                  title="Télécharger le véritable fichier supabase_schema.sql (100% SQL, garanti sans HTML)"
+                  title="Télécharger le véritable fichier supabase_schema.sql v3.0 (100% SQL, garanti sans HTML)"
                 >
                   {downloadingSchema ? (
                     <RefreshCw className="w-3.5 h-3.5 text-[#00ff66] animate-spin" />
@@ -1709,12 +1724,12 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
 
                 <button
                   type="button"
-                  onClick={handleOpenSqlModal}
+                  onClick={() => handleOpenSqlModal('schema')}
                   className="px-3 py-2 rounded-xl bg-[#121927] hover:bg-[#192336] border border-[#23324a] text-xs font-semibold text-slate-300 hover:text-white flex items-center gap-1.5 transition-colors cursor-pointer"
-                  title="Afficher et copier le script SQL prêt à coller dans Supabase"
+                  title="Afficher, examiner et copier les scripts SQL prêts à l'emploi"
                 >
                   <Copy className="w-3.5 h-3.5 text-[#00ff66]" />
-                  <span>Copier le SQL</span>
+                  <span>Scripts SQL</span>
                 </button>
 
                 <button
@@ -3400,10 +3415,18 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                   </div>
                   <div>
                     <h3 className="font-display text-lg font-bold text-white uppercase tracking-tight">
-                      Schéma SQL Supabase Officiel (supabase_schema.sql)
+                      {activeSqlScript === 'schema' && 'Schéma Supabase v3.0 Officiel (supabase_schema.sql)'}
+                      {activeSqlScript === 'audit' && 'Audit Préalable Supabase (audit_pre_migration.sql)'}
+                      {activeSqlScript === 'migration' && 'Migration Sécurisée des Colonnes (migration_colonnes_contraintes.sql)'}
+                      {activeSqlScript === 'seeding' && 'Peuplement Sécurisé des Données (seeding_donnees_securisees.sql)'}
+                      {activeSqlScript === 'verification' && 'Vérification Post-Migration (verification_post_migration.sql)'}
                     </h3>
                     <p className="text-xs text-slate-400">
-                      Code SQL PostgreSQL prêt à coller dans Supabase SQL Editor
+                      {activeSqlScript === 'schema' && 'DDL pur, contraintes intègres et RLS stricte sans écrasement de données'}
+                      {activeSqlScript === 'audit' && 'Inspection en lecture seule : colonnes, contraintes, doublons et orphelins'}
+                      {activeSqlScript === 'migration' && 'Ajout non destructif des colonnes manquantes (ADD COLUMN IF NOT EXISTS)'}
+                      {activeSqlScript === 'seeding' && 'Insertion conditionnelle triple vérification (WHERE NOT EXISTS)'}
+                      {activeSqlScript === 'verification' && 'Requêtes de contrôle des statuts et d’intégrité après exécution'}
                     </p>
                   </div>
                 </div>
@@ -3415,11 +3438,70 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                 </button>
               </div>
 
+              {/* Script Selector Tabs */}
+              <div className="px-6 py-2.5 bg-[#0b1018] border-b border-[#182234] flex items-center gap-1.5 overflow-x-auto text-xs">
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('schema')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'schema'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  1. Schéma DDL v3.0
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('audit')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'audit'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  2. Audit Préalable
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('migration')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'migration'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  3. Migration Colonnes
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('seeding')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'seeding'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  4. Peuplement Protégé
+                </button>
+                <button
+                  type="button"
+                  onClick={() => loadSqlScript('verification')}
+                  className={`px-3 py-1.5 rounded-lg font-semibold transition-all cursor-pointer whitespace-nowrap ${
+                    activeSqlScript === 'verification'
+                      ? 'bg-[#00ff66]/20 border border-[#00ff66]/50 text-[#00ff66]'
+                      : 'text-slate-400 hover:text-white hover:bg-[#141c2a]'
+                  }`}
+                >
+                  5. Vérification
+                </button>
+              </div>
+
               {/* Instructions banner */}
               <div className="px-6 py-3 bg-[#0d1420] border-b border-[#1b2537] flex flex-col sm:flex-row sm:items-center justify-between gap-2 text-xs text-slate-300">
                 <div className="flex items-center gap-2">
                   <span className="w-2 h-2 rounded-full bg-[#00ff66] animate-pulse"></span>
-                  <span><strong>Instructions :</strong> Ouvrez Supabase &rarr; SQL Editor &rarr; New query &rarr; Collez et cliquez sur « Run ».</span>
+                  <span><strong>Action recommandée :</strong> Exécutez d'abord l'<strong>Audit préalable</strong> pour examiner votre base Supabase sans modifier de données.</span>
                 </div>
                 <div className="flex items-center gap-2">
                   <button
@@ -3427,15 +3509,15 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                     className="px-3 py-1.5 rounded-lg bg-[#00ff66] hover:bg-[#00dd55] text-black font-bold text-xs flex items-center gap-1.5 transition-colors cursor-pointer"
                   >
                     {copiedSql ? <Check className="w-3.5 h-3.5" /> : <Copy className="w-3.5 h-3.5" />}
-                    <span>{copiedSql ? 'Copié !' : 'Copier tout le SQL'}</span>
+                    <span>{copiedSql ? 'Copié !' : 'Copier ce script'}</span>
                   </button>
                   <button
-                    onClick={handleDownloadSqlSchema}
+                    onClick={() => handleDownloadSqlSchema()}
                     disabled={downloadingSchema}
                     className="px-3 py-1.5 rounded-lg bg-[#182335] hover:bg-[#202e46] border border-[#2c3d59] text-white font-semibold text-xs flex items-center gap-1.5 transition-colors cursor-pointer disabled:opacity-50"
                   >
                     <Download className="w-3.5 h-3.5 text-[#00ff66]" />
-                    <span>Télécharger .sql</span>
+                    <span>Télécharger</span>
                   </button>
                 </div>
               </div>

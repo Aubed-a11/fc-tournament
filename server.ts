@@ -2945,11 +2945,20 @@ app.get('/auth/me', handleMe);
   // - Adds Content-Disposition: attachment; filename="supabase_schema.sql"
   // - Verifies that the response contains valid SQL and NEVER HTML / Cookie check
   // - Returns explicit error if missing
-  const handleDownloadSchema = (_req: AuthenticatedRequest, res: Response) => {
+  // Dedicated route to serve and download the official Supabase SQL Schema and Migration Scripts
+  // Supports query parameter ?file=schema | audit | migration | seeding | verification
+  const handleDownloadSchema = (req: AuthenticatedRequest, res: Response) => {
+    const requestedFile = ((req.query?.file as string) || 'schema').toLowerCase();
+    let targetFileName = 'supabase_schema.sql';
+    if (requestedFile === 'audit') targetFileName = 'audit_pre_migration.sql';
+    else if (requestedFile === 'migration') targetFileName = 'migration_colonnes_contraintes.sql';
+    else if (requestedFile === 'seeding') targetFileName = 'seeding_donnees_securisees.sql';
+    else if (requestedFile === 'verification') targetFileName = 'verification_post_migration.sql';
+
     const candidatePaths = [
-      path.resolve(__dirname, 'supabase_schema.sql'),
-      path.resolve(process.cwd(), 'supabase_schema.sql'),
-      path.resolve(__dirname, '..', 'supabase_schema.sql'),
+      path.resolve(__dirname, targetFileName),
+      path.resolve(process.cwd(), targetFileName),
+      path.resolve(__dirname, '..', targetFileName),
     ];
 
     let foundPath: string | null = null;
@@ -2962,7 +2971,7 @@ app.get('/auth/me', handleMe);
 
     if (!foundPath) {
       res.status(404).json({
-        error: 'Fichier supabase_schema.sql introuvable sur le serveur.',
+        error: `Fichier ${targetFileName} introuvable sur le serveur.`,
         searchedPaths: candidatePaths,
       });
       return;
@@ -2979,19 +2988,15 @@ app.get('/auth/me', handleMe);
         trimmed.startsWith('<html') ||
         trimmed.includes('<title>Cookie check</title>')
       ) {
-        console.error('[SQL SCHEMA DOWNLOAD] Erreur critique : contenu HTML détecté dans le fichier source :', trimmed.slice(0, 150));
+        console.error(`[SQL DOWNLOAD] Erreur critique : contenu HTML détecté dans ${targetFileName} :`, trimmed.slice(0, 150));
         res.status(500).json({
           error: 'Erreur critique : le fichier détecté contient du code HTML au lieu du SQL PostgreSQL.',
         });
         return;
       }
 
-      if (!trimmed.startsWith('--') && !trimmed.startsWith('CREATE') && !trimmed.startsWith('/*')) {
-        console.warn('[SQL SCHEMA DOWNLOAD] Le fichier ne commence pas par un en-tête SQL classique.');
-      }
-
       res.setHeader('Content-Type', 'application/sql; charset=utf-8');
-      res.setHeader('Content-Disposition', 'attachment; filename="supabase_schema.sql"');
+      res.setHeader('Content-Disposition', `attachment; filename="${targetFileName}"`);
       res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate, proxy-revalidate');
       res.setHeader('Pragma', 'no-cache');
       res.setHeader('Expires', '0');
@@ -2999,9 +3004,9 @@ app.get('/auth/me', handleMe);
 
       res.status(200).send(sqlContent);
     } catch (err: any) {
-      console.error('[SQL SCHEMA DOWNLOAD] Erreur lors de la lecture :', err);
+      console.error(`[SQL DOWNLOAD] Erreur lors de la lecture de ${targetFileName} :`, err);
       res.status(500).json({
-        error: `Impossible de lire le fichier supabase_schema.sql : ${err?.message || err}`,
+        error: `Impossible de lire le fichier ${targetFileName} : ${err?.message || err}`,
       });
     }
   };
