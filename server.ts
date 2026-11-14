@@ -287,7 +287,7 @@ function getInitialDatabase(): DatabaseSchema {
       status: 'open',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-      bannerImage: '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+      bannerImage: '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png',
       createdAt: '2026-02-01T10:00:00.000Z',
     },
     {
@@ -310,7 +310,7 @@ function getInitialDatabase(): DatabaseSchema {
       status: 'completed',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-      bannerImage: '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
+      bannerImage: '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png',
       createdAt: '2026-01-20T12:00:00.000Z',
     },
   ];
@@ -991,6 +991,15 @@ function loadDatabase(): DatabaseSchema {
         t.entryFeeMAD = 49.99;
         needsSync = true;
       }
+      if (
+        !t.bannerImage ||
+        t.bannerImage.includes('f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png') ||
+        t.bannerImage.includes('Affiche_FCT_eFootball_n_on_vert_781c96c2.png') ||
+        t.bannerImage.includes('a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png')
+      ) {
+        t.bannerImage = '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png';
+        needsSync = true;
+      }
     } else if (t.id === 'tourn_ligue_oriental_2026') {
       if (t.name !== 'Championnat sur PC') {
         t.name = 'Championnat sur PC';
@@ -1000,6 +1009,15 @@ function loadDatabase(): DatabaseSchema {
       }
       if (t.entryFeeMAD !== 49.99) {
         t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+      if (
+        !t.bannerImage ||
+        t.bannerImage.includes('f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png') ||
+        t.bannerImage.includes('Affiche_FCT_eFootball_n_on_vert_781c96c2.png') ||
+        t.bannerImage.includes('a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png')
+      ) {
+        t.bannerImage = '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png';
         needsSync = true;
       }
     }
@@ -1836,6 +1854,7 @@ app.get('/auth/me', handleMe);
       };
     });
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.json(tournamentsWithStats);
   });
 
@@ -2688,7 +2707,7 @@ app.get('/auth/me', handleMe);
       prizePool: (prizePool || 'Trophée + Médailles').trim(),
       status: 'open',
       rules: (rules || 'Règlement officiel EA FC Tournament').trim(),
-      bannerImage: bannerImage || '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+      bannerImage: bannerImage || '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png',
       createdAt: new Date().toISOString(),
     };
 
@@ -3946,12 +3965,16 @@ async function startServer() {
       indexHtmlPath = path.resolve(__dirname, 'index.html');
     }
 
-    app.use(express.static(staticDir));
+    // Serve static assets without auto-serving index.html so we can enforce no-cache on HTML
+    app.use(express.static(staticDir, { index: false }));
     app.use('*', (_req, res) => {
       if (fs.existsSync(indexHtmlPath)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.sendFile(indexHtmlPath);
       } else {
-        res.status(404).send('Application build not found. Please upload index.html or dist/ folder.');
+        res.status(404).send('Application build not found. Please run npm run build to generate dist/.');
       }
     });
   }

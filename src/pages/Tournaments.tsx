@@ -151,7 +151,7 @@ export const Tournaments: React.FC<TournamentsProps> = ({ onNavigate }) => {
                   {/* Card Visual Header - Generous, impactful poster */}
                   <div className="relative h-72 sm:h-80 md:h-88 overflow-hidden bg-slate-900">
                     <img
-                      src={tournament.bannerImage || '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png'}
+                      src={tournament.bannerImage || '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png'}
                       alt={tournament.name}
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-95"
                     />

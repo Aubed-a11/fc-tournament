@@ -7,7 +7,7 @@ import {
 } from '../data/initialData.ts';
 
 // Increment this version whenever code source defaults change to purge/refresh stale browser cache
-export const CURRENT_DATA_VERSION = '2026-11-10-v5';
+export const CURRENT_DATA_VERSION = '2026-11-14-v7';
 
 const KEY_DATA_VERSION = 'fc_data_version';
 const KEY_TOURNAMENTS = 'fc_store_tournaments';

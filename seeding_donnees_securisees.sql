@@ -37,7 +37,7 @@ Article 5 – Transmission des résultats : Capture d’écran du score final ob
 Article 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.
 Article 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.
 Article 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-  '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+  '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png',
   '2026-02-01T10:00:00.000Z', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM public.tournaments WHERE id = 'tourn_spring_2026');
 
@@ -61,7 +61,7 @@ Article 5 – Transmission des résultats : Capture d’écran du score final ob
 Article 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.
 Article 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.
 Article 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-  '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
+  '/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png',
   '2026-01-20T12:00:00.000Z', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM public.tournaments WHERE id = 'tourn_ligue_oriental_2026');
 

@@ -227,7 +227,7 @@ function getInitialDatabase() {
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "open",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
-      bannerImage: "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
+      bannerImage: "/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png",
       createdAt: "2026-02-01T10:00:00.000Z"
     },
     {
@@ -248,7 +248,7 @@ function getInitialDatabase() {
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "completed",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
-      bannerImage: "/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
+      bannerImage: "/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png",
       createdAt: "2026-01-20T12:00:00.000Z"
     }
   ];
@@ -914,6 +914,10 @@ function loadDatabase() {
         t.entryFeeMAD = 49.99;
         needsSync = true;
       }
+      if (!t.bannerImage || t.bannerImage.includes("f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png") || t.bannerImage.includes("Affiche_FCT_eFootball_n_on_vert_781c96c2.png") || t.bannerImage.includes("a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png")) {
+        t.bannerImage = "/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png";
+        needsSync = true;
+      }
     } else if (t.id === "tourn_ligue_oriental_2026") {
       if (t.name !== "Championnat sur PC") {
         t.name = "Championnat sur PC";
@@ -923,6 +927,10 @@ function loadDatabase() {
       }
       if (t.entryFeeMAD !== 49.99) {
         t.entryFeeMAD = 49.99;
+        needsSync = true;
+      }
+      if (!t.bannerImage || t.bannerImage.includes("f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png") || t.bannerImage.includes("Affiche_FCT_eFootball_n_on_vert_781c96c2.png") || t.bannerImage.includes("a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png")) {
+        t.bannerImage = "/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png";
         needsSync = true;
       }
     }
@@ -1597,6 +1605,7 @@ app.get("/api/tournaments", (req, res) => {
       userRegistration: userReg || null
     };
   });
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
   res.json(tournamentsWithStats);
 });
 app.get("/api/tournaments/:id", (req, res) => {
@@ -2257,7 +2266,7 @@ app.post("/api/admin/tournaments", requireAdmin, (req, res) => {
     prizePool: (prizePool || "Troph\xE9e + M\xE9dailles").trim(),
     status: "open",
     rules: (rules || "R\xE8glement officiel EA FC Tournament").trim(),
-    bannerImage: bannerImage || "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
+    bannerImage: bannerImage || "/assets/aistudio/Tournoi_de_football_n_on_esports_cfe91b50.png",
     createdAt: (/* @__PURE__ */ new Date()).toISOString()
   };
   db.tournaments.push(newTournament);
@@ -3250,12 +3259,15 @@ async function startServer() {
       staticDir = __dirname;
       indexHtmlPath = path.resolve(__dirname, "index.html");
     }
-    app.use(express.static(staticDir));
+    app.use(express.static(staticDir, { index: false }));
     app.use("*", (_req, res) => {
       if (fs.existsSync(indexHtmlPath)) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         res.sendFile(indexHtmlPath);
       } else {
-        res.status(404).send("Application build not found. Please upload index.html or dist/ folder.");
+        res.status(404).send("Application build not found. Please run npm run build to generate dist/.");
       }
     });
   }
