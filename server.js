@@ -85,17 +85,63 @@ function scheduleKvSave(key, getValue) {
     queuedKeys.delete(key);
     await ensureSchema();
     const value = JSON.stringify(getValue());
-    const result = await pgPool.query(
-      `INSERT INTO fc_kv (key, value) VALUES ($1, $2::jsonb)
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, version = fc_kv.version + 1, updated_at = now()
-         RETURNING version`,
+    const expected = kvVersions.get(key);
+    const result = expected === void 0 ? await pgPool.query(
+      `INSERT INTO fc_kv (key, value) VALUES ($1, $2::jsonb) ON CONFLICT (key) DO NOTHING RETURNING version`,
       [key, value]
+    ) : await pgPool.query(
+      `UPDATE fc_kv SET value = $2::jsonb, version = version + 1, updated_at = now()
+               WHERE key = $1 AND version = $3 RETURNING version`,
+      [key, value, expected]
     );
+    if (result.rowCount === 0) {
+      kvVersions.delete(key);
+      writeConflicts += 1;
+      console.error(`[PG] Conflit d'ecriture sur "${key}" : modification ignoree pour ne pas ecraser des donnees plus recentes.`);
+      return;
+    }
     kvVersions.set(key, Number(result.rows[0].version));
   }).catch((err) => {
     queuedKeys.delete(key);
     console.error(`[PG] Erreur lors de la sauvegarde de "${key}":`, err);
   });
+}
+let writeConflicts = 0;
+const WRITE_LOCK_ID = 727001;
+let localWriteQueue = Promise.resolve();
+async function acquireWriteLock() {
+  let releaseLocal;
+  const previous = localWriteQueue;
+  localWriteQueue = new Promise((resolve) => releaseLocal = resolve);
+  await previous;
+  const client = await pgPool.connect();
+  try {
+    await client.query("BEGIN");
+    await client.query("SET LOCAL lock_timeout = '20s'");
+    await client.query("SELECT pg_advisory_xact_lock($1)", [WRITE_LOCK_ID]);
+  } catch (err) {
+    await client.query("ROLLBACK").catch(() => {
+    });
+    client.release();
+    releaseLocal();
+    throw err;
+  }
+  let released = false;
+  return async () => {
+    if (released) return;
+    released = true;
+    try {
+      await pendingWrites;
+      await client.query("COMMIT");
+    } catch (err) {
+      await client.query("ROLLBACK").catch(() => {
+      });
+      console.error("[PG] Liberation du verrou :", err);
+    } finally {
+      client.release();
+      releaseLocal();
+    }
+  };
 }
 async function refreshFromPg() {
   if (!pgPool) return;
@@ -1852,20 +1898,35 @@ app.use(async (req, res, next) => {
     next();
     return;
   }
+  const needsLock = req.method !== "GET" && req.method !== "HEAD" && req.method !== "OPTIONS" || req.path.startsWith("/api/cron/");
+  let releaseLock = null;
   const originalJson = res.json.bind(res);
   const originalSend = res.send.bind(res);
+  const finish = (send) => {
+    pendingWrites.then(async () => {
+      if (releaseLock) await releaseLock();
+      send();
+    });
+  };
   res.json = ((body) => {
-    pendingWrites.then(() => originalJson(body));
+    finish(() => originalJson(body));
     return res;
   });
   res.send = ((body) => {
-    pendingWrites.then(() => originalSend(body));
+    finish(() => originalSend(body));
     return res;
   });
+  res.on("close", () => {
+    if (releaseLock) releaseLock();
+  });
   try {
+    if (needsLock) {
+      releaseLock = await acquireWriteLock();
+    }
     await refreshFromPg();
   } catch (err) {
     console.error("[PG] Base de donnees indisponible:", err);
+    if (releaseLock) await releaseLock();
     res.status(503);
     originalJson({ error: "Base de donnees temporairement indisponible. Veuillez reessayer." });
     return;

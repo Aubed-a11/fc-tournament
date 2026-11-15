@@ -122,18 +122,79 @@ function scheduleKvSave(key: string, getValue: () => unknown): void {
       queuedKeys.delete(key);
       await ensureSchema();
       const value = JSON.stringify(getValue());
-      const result = await pgPool.query(
-        `INSERT INTO fc_kv (key, value) VALUES ($1, $2::jsonb)
-         ON CONFLICT (key) DO UPDATE SET value = EXCLUDED.value, version = fc_kv.version + 1, updated_at = now()
-         RETURNING version`,
-        [key, value]
-      );
+      const expected = kvVersions.get(key);
+      // Ecriture conditionnelle : n'ecrase jamais une version plus recente enregistree par une autre instance
+      const result =
+        expected === undefined
+          ? await pgPool.query(
+              `INSERT INTO fc_kv (key, value) VALUES ($1, $2::jsonb) ON CONFLICT (key) DO NOTHING RETURNING version`,
+              [key, value]
+            )
+          : await pgPool.query(
+              `UPDATE fc_kv SET value = $2::jsonb, version = version + 1, updated_at = now()
+               WHERE key = $1 AND version = $3 RETURNING version`,
+              [key, value, expected]
+            );
+      if (result.rowCount === 0) {
+        // Les donnees ont change entre-temps : on ne les ecrase pas, elles seront rechargees a la prochaine requete
+        kvVersions.delete(key);
+        writeConflicts += 1;
+        console.error(`[PG] Conflit d'ecriture sur "${key}" : modification ignoree pour ne pas ecraser des donnees plus recentes.`);
+        return;
+      }
       kvVersions.set(key, Number(result.rows[0].version));
     })
     .catch((err) => {
       queuedKeys.delete(key);
       console.error(`[PG] Erreur lors de la sauvegarde de "${key}":`, err);
     });
+}
+
+let writeConflicts = 0;
+
+// ==========================================
+// VERROU D'ECRITURE GLOBAL
+// Les requetes qui modifient les donnees passent une par une, toutes instances confondues :
+// 1. file d'attente locale (une seule requete en ecriture par instance a la fois)
+// 2. verrou Postgres (pg_advisory_xact_lock) partage par toutes les instances Vercel
+// Chaque requete relit donc toujours les donnees les plus recentes avant de les modifier.
+// ==========================================
+const WRITE_LOCK_ID = 727001;
+let localWriteQueue: Promise<void> = Promise.resolve();
+
+async function acquireWriteLock(): Promise<() => Promise<void>> {
+  let releaseLocal!: () => void;
+  const previous = localWriteQueue;
+  localWriteQueue = new Promise<void>((resolve) => (releaseLocal = resolve));
+  await previous;
+
+  const client = await pgPool!.connect();
+  try {
+    await client.query('BEGIN');
+    await client.query("SET LOCAL lock_timeout = '20s'");
+    await client.query('SELECT pg_advisory_xact_lock($1)', [WRITE_LOCK_ID]);
+  } catch (err) {
+    await client.query('ROLLBACK').catch(() => {});
+    client.release();
+    releaseLocal();
+    throw err;
+  }
+
+  let released = false;
+  return async () => {
+    if (released) return;
+    released = true;
+    try {
+      await pendingWrites;
+      await client.query('COMMIT');
+    } catch (err) {
+      await client.query('ROLLBACK').catch(() => {});
+      console.error('[PG] Liberation du verrou :', err);
+    } finally {
+      client.release();
+      releaseLocal();
+    }
+  };
 }
 
 // Recharge depuis Postgres uniquement les cles modifiees ailleurs (autre instance serverless).
@@ -2173,21 +2234,39 @@ app.use(async (req: Request, res: Response, next: NextFunction) => {
     return;
   }
 
+  // Les requetes qui modifient des donnees (et la tache des rappels) prennent le verrou d'ecriture
+  const needsLock = req.method !== 'GET' && req.method !== 'HEAD' && req.method !== 'OPTIONS' || req.path.startsWith('/api/cron/');
+  let releaseLock: (() => Promise<void>) | null = null;
+
   const originalJson = res.json.bind(res);
   const originalSend = res.send.bind(res);
+  // La reponse part une fois les ecritures terminees, puis le verrou est libere
+  const finish = (send: () => void) => {
+    pendingWrites.then(async () => {
+      if (releaseLock) await releaseLock();
+      send();
+    });
+  };
   res.json = ((body?: any) => {
-    pendingWrites.then(() => originalJson(body));
+    finish(() => originalJson(body));
     return res;
   }) as typeof res.json;
   res.send = ((body?: any) => {
-    pendingWrites.then(() => originalSend(body));
+    finish(() => originalSend(body));
     return res;
   }) as typeof res.send;
+  res.on('close', () => {
+    if (releaseLock) releaseLock();
+  });
 
   try {
+    if (needsLock) {
+      releaseLock = await acquireWriteLock();
+    }
     await refreshFromPg();
   } catch (err) {
     console.error('[PG] Base de donnees indisponible:', err);
+    if (releaseLock) await releaseLock();
     res.status(503);
     originalJson({ error: 'Base de donnees temporairement indisponible. Veuillez reessayer.' });
     return;
