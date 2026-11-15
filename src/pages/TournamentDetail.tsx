@@ -156,7 +156,7 @@ export const TournamentDetail: React.FC<TournamentDetailProps> = ({
         <div className="relative rounded-3xl overflow-hidden bg-[#0c1017] border border-[#1d2638] shadow-2xl">
           <div className="h-64 sm:h-80 w-full relative">
             <img
-              src={tournament.bannerImage || '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png'}
+              src={tournament.bannerImage || '/assets/fct-efootball.jpg'}
               alt={tournament.name}
               className="w-full h-full object-cover object-center filter brightness-50"
             />

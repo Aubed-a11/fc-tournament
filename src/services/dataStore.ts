@@ -7,7 +7,7 @@ import {
 } from '../data/initialData.ts';
 
 // Increment this version whenever code source defaults change to purge/refresh stale browser cache
-export const CURRENT_DATA_VERSION = '2026-11-11-v6-sans-demo';
+export const CURRENT_DATA_VERSION = '2026-11-15-v8';
 
 const KEY_DATA_VERSION = 'fc_data_version';
 const KEY_TOURNAMENTS = 'fc_store_tournaments';
@@ -57,13 +57,13 @@ export function ensureDataVersionSynced(): void {
       for (const r of localRegs) {
         // Also update tournament names if present
         if (r.tournamentName === 'Championnat' || r.tournamentId === 'tourn_spring_2026') {
-          r.tournamentName = 'Championnat sur téléphone';
+          r.tournamentName = 'eFootball sur téléphone';
         } else if (
           r.tournamentName === 'Ligue des champions' ||
           r.tournamentName === 'Ligue des championnat' ||
           r.tournamentId === 'tourn_ligue_oriental_2026'
         ) {
-          r.tournamentName = 'Championnat sur PC';
+          r.tournamentName = 'eFootball sur PC';
         }
         if (!mergedRegsMap.has(r.id)) {
           mergedRegsMap.set(r.id, r);

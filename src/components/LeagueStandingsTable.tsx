@@ -31,7 +31,7 @@ export interface PlayerStanding {
 export const LeagueStandingsTable: React.FC<LeagueStandingsTableProps> = ({
   matches,
   registrations,
-  tournamentName = 'Championnat sur téléphone',
+  tournamentName = 'eFootball sur téléphone',
   onSelectPlayer,
 }) => {
   const [searchTerm, setSearchTerm] = useState('');

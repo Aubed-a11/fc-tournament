@@ -27,7 +27,7 @@ export const TermsPrivacy: React.FC<TermsPrivacyProps> = ({ onNavigate }) => {
             <span>Clause de Non-Affiliation avec Electronic Arts Inc.</span>
           </div>
           <p className="text-xs text-slate-300 leading-relaxed">
-            FC Tournament est une initiative communautaire indépendante dédiée à l’organisation locale de tournois de football virtuel au Maroc. Cette plateforme n’est ni affiliée, ni sponsorisée, ni agréée, ni gérée par Electronic Arts Inc. ou EA SPORTS. Tous les titres, noms de jeux, marques et logos associés à EA SPORTS FC sont la propriété exclusive d’Electronic Arts Inc.
+            FC Tournament est une initiative communautaire indépendante dédiée à l’organisation locale de tournois de football virtuel au Maroc. Cette plateforme n’est ni affiliée, ni sponsorisée, ni agréée, ni gérée par KONAMI. Tous les titres, noms de jeux, marques et logos associés à eFootball sont la propriété exclusive de KONAMI.
           </p>
         </div>
 

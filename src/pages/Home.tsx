@@ -63,13 +63,13 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
         {/* Background Visual Asset */}
         <div className="absolute inset-0 z-0">
           <img
-            src="/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png"
-            alt="EA SPORTS FC eSport Tournament"
-            className="w-full h-full object-cover object-center filter brightness-[0.45] contrast-125"
+            src="/assets/fct-efootball.jpg"
+            alt="FC Tournament - eFootball eSport"
+            className="w-full h-full object-cover object-center filter brightness-[0.55] contrast-110"
             referrerPolicy="no-referrer"
           />
           {/* Dark Scrims ensuring high contrast */}
-          <div className="absolute inset-0 bg-gradient-to-r from-[#07090e] via-[#07090e]/85 to-transparent" />
+          <div className="absolute inset-0 bg-gradient-to-r from-[#07090e] via-[#07090e]/80 to-transparent" />
           <div className="absolute inset-0 bg-gradient-to-t from-[#07090e] via-transparent to-[#07090e]/50" />
           <div className="absolute inset-0 gaming-grid-bg opacity-40 pointer-events-none" />
         </div>
@@ -92,7 +92,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
 
             {/* Subtitle */}
             <p className="text-base sm:text-lg text-slate-300 leading-relaxed font-normal max-w-xl">
-              Rejoins les tournois <span className="text-white font-semibold">EA SPORTS FC</span> et affronte les meilleurs compétiteurs dans une ambiance e-sport professionnelle.
+              Rejoins les tournois <span className="text-white font-semibold">eFootball</span> et affronte les meilleurs compétiteurs dans une ambiance e-sport professionnelle.
             </p>
 
             {/* CTA Buttons */}
@@ -174,7 +174,7 @@ export const Home: React.FC<HomeProps> = ({ onNavigate }) => {
                   {/* Poster Banner - Prominent Height and Artwork */}
                   <div className="relative h-72 sm:h-80 md:h-88 overflow-hidden bg-slate-900">
                     <img
-                      src={tournament.bannerImage || '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png'}
+                      src={tournament.bannerImage || '/assets/fct-efootball.jpg'}
                       alt={tournament.name}
                       className="w-full h-full object-cover object-center group-hover:scale-105 transition-transform duration-700 filter brightness-95"
                     />

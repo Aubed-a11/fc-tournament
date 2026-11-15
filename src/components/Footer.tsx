@@ -21,7 +21,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
               </span>
             </div>
             <p className="text-slate-400 text-xs leading-relaxed max-w-md">
-              Plateforme indépendante dédiée à l’organisation et au suivi des compétitions EA SPORTS FC. Un espace rassembleur pour une communauté passionnée, des affrontements de haut niveau et une expérience compétitive fondée sur le fair-play.
+              Plateforme indépendante dédiée à l’organisation et au suivi des compétitions eFootball. Un espace rassembleur pour une communauté passionnée, des affrontements de haut niveau et une expérience compétitive fondée sur le fair-play.
             </p>
             <div className="flex flex-wrap items-center gap-4 text-slate-400 text-xs pt-1">
               <a href="mailto:alio227ng@gmail.com" className="flex items-center gap-1.5 hover:text-[#00ff66] transition-colors">
@@ -134,7 +134,7 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
         <div className="p-3.5 rounded-xl bg-[#090d14] border border-[#172030] flex items-start gap-3 text-[11px] text-slate-400 mb-8 leading-relaxed">
           <ShieldCheck className="w-4 h-4 text-[#00ff66] shrink-0 mt-0.5" />
           <p>
-            <strong className="text-slate-200">Avertissement légal :</strong> FC Tournament est une initiative communautaire indépendante au Maroc. Cette plateforme n’est ni affiliée, ni sponsorisée, ni approuvée par Electronic Arts Inc. ou EA SPORTS. Tous les logos et marques commerciales cités appartiennent à leurs propriétaires respectifs. Protection des données personnelles conforme à la loi marocaine n° 09-08 (CNDP).
+            <strong className="text-slate-200">Avertissement légal :</strong> FC Tournament est une initiative communautaire indépendante au Maroc. Cette plateforme n’est ni affiliée, ni sponsorisée, ni approuvée par KONAMI (éditeur d’eFootball). Tous les logos et marques commerciales cités appartiennent à leurs propriétaires respectifs. Protection des données personnelles conforme à la loi marocaine n° 09-08 (CNDP).
           </p>
         </div>
 

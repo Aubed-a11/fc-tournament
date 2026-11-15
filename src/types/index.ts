@@ -62,6 +62,9 @@ export interface Registration {
   notes?: string;
   paymentProof?: string;
   paymentProofName?: string;
+  // Capture complete stockee a part (table fc_proofs) ; paymentProof contient alors une miniature
+  paymentProofId?: string;
+  paymentMethod?: PaymentMethodId;
   status: RegistrationStatus;
   registeredAt: string;
   registrationNumber?: string;

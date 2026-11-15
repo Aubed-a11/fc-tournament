@@ -360,10 +360,10 @@ function getInitialDatabase() {
   const tournaments = [
     {
       id: "tourn_spring_2026",
-      name: "Championnat sur t\xE9l\xE9phone",
-      slug: "championnat-sur-telephone",
+      name: "eFootball sur t\xE9l\xE9phone",
+      slug: "efootball-sur-telephone",
       description: "Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour c\xE9l\xE9brer la comp\xE9tition et couronner le meilleur joueur dans une ambiance \xE9lectrique devant vos \xE9crans.",
-      gameVersion: "EA SPORTS 27",
+      gameVersion: "eFootball",
       platform: "T\xE9l\xE9phone (Mobile)",
       format: "aller_retour",
       location: "Gaming Arena",
@@ -376,15 +376,15 @@ function getInitialDatabase() {
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "open",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
-      bannerImage: "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
+      bannerImage: "/assets/fct-efootball.jpg",
       createdAt: "2026-02-01T10:00:00.000Z"
     },
     {
       id: "tourn_ligue_oriental_2026",
-      name: "Championnat sur PC",
-      slug: "championnat-sur-pc",
+      name: "eFootball sur PC",
+      slug: "efootball-sur-pc",
       description: "La comp\xE9tition d\u2019\xE9lite sur PC qui r\xE9unit les meilleurs joueurs pour s\u2019affronter et d\xE9crocher le titre de champion.",
-      gameVersion: "EA SPORTS 27",
+      gameVersion: "eFootball",
       platform: "PC",
       format: "aller_retour",
       location: "Gaming Arena",
@@ -397,7 +397,7 @@ function getInitialDatabase() {
       prizePool: "**** MAD + Troph\xE9e + T-shirt",
       status: "completed",
       rules: "Article 1 \u2013 Format des matchs : Les rencontres se disputent en mode \xAB Coup d\u2019envoi \xBB, avec une dur\xE9e de 5 minutes par mi-temps.\nArticle 2 \u2013 Syst\xE8me de confrontation : Chaque comp\xE9titeur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 \u2013 Fair-play et comportement : Le fair-play est obligatoire durant toute la comp\xE9tition. Tout comportement antisportif peut entra\xEEner la disqualification imm\xE9diate.\nArticle 4 \u2013 Utilisation des manettes : Manettes fournies ou manette personnelle autoris\xE9e apr\xE8s v\xE9rification technique.\nArticle 5 \u2013 Transmission des r\xE9sultats : Capture d\u2019\xE9cran du score final obligatoire apr\xE8s chaque match.\nArticle 6 \u2013 Fraude et falsification : Toute falsification entra\xEEne l\u2019\xE9limination imm\xE9diate.\nArticle 7 \u2013 V\xE9rification technique : L\u2019\xE9quipe technique v\xE9rifie l\u2019authenticit\xE9 des captures.\nArticle 8 \u2013 Retard et absence : Retard sup\xE9rieur \xE0 10 minutes = forfait automatique.",
-      bannerImage: "/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
+      bannerImage: "/assets/fct-efootball.jpg",
       createdAt: "2026-01-20T12:00:00.000Z"
     }
   ];
@@ -1056,9 +1056,9 @@ function loadDatabase() {
   });
   loaded.tournaments?.forEach((t) => {
     if (t.id === "tourn_spring_2026") {
-      if (t.name !== "Championnat sur t\xE9l\xE9phone") {
-        t.name = "Championnat sur t\xE9l\xE9phone";
-        t.slug = "championnat-sur-telephone";
+      if (t.name !== "eFootball sur t\xE9l\xE9phone") {
+        t.name = "eFootball sur t\xE9l\xE9phone";
+        t.slug = "efootball-sur-telephone";
         t.platform = "T\xE9l\xE9phone (Mobile)";
         needsSync = true;
       }
@@ -1066,10 +1066,14 @@ function loadDatabase() {
         t.entryFeeMAD = 50;
         needsSync = true;
       }
+      if (!t.bannerImage || t.bannerImage.includes("f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png") || t.bannerImage.includes("Affiche_FCT_eFootball_n_on_vert_781c96c2.png") || t.bannerImage.includes("a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png")) {
+        t.bannerImage = "/assets/fct-efootball.jpg";
+        needsSync = true;
+      }
     } else if (t.id === "tourn_ligue_oriental_2026") {
-      if (t.name !== "Championnat sur PC") {
-        t.name = "Championnat sur PC";
-        t.slug = "championnat-sur-pc";
+      if (t.name !== "eFootball sur PC") {
+        t.name = "eFootball sur PC";
+        t.slug = "efootball-sur-pc";
         t.platform = "PC";
         needsSync = true;
       }
@@ -1077,14 +1081,18 @@ function loadDatabase() {
         t.entryFeeMAD = 50;
         needsSync = true;
       }
+      if (!t.bannerImage || t.bannerImage.includes("f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png") || t.bannerImage.includes("Affiche_FCT_eFootball_n_on_vert_781c96c2.png") || t.bannerImage.includes("a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png")) {
+        t.bannerImage = "/assets/fct-efootball.jpg";
+        needsSync = true;
+      }
     }
   });
   loaded.registrations?.forEach((r) => {
-    if (r.tournamentId === "tourn_spring_2026" && r.tournamentName !== "Championnat sur t\xE9l\xE9phone") {
-      r.tournamentName = "Championnat sur t\xE9l\xE9phone";
+    if (r.tournamentId === "tourn_spring_2026" && r.tournamentName !== "eFootball sur t\xE9l\xE9phone") {
+      r.tournamentName = "eFootball sur t\xE9l\xE9phone";
       needsSync = true;
-    } else if (r.tournamentId === "tourn_ligue_oriental_2026" && r.tournamentName !== "Championnat sur PC") {
-      r.tournamentName = "Championnat sur PC";
+    } else if (r.tournamentId === "tourn_ligue_oriental_2026" && r.tournamentName !== "eFootball sur PC") {
+      r.tournamentName = "eFootball sur PC";
       needsSync = true;
     }
   });
@@ -1164,26 +1172,56 @@ function normalizeDatabase(raw) {
 }
 function applyTournamentMigrations(data) {
   const official = {
-    tourn_spring_2026: { name: "Championnat sur t\xE9l\xE9phone", slug: "championnat-sur-telephone", platform: "T\xE9l\xE9phone (Mobile)" },
-    tourn_ligue_oriental_2026: { name: "Championnat sur PC", slug: "championnat-sur-pc", platform: "PC" }
+    tourn_spring_2026: {
+      name: "eFootball sur t\xE9l\xE9phone",
+      slug: "efootball-sur-telephone",
+      platform: "T\xE9l\xE9phone (Mobile)",
+      oldNames: ["Championnat", "Championnat sur t\xE9l\xE9phone"]
+    },
+    tourn_ligue_oriental_2026: {
+      name: "eFootball sur PC",
+      slug: "efootball-sur-pc",
+      platform: "PC",
+      oldNames: ["Ligue des champions", "Championnat sur PC"]
+    }
   };
+  const OLD_BANNERS = [
+    "f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
+    "a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png",
+    "Affiche_FCT_eFootball_n_on_vert_781c96c2.png",
+    "Tournoi_de_football_n_on_esports_cfe91b50.png"
+  ];
+  const NEW_BANNER = "/assets/fct-efootball.jpg";
   let changed = false;
   for (const t of data.tournaments) {
+    if (!t.bannerImage || OLD_BANNERS.some((b) => String(t.bannerImage).includes(b))) {
+      if (t.bannerImage !== NEW_BANNER) {
+        t.bannerImage = NEW_BANNER;
+        changed = true;
+      }
+    }
     const o = official[t.id];
     if (!o) continue;
-    if (t.name !== o.name) {
-      Object.assign(t, o);
+    if (/EA SPORTS/i.test(String(t.gameVersion || ""))) {
+      t.gameVersion = "eFootball";
       changed = true;
     }
-    if (t.entryFeeMAD !== 50) {
+    if (o.oldNames.includes(t.name)) {
+      t.name = o.name;
+      t.slug = o.slug;
+      t.platform = o.platform;
+      changed = true;
+    }
+    if (t.entryFeeMAD === 49.99) {
       t.entryFeeMAD = 50;
       changed = true;
     }
   }
+  const names = new Map(data.tournaments.map((t) => [t.id, t.name]));
   for (const r of data.registrations) {
-    const o = official[r.tournamentId];
-    if (o && r.tournamentName !== o.name) {
-      r.tournamentName = o.name;
+    const current = names.get(r.tournamentId);
+    if (current && r.tournamentName !== current) {
+      r.tournamentName = current;
       changed = true;
     }
   }
@@ -1377,11 +1415,12 @@ L'\xE9quipe FC TOURNAMENT.`;
     };
   }
 }
-const ADMIN_NOTIFICATION_EMAIL = "alio227ng@gmail.com";
+const ADMIN_NOTIFICATION_EMAIL = (process.env.ADMIN_NOTIFY_EMAIL || "").trim() || "alio227ng@gmail.com";
 const FORMBOLD_ENDPOINT = "https://formbold.com/s/oWp4p";
 async function notifyAdminAndFormBold(event) {
   const eventLabel = event.type === "user_account" ? "CR\xC9ATION DE COMPTE JOUEUR" : event.type === "tournament_registration" ? "NOUVELLE INSCRIPTION AU TOURNOI" : event.type === "payment_submission" ? "D\xC9P\xD4T DE JUSTIFICATIF DE PAIEMENT" : "NOUVEAU MESSAGE DE CONTACT";
-  try {
+  const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+  if (!smtpConfigured) try {
     const formParams = new URLSearchParams();
     formParams.append("Email", event.senderEmail || ADMIN_NOTIFICATION_EMAIL);
     formParams.append("email", event.senderEmail || ADMIN_NOTIFICATION_EMAIL);
@@ -1420,10 +1459,11 @@ Tableau de bord administrateur : https://fc-tournament.com/#admin`
   }
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const smtpPort = Number(process.env.SMTP_PORT) || 587;
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === "true",
+        port: smtpPort,
+        secure: process.env.SMTP_SECURE === "true" || smtpPort === 465,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS
@@ -2020,6 +2060,7 @@ app.get("/api/tournaments", (req, res) => {
       userRegistration: userReg || null
     };
   });
+  res.setHeader("Cache-Control", "no-store, no-cache, must-revalidate");
   res.json(tournamentsWithStats);
 });
 app.get("/api/tournaments/:id", (req, res) => {
@@ -2088,7 +2129,9 @@ app.post("/api/tournaments/:id/register", async (req, res) => {
     controllerPreference,
     notes,
     paymentProof,
-    paymentProofName
+    paymentProofName,
+    paymentProofThumb,
+    paymentMethod
   } = req.body || {};
   const cleanPlayerName = (playerName || (req.user ? `${req.user.firstName} ${req.user.lastName}` : "")).trim();
   const cleanGamertag = (gamertag || req.user?.gamertag || "").trim();
@@ -2116,7 +2159,7 @@ app.post("/api/tournaments/:id/register", async (req, res) => {
     });
     return;
   }
-  const matchFormat = paymentProof.match(/^data:image\/(jpeg|jpg|png);base64,/i);
+  const matchFormat = paymentProof.match(/^data:image\/(jpeg|jpg|png|webp);base64,/i);
   if (!matchFormat) {
     res.status(400).json({
       error: "Format de la capture non support\xE9. Veuillez joindre une image au format JPG, JPEG ou PNG."
@@ -2130,10 +2173,30 @@ app.post("/api/tournaments/:id/register", async (req, res) => {
     res.status(400).json({ error: "Ce pseudo ou cette adresse e-mail est d\xE9j\xE0 inscrit(e) \xE0 ce tournoi." });
     return;
   }
-  const regSeq = db.registrations.length + 1;
-  const registrationNumber = `REG-2026-${String(regSeq).padStart(4, "0")}`;
+  const VALID_METHODS = ["cih", "bmce", "mtn_momo"];
+  if (paymentMethod !== void 0 && !VALID_METHODS.includes(paymentMethod)) {
+    res.status(400).json({ error: "Mode de paiement invalide." });
+    return;
+  }
+  const maxSeq = db.registrations.reduce((max, r) => {
+    const n = Number(String(r.registrationNumber || "").match(/(\d+)$/)?.[1] || 0);
+    return n > max ? n : max;
+  }, 0);
+  const registrationNumber = `REG-2026-${String(maxSeq + 1).padStart(4, "0")}`;
+  const registrationId = `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+  let storedProofId;
+  const hasThumb = typeof paymentProofThumb === "string" && /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(paymentProofThumb) && paymentProofThumb.length < 2e5;
+  if (hasThumb) {
+    try {
+      storedProofId = `regproof_${registrationId}`;
+      await saveProofImage(storedProofId, paymentProof);
+    } catch (err) {
+      console.error("[INSCRIPTION] Stockage de la capture impossible, conservation dans la fiche :", err);
+      storedProofId = void 0;
+    }
+  }
   const newRegistration = {
-    id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+    id: registrationId,
     registrationNumber,
     tournamentId: tournament.id,
     tournamentName: tournament.name,
@@ -2145,7 +2208,9 @@ app.post("/api/tournaments/:id/register", async (req, res) => {
     teamSelected: teamSelected ? String(teamSelected).trim() : req.user?.favoriteTeam || "Real Madrid",
     controllerPreference: controllerPreference ? String(controllerPreference).trim() : "Manette personnelle PS5",
     notes: notes ? String(notes).trim() : void 0,
-    paymentProof,
+    paymentProof: storedProofId ? paymentProofThumb : paymentProof,
+    paymentProofId: storedProofId,
+    paymentMethod: paymentMethod || void 0,
     paymentProofName: paymentProofName ? String(paymentProofName).trim().slice(0, 100) : "recu_paiement.png",
     status: "pending",
     registeredAt: (/* @__PURE__ */ new Date()).toISOString(),
@@ -2196,7 +2261,7 @@ app.post("/api/tournaments/:id/register", async (req, res) => {
     gamertag: cleanGamertag,
     phone: cleanPhone,
     tournamentName: tournament.name,
-    details: `Le joueur ${cleanPlayerName} (${cleanGamertag}) a d\xE9pos\xE9 son inscription avec capture de preuve de paiement (${paymentProofName || "capture.png"}). Statut actuel: En attente de validation.`
+    details: `Le joueur ${cleanPlayerName} (${cleanGamertag}) a d\xE9pos\xE9 son inscription avec capture de preuve de paiement (${paymentProofName || "capture.png"})${paymentMethod ? `, paiement via ${{ cih: "CIH BANK", bmce: "BMCE BANK", mtn_momo: "MTN MoMo" }[paymentMethod] || paymentMethod}` : ""}. Statut actuel: En attente de validation.`
   }).catch((err) => console.warn("Erreur notifyAdminAndFormBold sur tournament_registration:", err));
   res.json({
     registration: newRegistration,
@@ -2680,7 +2745,7 @@ app.post("/api/admin/tournaments", requireAdmin, (req, res) => {
     prizePool: (prizePool || "Troph\xE9e + M\xE9dailles").trim(),
     status: "open",
     rules: (rules || "R\xE8glement officiel EA FC Tournament").trim(),
-    bannerImage: bannerImage || "/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png",
+    bannerImage: bannerImage || "/assets/fct-efootball.jpg",
     createdAt: (/* @__PURE__ */ new Date()).toISOString()
   };
   db.tournaments.push(newTournament);
@@ -3197,7 +3262,7 @@ const handleDownloadSchema = (req, res) => {
 app.get("/api/admin/download-schema", requireAdmin, handleDownloadSchema);
 app.get("/api/admin/supabase/schema.sql", requireAdmin, handleDownloadSchema);
 app.get("/api/admin/studio/live-stream", (req, res) => {
-  const code = req.query.code || req.headers["x-admin-code"];
+  const code = req.headers["x-admin-code"];
   if (!code || !verifyAdminCode(code)) {
     res.status(403).json({ error: "Code administrateur requis pour \xE9couter le flux en temps r\xE9el." });
     return;
@@ -3275,13 +3340,21 @@ app.delete("/api/admin/registrations/:id", requireAdmin, async (req, res) => {
   saveDatabase(db);
   res.json({ success: true, message: "Inscription supprim\xE9e avec succ\xE8s." });
 });
-app.get("/api/admin/registrations/:id/payment-proof", requireAdmin, (req, res) => {
+app.get("/api/admin/registrations/:id/payment-proof", requireAdmin, async (req, res) => {
   const reg = db.registrations.find((r) => r.id === req.params.id);
-  if (!reg || !reg.paymentProof) {
+  let proofData = reg?.paymentProof;
+  if (reg?.paymentProofId) {
+    try {
+      proofData = await loadProofImage(reg.paymentProofId) || proofData;
+    } catch (err) {
+      console.error("[INSCRIPTION] Lecture de la capture impossible :", err);
+    }
+  }
+  if (!reg || !proofData) {
     res.status(404).json({ error: "Capture d'\xE9cran du paiement introuvable pour cette inscription." });
     return;
   }
-  const matches = reg.paymentProof.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+  const matches = proofData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
   if (!matches || matches.length < 3) {
     res.status(400).json({ error: "Format de la capture d'\xE9cran invalide." });
     return;
@@ -3821,12 +3894,15 @@ async function startServer() {
       staticDir = __dirname;
       indexHtmlPath = path.resolve(__dirname, "index.html");
     }
-    app.use(express.static(staticDir));
+    app.use(express.static(staticDir, { index: false }));
     app.use("*", (_req, res) => {
       if (fs.existsSync(indexHtmlPath)) {
+        res.setHeader("Cache-Control", "no-cache, no-store, must-revalidate");
+        res.setHeader("Pragma", "no-cache");
+        res.setHeader("Expires", "0");
         res.sendFile(indexHtmlPath);
       } else {
-        res.status(404).send("Application build not found. Please upload index.html or dist/ folder.");
+        res.status(404).send("Application build not found. Please run npm run build to generate dist/.");
       }
     });
   }

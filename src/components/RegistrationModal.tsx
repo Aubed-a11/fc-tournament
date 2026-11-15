@@ -2,6 +2,8 @@ import React, { useState, useRef } from 'react';
 import type { Tournament, Registration, User } from '../types/index.ts';
 import { formatMAD } from '../utils/format.ts';
 import { apiClient } from '../services/apiClient.ts';
+import { PAYMENT_METHODS, copyText, prepareImage, paymentMethodLabel } from '../data/paymentMethods.ts';
+import type { PaymentMethodId } from '../types/index.ts';
 import {
   X,
   CheckCircle2,
@@ -20,6 +22,9 @@ import {
   FileCheck2,
   Clock,
   Layers,
+  Copy,
+  Check,
+  CreditCard,
 } from 'lucide-react';
 
 interface RegistrationModalProps {
@@ -51,8 +56,15 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [notes, setNotes] = useState('');
   const [rulesAccepted, setRulesAccepted] = useState(false);
 
+  // Mode de paiement choisi et copie des coordonnees
+  const [paymentMethod, setPaymentMethod] = useState<PaymentMethodId | null>(null);
+  const [copied, setCopied] = useState(false);
+  const selectedMethod = PAYMENT_METHODS.find((m) => m.id === paymentMethod) || null;
+
   // Mandatory Payment Screenshot state
   const [paymentProof, setPaymentProof] = useState<string | null>(null);
+  const [paymentProofThumb, setPaymentProofThumb] = useState<string | null>(null);
+  const [preparingProof, setPreparingProof] = useState(false);
   const [paymentProofName, setPaymentProofName] = useState<string>('');
   const [paymentProofSize, setPaymentProofSize] = useState<string>('');
   const [fileError, setFileError] = useState<string | null>(null);
@@ -63,39 +75,41 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const [error, setError] = useState<string | null>(null);
   const [createdRegistration, setCreatedRegistration] = useState<Registration | null>(null);
 
-  const handleFileProcess = (file: File) => {
+  const handleFileProcess = async (file: File) => {
     setFileError(null);
-    const validTypes = ['image/jpeg', 'image/jpg', 'image/png'];
     const lowerName = file.name.toLowerCase();
-    const hasValidExt = lowerName.endsWith('.jpg') || lowerName.endsWith('.jpeg') || lowerName.endsWith('.png');
-
-    if (!validTypes.includes(file.type) && !hasValidExt) {
-      setFileError('Format non supporté. Veuillez sélectionner une image au format JPG, JPEG ou PNG.');
+    const looksLikeImage = file.type.startsWith('image/') || /\.(jpe?g|png|webp|heic|heif)$/.test(lowerName);
+    if (!looksLikeImage) {
+      setFileError('Format non supporté. Veuillez sélectionner une capture d’écran (image).');
       return;
     }
-
-    // Limit to 8MB
-    if (file.size > 8 * 1024 * 1024) {
-      setFileError("L'image est trop volumineuse (maximum 8 Mo).");
+    if (file.size > 15 * 1024 * 1024) {
+      setFileError("L'image est trop volumineuse (maximum 15 Mo).");
       return;
     }
+    setPreparingProof(true);
+    try {
+      // L'image est reduite avant l'envoi : plus rapide en 3G/4G et plus leger pour le serveur
+      const { full, thumb } = await prepareImage(file);
+      setPaymentProof(full);
+      setPaymentProofThumb(thumb);
+      setPaymentProofName(file.name.replace(/\.[^.]+$/, '') + '.jpg');
+      const sizeKb = Math.round((full.length * 3) / 4 / 1024);
+      setPaymentProofSize(sizeKb > 1024 ? `${(sizeKb / 1024).toFixed(1)} Mo` : `${sizeKb} Ko`);
+    } catch (err: any) {
+      setFileError(err?.message || 'Erreur lors de la lecture du fichier image.');
+    } finally {
+      setPreparingProof(false);
+    }
+  };
 
-    const reader = new FileReader();
-    reader.onload = () => {
-      if (typeof reader.result === 'string') {
-        setPaymentProof(reader.result);
-        setPaymentProofName(file.name);
-        const formattedSize =
-          file.size > 1024 * 1024
-            ? `${(file.size / (1024 * 1024)).toFixed(1)} Mo`
-            : `${Math.round(file.size / 1024)} Ko`;
-        setPaymentProofSize(formattedSize);
-      }
-    };
-    reader.onerror = () => {
-      setFileError('Erreur lors de la lecture du fichier image.');
-    };
-    reader.readAsDataURL(file);
+  const handleCopy = async () => {
+    if (!selectedMethod) return;
+    const ok = await copyText(selectedMethod.copyValue);
+    if (ok) {
+      setCopied(true);
+      setTimeout(() => setCopied(false), 2500);
+    }
   };
 
   const handleFileInputChange = (e: React.ChangeEvent<HTMLInputElement>) => {
@@ -115,6 +129,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
   const handleRemoveFile = (e: React.MouseEvent) => {
     e.stopPropagation();
     setPaymentProof(null);
+    setPaymentProofThumb(null);
     setPaymentProofName('');
     setPaymentProofSize('');
     setFileError(null);
@@ -138,7 +153,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
     }
 
     if (!gamertag || gamertag.trim().length < 2) {
-      setError('Veuillez saisir votre pseudo joueur EA SPORTS FC.');
+      setError('Veuillez saisir votre pseudo joueur eFootball.');
       return;
     }
 
@@ -149,6 +164,11 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
 
     if (!phone || phone.trim().length < 6) {
       setError('Veuillez renseigner un numéro de téléphone joignable (WhatsApp/Appels).');
+      return;
+    }
+
+    if (!paymentMethod) {
+      setError('Veuillez choisir votre mode de paiement.');
       return;
     }
 
@@ -174,7 +194,9 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
         phone: phone.trim(),
         notes: notes.trim() || undefined,
         paymentProof,
+        paymentProofThumb: paymentProofThumb || undefined,
         paymentProofName,
+        paymentMethod,
       };
 
       const result = await apiClient.registerForTournament(tournament.id, payload, token);
@@ -292,10 +314,10 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                 </div>
               </div>
 
-              {/* 2. Pseudo EA SPORTS FC */}
+              {/* 2. Pseudo eFootball */}
               <div className="space-y-1">
                 <label className="block text-slate-300 font-medium text-[11px]">
-                  Pseudo EA SPORTS FC <span className="text-[#00ff66]">*</span>
+                  Pseudo eFootball <span className="text-[#00ff66]">*</span>
                 </label>
                 <div className="relative">
                   <Gamepad2 className="w-3.5 h-3.5 text-slate-500 absolute left-3 top-1/2 -translate-y-1/2" />
@@ -347,23 +369,81 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               </div>
             </div>
 
+            {/* MODE DE PAIEMENT : choix, coordonnees a copier, puis capture */}
+            <div className="space-y-2.5 pt-1">
+              <label className="block text-slate-200 font-semibold text-xs flex items-center gap-1.5">
+                <CreditCard className="w-3.5 h-3.5 text-[#00ff66]" />
+                <span>1. Choisissez votre mode de paiement</span>
+                <span className="text-[#00ff66]">*</span>
+              </label>
+              <div className="grid grid-cols-3 gap-2">
+                {PAYMENT_METHODS.map((m) => (
+                  <button
+                    key={m.id}
+                    type="button"
+                    onClick={() => {
+                      setPaymentMethod(m.id);
+                      setCopied(false);
+                    }}
+                    className={`p-2.5 rounded-xl border text-left transition-all cursor-pointer ${
+                      paymentMethod === m.id
+                        ? 'bg-[#101726] border-[#00ff66] ring-1 ring-[#00ff66]'
+                        : 'bg-[#0d121c] border-[#1c2638] hover:border-[#2a384f]'
+                    }`}
+                  >
+                    <span className={`inline-flex items-center justify-center w-9 h-6 rounded-md border text-[10px] font-black ${m.badgeClass}`}>
+                      {m.badge}
+                    </span>
+                    <span className="block text-[11px] font-bold text-white mt-1.5 leading-tight">{m.badge === 'MTN' ? 'MTN MoMo' : m.badge}</span>
+                    <span className="block text-[9px] text-slate-500 leading-tight">{m.subtitle}</span>
+                  </button>
+                ))}
+              </div>
+
+              {selectedMethod && (
+                <div className="p-3.5 rounded-xl bg-[#090d14] border border-[#00ff66]/30 space-y-2 font-mono">
+                  <div className="flex items-center justify-between gap-2">
+                    <span className="text-slate-400 text-[11px]">Bénéficiaire :</span>
+                    <span className="text-white font-bold text-xs">{selectedMethod.beneficiary}</span>
+                  </div>
+                  <div className="pt-2 border-t border-[#161d2a] space-y-1.5">
+                    <span className="text-slate-400 text-[11px]">{selectedMethod.fieldLabel} :</span>
+                    <div className="flex items-center justify-between gap-2 bg-[#121926] px-2.5 py-2 rounded-lg border border-[#222e42]">
+                      <span className="text-[#00ff66] font-bold text-xs tracking-wider select-all break-all">{selectedMethod.displayValue}</span>
+                      <button
+                        type="button"
+                        onClick={handleCopy}
+                        className="px-2.5 py-1 rounded bg-[#182335] hover:bg-[#00ff66] hover:text-black text-slate-300 text-[11px] font-bold transition-all flex items-center gap-1 shrink-0 cursor-pointer"
+                      >
+                        {copied ? <Check className="w-3 h-3 text-[#00ff66]" /> : <Copy className="w-3 h-3" />}
+                        <span className={copied ? 'text-[#00ff66]' : ''}>{copied ? 'Copié' : selectedMethod.copyLabel}</span>
+                      </button>
+                    </div>
+                  </div>
+                  <p className="text-[10px] text-slate-400 font-sans leading-relaxed pt-1">
+                    Envoyez <strong className="text-white">{formatMAD(tournament.entryFeeMAD)}</strong> à ce bénéficiaire, puis ajoutez la capture d’écran du paiement juste en dessous.
+                  </p>
+                </div>
+              )}
+            </div>
+
             {/* SECTION OBLIGATOIRE : Capture d'écran du paiement */}
             <div className="space-y-2 pt-1">
               <div className="flex items-center justify-between">
                 <label className="block text-slate-200 font-semibold text-xs flex items-center gap-1.5">
                   <FileCheck2 className="w-3.5 h-3.5 text-[#00ff66]" />
-                  <span>Capture d'écran du paiement</span>
+                  <span>2. Capture d'écran du paiement</span>
                   <span className="text-[#00ff66]">*</span>
                 </label>
                 <span className="text-[10px] text-slate-400 font-mono">
-                  Obligatoire (JPG, JPEG, PNG · max 8 Mo)
+                  Obligatoire (image, max 15 Mo)
                 </span>
               </div>
 
               <input
                 ref={fileInputRef}
                 type="file"
-                accept="image/jpeg,image/jpg,image/png,.jpg,.jpeg,.png"
+                accept="image/*"
                 onChange={handleFileInputChange}
                 className="hidden"
                 id="paymentProofInput"
@@ -390,7 +470,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                     <UploadCloud className="w-6 h-6" />
                   </div>
                   <p className="text-xs font-semibold text-white">
-                    Cliquez pour choisir une capture d'écran ou glissez-la ici
+                    {preparingProof ? 'Préparation de l’image...' : 'Touchez pour choisir la capture du paiement'}
                   </p>
                   <p className="text-[11px] text-slate-400 mt-1">
                     Reçu bancaire, virement, versement ou ticket de paiement (JPG, PNG)
@@ -491,7 +571,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
               </button>
               <button
                 type="submit"
-                disabled={loading || !rulesAccepted || !paymentProof}
+                disabled={loading || preparingProof || !rulesAccepted || !paymentProof || !paymentMethod}
                 className="px-6 py-2.5 rounded-xl bg-[#00ff66] text-black font-display text-sm font-bold uppercase tracking-wider hover:bg-[#00e65c] transition-all shadow-[0_0_20px_rgba(0,255,102,0.4)] disabled:opacity-50 cursor-pointer flex items-center gap-2"
               >
                 {loading ? 'Enregistrement en cours...' : 'Envoyer mon inscription'}
@@ -561,7 +641,7 @@ export const RegistrationModal: React.FC<RegistrationModalProps> = ({
                   <span className="text-[10px] text-slate-400 uppercase font-mono block">Preuve de paiement</span>
                   <span className="font-mono text-[#00ff66] text-[11px] flex items-center gap-1.5 mt-0.5">
                     <CheckCircle2 className="w-3.5 h-3.5" />
-                    <span>Reçu transmis ({paymentProofName || 'capture_paiement.png'})</span>
+                    <span>Reçu transmis{paymentMethod ? ` via ${paymentMethodLabel(paymentMethod)}` : ''} ({paymentProofName || 'capture_paiement.jpg'})</span>
                   </span>
                 </div>
               </div>

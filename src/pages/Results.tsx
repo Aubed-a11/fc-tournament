@@ -60,7 +60,7 @@ export const Results: React.FC<ResultsProps> = ({ onNavigate }) => {
             Matchs & Résultats
           </h1>
           <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
-            Consultez en direct les scores validés, les prochains rendez-vous compétitifs et l’historique certifié des rencontres EA SPORTS FC.
+            Consultez en direct les scores validés, les prochains rendez-vous compétitifs et l’historique certifié des rencontres eFootball.
           </p>
         </div>
 

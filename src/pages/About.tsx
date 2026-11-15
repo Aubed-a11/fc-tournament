@@ -30,7 +30,7 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
           <div className="inline-flex items-center gap-2 px-3 py-1 rounded-lg bg-[#00ff66]/10 border border-[#00ff66]/30 text-xs font-mono text-[#00ff66] uppercase tracking-wider">
             <span>Plateforme Compétitive Officieuse</span>
             <span aria-hidden="true">·</span>
-            <span>EA SPORTS FC</span>
+            <span>eFootball</span>
           </div>
 
           <h1 className="font-display text-4xl sm:text-6xl font-black text-white uppercase tracking-tight">
@@ -38,7 +38,7 @@ export const About: React.FC<AboutProps> = ({ onNavigate }) => {
           </h1>
 
           <p className="text-slate-300 text-base sm:text-lg leading-relaxed pt-2">
-            Nous sommes une plateforme indépendante spécialisée dans l’organisation, la coordination et le suivi des compétitions EA SPORTS FC. Notre objectif est de structurer et de dynamiser l’environnement compétitif en proposant un cadre organisé, transparent et accessible à l’ensemble des joueurs.
+            Nous sommes une plateforme indépendante spécialisée dans l’organisation, la coordination et le suivi des compétitions eFootball. Notre objectif est de structurer et de dynamiser l’environnement compétitif en proposant un cadre organisé, transparent et accessible à l’ensemble des joueurs.
           </p>
         </div>
 

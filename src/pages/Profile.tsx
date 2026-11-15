@@ -137,7 +137,7 @@ export const Profile: React.FC<ProfileProps> = ({ onNavigate }) => {
 
             <div>
               <label className="block text-xs font-medium text-slate-300 mb-1.5">
-                Équipe préférée sur EA SPORTS FC
+                Équipe préférée sur eFootball
               </label>
               <input
                 type="text"

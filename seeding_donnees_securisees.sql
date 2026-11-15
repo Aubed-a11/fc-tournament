@@ -24,7 +24,7 @@ INSERT INTO public.tournaments (
   created_at, updated_at
 )
 SELECT 
-  'tourn_spring_2026', 'Championnat sur téléphone', 'championnat-sur-telephone',
+  'tourn_spring_2026', 'eFootball sur téléphone', 'efootball-sur-telephone',
   'Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
   'EA SPORTS 27', 'Téléphone (Mobile)', 'aller_retour', 'Gaming Arena', 'Maroc',
   '2027-04-25', '14:00', '2027-04-23T23:59:00.000Z', 32, 50,
@@ -37,7 +37,7 @@ Article 5 – Transmission des résultats : Capture d’écran du score final ob
 Article 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.
 Article 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.
 Article 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-  '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+  '/assets/fct-efootball.jpg',
   '2026-02-01T10:00:00.000Z', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM public.tournaments WHERE id = 'tourn_spring_2026');
 
@@ -48,7 +48,7 @@ INSERT INTO public.tournaments (
   created_at, updated_at
 )
 SELECT 
-  'tourn_ligue_oriental_2026', 'Championnat sur PC', 'championnat-sur-pc',
+  'tourn_ligue_oriental_2026', 'eFootball sur PC', 'efootball-sur-pc',
   'La compétition d’élite sur PC qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
   'EA SPORTS 27', 'PC', 'aller_retour', 'Gaming Arena', 'Maroc',
   '2026-03-14', '16:00', '2026-03-12T18:00:00.000Z', 32, 50,
@@ -61,7 +61,7 @@ Article 5 – Transmission des résultats : Capture d’écran du score final ob
 Article 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.
 Article 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.
 Article 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-  '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
+  '/assets/fct-efootball.jpg',
   '2026-01-20T12:00:00.000Z', NOW()
 WHERE NOT EXISTS (SELECT 1 FROM public.tournaments WHERE id = 'tourn_ligue_oriental_2026');
 

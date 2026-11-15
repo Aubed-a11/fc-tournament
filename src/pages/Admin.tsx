@@ -3,6 +3,7 @@ import { useAuth } from '../context/AuthContext.tsx';
 import type { Tournament, Registration, Match, AdminNotification, User, PaymentSubmission } from '../types/index.ts';
 import { ScoreModal } from '../components/ScoreModal.tsx';
 import { AdminScoreSubmissions } from '../components/AdminScoreSubmissions.tsx';
+import { paymentMethodLabel } from '../data/paymentMethods.ts';
 import { formatDateFrench, formatMAD } from '../utils/format.ts';
 import { apiClient, getLocalRegistrations } from '../services/apiClient.ts';
 import { INITIAL_REGISTRATIONS } from '../data/initialData.ts';
@@ -105,6 +106,25 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
   const [registrationsSearch, setRegistrationsSearch] = useState<string>('');
   const [tournamentsStats, setTournamentsStats] = useState<TournamentsStatsItem[]>([]);
   const [selectedRegistrationForDetail, setSelectedRegistrationForDetail] = useState<Registration | null>(null);
+  // Capture complete de l'inscription ouverte dans la fiche detaillee
+  const [detailProofUrl, setDetailProofUrl] = useState<string | null>(null);
+  useEffect(() => {
+    let cancelled = false;
+    setDetailProofUrl(null);
+    const reg = selectedRegistrationForDetail;
+    if (reg?.paymentProofId) {
+      fetch(`/api/admin/registrations/${reg.id}/payment-proof`, { headers: getAdminHeaders() })
+        .then((res) => (res.ok ? res.blob() : null))
+        .then((blob) => {
+          if (blob && !cancelled) setDetailProofUrl(window.URL.createObjectURL(blob));
+        })
+        .catch(() => {});
+    }
+    return () => {
+      cancelled = true;
+    };
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [selectedRegistrationForDetail?.id]);
   const [exportingCsv, setExportingCsv] = useState<boolean>(false);
   const [previewScreenshotUrl, setPreviewScreenshotUrl] = useState<{ url: string; title: string } | null>(null);
 
@@ -1393,9 +1413,25 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
     }
   };
 
+  // Capture complete du paiement (stockee a part quand paymentProofId existe)
+  const fetchFullProofUrl = async (reg: Registration): Promise<string | null> => {
+    if (!reg.paymentProofId) return reg.paymentProof || null;
+    try {
+      const res = await fetch(`/api/admin/registrations/${reg.id}/payment-proof`, { headers: getAdminHeaders() });
+      if (!res.ok) return reg.paymentProof || null;
+      return window.URL.createObjectURL(await res.blob());
+    } catch {
+      return reg.paymentProof || null;
+    }
+  };
+
+  const openFullProof = async (reg: Registration, title: string) => {
+    const url = await fetchFullProofUrl(reg);
+    if (url) setPreviewScreenshotUrl({ url, title });
+  };
+
   // Handle Download Payment Proof Screenshot
   const handleDownloadPaymentProof = async (reg: Registration) => {
-    if (!token) return;
     try {
       const res = await fetch(`/api/admin/registrations/${reg.id}/payment-proof`, {
         headers: getAdminHeaders(),
@@ -2284,12 +2320,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                             {reg.paymentProof ? (
                               <div className="flex items-center gap-2">
                                 <button
-                                  onClick={() =>
-                                    setPreviewScreenshotUrl({
-                                      url: reg.paymentProof!,
-                                      title: `Capture de ${reg.playerName} (${reg.gamertag})`,
-                                    })
-                                  }
+                                  onClick={() => openFullProof(reg, `Capture de ${reg.playerName} (${reg.gamertag})`)}
                                   className="relative w-10 h-10 rounded-lg overflow-hidden border border-[#233149] hover:border-[#00ff66] transition-colors group cursor-pointer shrink-0 bg-black"
                                   title="Agrandir la capture du paiement"
                                 >
@@ -2309,6 +2340,9 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                                 >
                                   <Download className="w-3.5 h-3.5" />
                                 </button>
+                                {reg.paymentMethod && (
+                                  <span className="text-[10px] font-mono text-slate-400 whitespace-nowrap">{paymentMethodLabel(reg.paymentMethod)}</span>
+                                )}
                               </div>
                             ) : (
                               <span className="text-slate-500 text-[11px] font-mono">Non fournie</span>
@@ -3318,7 +3352,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                 {/* Header Profile Box */}
                 <div className="p-4 rounded-2xl bg-[#111724] border border-[#1e2738] flex items-center justify-between">
                   <div>
-                    <span className="text-[10px] uppercase font-mono text-slate-500 block">Pseudonyme EA FC</span>
+                    <span className="text-[10px] uppercase font-mono text-slate-500 block">Pseudonyme eFootball</span>
                     <span className="font-display text-2xl font-black text-white block">
                       {selectedRegistrationForDetail.gamertag}
                     </span>
@@ -3399,6 +3433,11 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                       <span className="text-xs font-bold text-white flex items-center gap-1.5 uppercase font-display">
                         <FileCheck2 className="w-4 h-4 text-[#00ff66]" />
                         <span>Preuve de Paiement Fournie</span>
+                        {selectedRegistrationForDetail.paymentMethod && (
+                          <span className="normal-case font-mono font-normal text-[11px] text-slate-400">
+                            via {paymentMethodLabel(selectedRegistrationForDetail.paymentMethod)}
+                          </span>
+                        )}
                       </span>
                       {selectedRegistrationForDetail.paymentProof && (
                         <button
@@ -3416,15 +3455,15 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                       <div className="space-y-2">
                         <div
                           onClick={() =>
-                            setPreviewScreenshotUrl({
-                              url: selectedRegistrationForDetail.paymentProof!,
-                              title: `Capture de paiement - ${selectedRegistrationForDetail.playerName} (${selectedRegistrationForDetail.gamertag})`,
-                            })
+                            openFullProof(
+                              selectedRegistrationForDetail,
+                              `Capture de paiement - ${selectedRegistrationForDetail.playerName} (${selectedRegistrationForDetail.gamertag})`
+                            )
                           }
                           className="relative max-h-56 rounded-xl overflow-hidden bg-black border border-[#222e44] group cursor-pointer flex items-center justify-center"
                         >
                           <img
-                            src={selectedRegistrationForDetail.paymentProof}
+                            src={detailProofUrl || selectedRegistrationForDetail.paymentProof}
                             alt="Preuve de paiement du joueur"
                             className="max-h-56 w-auto object-contain"
                           />
@@ -3600,7 +3639,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                     required
                     value={newTournName}
                     onChange={(e) => setNewTournName(e.target.value)}
-                    placeholder="Ex: EA FC 25 Spring Cup"
+                    placeholder="Ex: eFootball Spring Cup"
                     className="w-full px-3.5 py-2 rounded-xl bg-[#101520] border border-[#1e2738] text-white focus:outline-none focus:border-[#00ff66]"
                   />
                 </div>

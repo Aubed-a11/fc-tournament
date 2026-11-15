@@ -46,7 +46,7 @@ export const Leaderboard: React.FC<LeaderboardProps> = ({ onNavigate }) => {
             Classement Général des Joueurs
           </h1>
           <p className="text-slate-400 text-sm max-w-2xl leading-relaxed">
-            Consultez les statistiques certifiées, victoires et points de classement des compétiteurs engagés dans les tournois EA SPORTS FC.
+            Consultez les statistiques certifiées, victoires et points de classement des compétiteurs engagés dans les tournois eFootball.
           </p>
         </div>
 

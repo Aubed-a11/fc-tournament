@@ -468,11 +468,11 @@ function getInitialDatabase(): DatabaseSchema {
   const tournaments: Tournament[] = [
     {
       id: 'tourn_spring_2026',
-      name: 'Championnat sur téléphone',
-      slug: 'championnat-sur-telephone',
+      name: 'eFootball sur téléphone',
+      slug: 'efootball-sur-telephone',
       description:
         'Le tournoi e-sport incontournable sur mobile de la saison ! Rassemblez-vous pour célébrer la compétition et couronner le meilleur joueur dans une ambiance électrique devant vos écrans.',
-      gameVersion: 'EA SPORTS 27',
+      gameVersion: 'eFootball',
       platform: 'Téléphone (Mobile)',
       format: 'aller_retour',
       location: 'Gaming Arena',
@@ -486,16 +486,16 @@ function getInitialDatabase(): DatabaseSchema {
       status: 'open',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-      bannerImage: '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+      bannerImage: '/assets/fct-efootball.jpg',
       createdAt: '2026-02-01T10:00:00.000Z',
     },
     {
       id: 'tourn_ligue_oriental_2026',
-      name: 'Championnat sur PC',
-      slug: 'championnat-sur-pc',
+      name: 'eFootball sur PC',
+      slug: 'efootball-sur-pc',
       description:
         'La compétition d’élite sur PC qui réunit les meilleurs joueurs pour s’affronter et décrocher le titre de champion.',
-      gameVersion: 'EA SPORTS 27',
+      gameVersion: 'eFootball',
       platform: 'PC',
       format: 'aller_retour',
       location: 'Gaming Arena',
@@ -509,7 +509,7 @@ function getInitialDatabase(): DatabaseSchema {
       status: 'completed',
       rules:
         'Article 1 – Format des matchs : Les rencontres se disputent en mode « Coup d’envoi », avec une durée de 5 minutes par mi-temps.\nArticle 2 – Système de confrontation : Chaque compétiteur doit affronter son adversaire lors de deux rencontres : un match aller et un match retour.\nArticle 3 – Fair-play et comportement : Le fair-play est obligatoire durant toute la compétition. Tout comportement antisportif peut entraîner la disqualification immédiate.\nArticle 4 – Utilisation des manettes : Manettes fournies ou manette personnelle autorisée après vérification technique.\nArticle 5 – Transmission des résultats : Capture d’écran du score final obligatoire après chaque match.\nArticle 6 – Fraude et falsification : Toute falsification entraîne l’élimination immédiate.\nArticle 7 – Vérification technique : L’équipe technique vérifie l’authenticité des captures.\nArticle 8 – Retard et absence : Retard supérieur à 10 minutes = forfait automatique.',
-      bannerImage: '/assets/aistudio/a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
+      bannerImage: '/assets/fct-efootball.jpg',
       createdAt: '2026-01-20T12:00:00.000Z',
     },
   ];
@@ -1183,9 +1183,9 @@ function loadDatabase(): DatabaseSchema {
   // Ensure tournament names and entry fees are migrated to official names
   loaded.tournaments?.forEach((t) => {
     if (t.id === 'tourn_spring_2026') {
-      if (t.name !== 'Championnat sur téléphone') {
-        t.name = 'Championnat sur téléphone';
-        t.slug = 'championnat-sur-telephone';
+      if (t.name !== 'eFootball sur téléphone') {
+        t.name = 'eFootball sur téléphone';
+        t.slug = 'efootball-sur-telephone';
         t.platform = 'Téléphone (Mobile)';
         needsSync = true;
       }
@@ -1193,10 +1193,19 @@ function loadDatabase(): DatabaseSchema {
         t.entryFeeMAD = 50;
         needsSync = true;
       }
+      if (
+        !t.bannerImage ||
+        t.bannerImage.includes('f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png') ||
+        t.bannerImage.includes('Affiche_FCT_eFootball_n_on_vert_781c96c2.png') ||
+        t.bannerImage.includes('a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png')
+      ) {
+        t.bannerImage = '/assets/fct-efootball.jpg';
+        needsSync = true;
+      }
     } else if (t.id === 'tourn_ligue_oriental_2026') {
-      if (t.name !== 'Championnat sur PC') {
-        t.name = 'Championnat sur PC';
-        t.slug = 'championnat-sur-pc';
+      if (t.name !== 'eFootball sur PC') {
+        t.name = 'eFootball sur PC';
+        t.slug = 'efootball-sur-pc';
         t.platform = 'PC';
         needsSync = true;
       }
@@ -1204,15 +1213,24 @@ function loadDatabase(): DatabaseSchema {
         t.entryFeeMAD = 50;
         needsSync = true;
       }
+      if (
+        !t.bannerImage ||
+        t.bannerImage.includes('f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png') ||
+        t.bannerImage.includes('Affiche_FCT_eFootball_n_on_vert_781c96c2.png') ||
+        t.bannerImage.includes('a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png')
+      ) {
+        t.bannerImage = '/assets/fct-efootball.jpg';
+        needsSync = true;
+      }
     }
   });
 
   loaded.registrations?.forEach((r) => {
-    if (r.tournamentId === 'tourn_spring_2026' && r.tournamentName !== 'Championnat sur téléphone') {
-      r.tournamentName = 'Championnat sur téléphone';
+    if (r.tournamentId === 'tourn_spring_2026' && r.tournamentName !== 'eFootball sur téléphone') {
+      r.tournamentName = 'eFootball sur téléphone';
       needsSync = true;
-    } else if (r.tournamentId === 'tourn_ligue_oriental_2026' && r.tournamentName !== 'Championnat sur PC') {
-      r.tournamentName = 'Championnat sur PC';
+    } else if (r.tournamentId === 'tourn_ligue_oriental_2026' && r.tournamentName !== 'eFootball sur PC') {
+      r.tournamentName = 'eFootball sur PC';
       needsSync = true;
     }
   });
@@ -1302,27 +1320,61 @@ function normalizeDatabase(raw: any): DatabaseSchema {
 // Migrations de donnees appliquees aussi en mode Postgres (noms et frais officiels des tournois).
 // Retourne true si quelque chose a change.
 function applyTournamentMigrations(data: DatabaseSchema): boolean {
-  const official: Record<string, { name: string; slug: string; platform: string }> = {
-    tourn_spring_2026: { name: 'Championnat sur téléphone', slug: 'championnat-sur-telephone', platform: 'Téléphone (Mobile)' },
-    tourn_ligue_oriental_2026: { name: 'Championnat sur PC', slug: 'championnat-sur-pc', platform: 'PC' },
+  const official: Record<string, { name: string; slug: string; platform: string; oldNames: string[] }> = {
+    tourn_spring_2026: {
+      name: 'eFootball sur téléphone',
+      slug: 'efootball-sur-telephone',
+      platform: 'Téléphone (Mobile)',
+      oldNames: ['Championnat', 'Championnat sur téléphone'],
+    },
+    tourn_ligue_oriental_2026: {
+      name: 'eFootball sur PC',
+      slug: 'efootball-sur-pc',
+      platform: 'PC',
+      oldNames: ['Ligue des champions', 'Championnat sur PC'],
+    },
   };
+  // Anciennes affiches remplacees par la nouvelle affiche FCT eFootball (une affiche choisie dans l'admin est conservee)
+  const OLD_BANNERS = [
+    'f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+    'a8122cd3-7ef9-44e0-b5a7-6cc0230fe1eb_a174390d.png',
+    'Affiche_FCT_eFootball_n_on_vert_781c96c2.png',
+    'Tournoi_de_football_n_on_esports_cfe91b50.png',
+  ];
+  const NEW_BANNER = '/assets/fct-efootball.jpg';
+
   let changed = false;
   for (const t of data.tournaments as any[]) {
+    if (!t.bannerImage || OLD_BANNERS.some((b) => String(t.bannerImage).includes(b))) {
+      if (t.bannerImage !== NEW_BANNER) {
+        t.bannerImage = NEW_BANNER;
+        changed = true;
+      }
+    }
     const o = official[t.id];
     if (!o) continue;
-    if (t.name !== o.name) {
-      Object.assign(t, o);
+    if (/EA SPORTS/i.test(String(t.gameVersion || ''))) {
+      t.gameVersion = 'eFootball';
       changed = true;
     }
-    if (t.entryFeeMAD !== 50) {
+    // Renomme seulement depuis les anciens noms : un nom modifie ensuite dans l'admin n'est pas ecrase
+    if (o.oldNames.includes(t.name)) {
+      t.name = o.name;
+      t.slug = o.slug;
+      t.platform = o.platform;
+      changed = true;
+    }
+    if (t.entryFeeMAD === 49.99) {
       t.entryFeeMAD = 50;
       changed = true;
     }
   }
+  // Le nom du tournoi affiche sur chaque inscription suit le nom actuel du tournoi
+  const names = new Map((data.tournaments as any[]).map((t) => [t.id, t.name]));
   for (const r of data.registrations as any[]) {
-    const o = official[r.tournamentId];
-    if (o && r.tournamentName !== o.name) {
-      r.tournamentName = o.name;
+    const current = names.get(r.tournamentId);
+    if (current && r.tournamentName !== current) {
+      r.tournamentName = current;
       changed = true;
     }
   }
@@ -1553,7 +1605,8 @@ L'équipe FC TOURNAMENT.`;
 // ==========================================
 // CENTRALIZED ADMIN NOTIFICATIONS & FORMBOLD RELAY
 // ==========================================
-const ADMIN_NOTIFICATION_EMAIL = 'alio227ng@gmail.com';
+// Adresse qui recoit les alertes admin (modifiable avec la variable ADMIN_NOTIFY_EMAIL)
+const ADMIN_NOTIFICATION_EMAIL = (process.env.ADMIN_NOTIFY_EMAIL || '').trim() || 'alio227ng@gmail.com';
 const FORMBOLD_ENDPOINT = 'https://formbold.com/s/oWp4p';
 
 async function notifyAdminAndFormBold(event: {
@@ -1575,8 +1628,10 @@ async function notifyAdminAndFormBold(event: {
       ? 'DÉPÔT DE JUSTIFICATIF DE PAIEMENT'
       : 'NOUVEAU MESSAGE DE CONTACT';
 
-  // 1. Relay to FormBold so alio227ng@gmail.com receives the email alert immediately
-  try {
+  const smtpConfigured = Boolean(process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS);
+
+  // 1. Relais FormBold uniquement si le SMTP n'est pas configure (les donnees des joueurs ne partent plus chez un tiers)
+  if (!smtpConfigured) try {
     const formParams = new URLSearchParams();
     formParams.append('Email', event.senderEmail || ADMIN_NOTIFICATION_EMAIL);
     formParams.append('email', event.senderEmail || ADMIN_NOTIFICATION_EMAIL);
@@ -1615,10 +1670,11 @@ async function notifyAdminAndFormBold(event: {
   // 2. Direct SMTP alert to alio227ng@gmail.com if SMTP is configured
   try {
     if (process.env.SMTP_HOST && process.env.SMTP_USER && process.env.SMTP_PASS) {
+      const smtpPort = Number(process.env.SMTP_PORT) || 587;
       const transporter = nodemailer.createTransport({
         host: process.env.SMTP_HOST,
-        port: Number(process.env.SMTP_PORT) || 587,
-        secure: process.env.SMTP_SECURE === 'true',
+        port: smtpPort,
+        secure: process.env.SMTP_SECURE === 'true' || smtpPort === 465,
         auth: {
           user: process.env.SMTP_USER,
           pass: process.env.SMTP_PASS,
@@ -2381,6 +2437,7 @@ app.get('/auth/me', handleMe);
       };
     });
 
+    res.setHeader('Cache-Control', 'no-store, no-cache, must-revalidate');
     res.json(tournamentsWithStats);
   });
 
@@ -2474,6 +2531,8 @@ app.get('/auth/me', handleMe);
       notes,
       paymentProof,
       paymentProofName,
+      paymentProofThumb,
+      paymentMethod,
     } = req.body || {};
 
     const cleanPlayerName = (playerName || (req.user ? `${req.user.firstName} ${req.user.lastName}` : '')).trim();
@@ -2509,7 +2568,7 @@ app.get('/auth/me', handleMe);
       return;
     }
 
-    const matchFormat = paymentProof.match(/^data:image\/(jpeg|jpg|png);base64,/i);
+    const matchFormat = paymentProof.match(/^data:image\/(jpeg|jpg|png|webp);base64,/i);
     if (!matchFormat) {
       res.status(400).json({
         error: "Format de la capture non supporté. Veuillez joindre une image au format JPG, JPEG ou PNG.",
@@ -2530,12 +2589,35 @@ app.get('/auth/me', handleMe);
       return;
     }
 
-    // Generate sequential unique human-readable registration number
-    const regSeq = db.registrations.length + 1;
-    const registrationNumber = `REG-2026-${String(regSeq).padStart(4, '0')}`;
+    const VALID_METHODS = ['cih', 'bmce', 'mtn_momo'];
+    if (paymentMethod !== undefined && !VALID_METHODS.includes(paymentMethod)) {
+      res.status(400).json({ error: 'Mode de paiement invalide.' });
+      return;
+    }
+
+    // Numero d'inscription unique : le plus grand numero existant + 1 (pas de doublon apres une suppression)
+    const maxSeq = db.registrations.reduce((max, r) => {
+      const n = Number(String(r.registrationNumber || '').match(/(\d+)$/)?.[1] || 0);
+      return n > max ? n : max;
+    }, 0);
+    const registrationNumber = `REG-2026-${String(maxSeq + 1).padStart(4, '0')}`;
+    const registrationId = `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`;
+
+    // Capture complete stockee a part (table fc_proofs) ; seule une miniature reste dans la fiche
+    let storedProofId: string | undefined;
+    const hasThumb = typeof paymentProofThumb === 'string' && /^data:image\/(jpeg|jpg|png|webp);base64,/i.test(paymentProofThumb) && paymentProofThumb.length < 200_000;
+    if (hasThumb) {
+      try {
+        storedProofId = `regproof_${registrationId}`;
+        await saveProofImage(storedProofId, paymentProof);
+      } catch (err) {
+        console.error('[INSCRIPTION] Stockage de la capture impossible, conservation dans la fiche :', err);
+        storedProofId = undefined;
+      }
+    }
 
     const newRegistration: Registration = {
-      id: `reg_${Date.now()}_${Math.random().toString(36).substring(2, 6)}`,
+      id: registrationId,
       registrationNumber,
       tournamentId: tournament.id,
       tournamentName: tournament.name,
@@ -2547,7 +2629,9 @@ app.get('/auth/me', handleMe);
       teamSelected: teamSelected ? String(teamSelected).trim() : (req.user?.favoriteTeam || 'Real Madrid'),
       controllerPreference: controllerPreference ? String(controllerPreference).trim() : 'Manette personnelle PS5',
       notes: notes ? String(notes).trim() : undefined,
-      paymentProof,
+      paymentProof: storedProofId ? paymentProofThumb : paymentProof,
+      paymentProofId: storedProofId,
+      paymentMethod: paymentMethod || undefined,
       paymentProofName: paymentProofName ? String(paymentProofName).trim().slice(0, 100) : 'recu_paiement.png',
       status: 'pending',
       registeredAt: new Date().toISOString(),
@@ -2609,7 +2693,7 @@ app.get('/auth/me', handleMe);
       gamertag: cleanGamertag,
       phone: cleanPhone,
       tournamentName: tournament.name,
-      details: `Le joueur ${cleanPlayerName} (${cleanGamertag}) a déposé son inscription avec capture de preuve de paiement (${paymentProofName || 'capture.png'}). Statut actuel: En attente de validation.`,
+      details: `Le joueur ${cleanPlayerName} (${cleanGamertag}) a déposé son inscription avec capture de preuve de paiement (${paymentProofName || 'capture.png'})${paymentMethod ? `, paiement via ${({ cih: 'CIH BANK', bmce: 'BMCE BANK', mtn_momo: 'MTN MoMo' } as Record<string, string>)[paymentMethod] || paymentMethod}` : ''}. Statut actuel: En attente de validation.`,
     }).catch((err) => console.warn('Erreur notifyAdminAndFormBold sur tournament_registration:', err));
 
     res.json({
@@ -3233,7 +3317,7 @@ app.get('/auth/me', handleMe);
       prizePool: (prizePool || 'Trophée + Médailles').trim(),
       status: 'open',
       rules: (rules || 'Règlement officiel EA FC Tournament').trim(),
-      bannerImage: bannerImage || '/assets/aistudio/f455c630-cebe-4da1-8e64-ad18d396300f_73791cd5.png',
+      bannerImage: bannerImage || '/assets/fct-efootball.jpg',
       createdAt: new Date().toISOString(),
     };
 
@@ -3912,7 +3996,8 @@ app.get('/auth/me', handleMe);
 
   // Real-time Server-Sent Events (SSE) stream for Google AI Studio
   app.get('/api/admin/studio/live-stream', (req: Request, res: Response) => {
-    const code = (req.query.code as string) || (req.headers['x-admin-code'] as string);
+    // Code admin accepte uniquement dans l'en-tete (jamais dans l'URL : historique, journaux, proxys)
+    const code = req.headers['x-admin-code'] as string;
     if (!code || !verifyAdminCode(code)) {
       res.status(403).json({ error: 'Code administrateur requis pour écouter le flux en temps réel.' });
       return;
@@ -4004,14 +4089,22 @@ app.get('/auth/me', handleMe);
   });
 
   // Admin download payment proof screenshot
-  app.get('/api/admin/registrations/:id/payment-proof', requireAdmin, (req: AuthenticatedRequest, res: Response) => {
+  app.get('/api/admin/registrations/:id/payment-proof', requireAdmin, async (req: AuthenticatedRequest, res: Response) => {
     const reg = db.registrations.find((r) => r.id === req.params.id);
-    if (!reg || !reg.paymentProof) {
+    let proofData = reg?.paymentProof;
+    if (reg?.paymentProofId) {
+      try {
+        proofData = (await loadProofImage(reg.paymentProofId)) || proofData;
+      } catch (err) {
+        console.error('[INSCRIPTION] Lecture de la capture impossible :', err);
+      }
+    }
+    if (!reg || !proofData) {
       res.status(404).json({ error: "Capture d'écran du paiement introuvable pour cette inscription." });
       return;
     }
 
-    const matches = reg.paymentProof.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
+    const matches = proofData.match(/^data:image\/([a-zA-Z0-9+]+);base64,(.+)$/);
     if (!matches || matches.length < 3) {
       res.status(400).json({ error: "Format de la capture d'écran invalide." });
       return;
@@ -4635,12 +4728,16 @@ async function startServer() {
       indexHtmlPath = path.resolve(__dirname, 'index.html');
     }
 
-    app.use(express.static(staticDir));
+    // Serve static assets without auto-serving index.html so we can enforce no-cache on HTML
+    app.use(express.static(staticDir, { index: false }));
     app.use('*', (_req, res) => {
       if (fs.existsSync(indexHtmlPath)) {
+        res.setHeader('Cache-Control', 'no-cache, no-store, must-revalidate');
+        res.setHeader('Pragma', 'no-cache');
+        res.setHeader('Expires', '0');
         res.sendFile(indexHtmlPath);
       } else {
-        res.status(404).send('Application build not found. Please upload index.html or dist/ folder.');
+        res.status(404).send('Application build not found. Please run npm run build to generate dist/.');
       }
     });
   }

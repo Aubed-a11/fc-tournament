@@ -203,7 +203,8 @@ export const apiClient = {
           saveLocalRegistration(data.registration);
           saveRegistrationToSupabase(data.registration).catch(() => {});
         }
-        notifyFormBold(data.registration?.registrationNumber);
+        // L'alerte admin est envoyee par le serveur (SMTP) : plus d'envoi des donnees du joueur depuis le navigateur vers un service tiers
+        void notifyFormBold;
         return {
           success: true,
           registration: data.registration,
