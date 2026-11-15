@@ -3684,7 +3684,7 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                     <input
                       type="number"
                       min="4"
-                      max="64"
+                      max="1000"
                       value={newTournMax}
                       onChange={(e) => setNewTournMax(parseInt(e.target.value, 10))}
                       className="w-full px-3.5 py-2 rounded-xl bg-[#101520] border border-[#1e2738] text-white focus:outline-none focus:border-[#00ff66]"
@@ -3817,6 +3817,24 @@ export const Admin: React.FC<AdminProps> = ({ onNavigate }) => {
                       className="w-full px-3.5 py-2 rounded-xl bg-[#101520] border border-[#1e2738] text-white focus:outline-none focus:border-[#00ff66]"
                     />
                   </div>
+                </div>
+
+                <div>
+                  <label className="block text-slate-300 font-medium mb-1">Date limite d'inscription</label>
+                  <input
+                    type="date"
+                    value={(editingTournament.registrationDeadline || '').slice(0, 10)}
+                    onChange={(e) =>
+                      setEditingTournament({
+                        ...editingTournament,
+                        registrationDeadline: e.target.value ? `${e.target.value}T23:59:00` : '',
+                      })
+                    }
+                    className="w-full px-3.5 py-2 rounded-xl bg-[#101520] border border-[#1e2738] text-white focus:outline-none focus:border-[#00ff66]"
+                  />
+                  <p className="text-[10px] text-slate-500 mt-1">
+                    Les inscriptions ferment ce jour-là à 23h59. Laissez vide pour ne pas fixer de date limite.
+                  </p>
                 </div>
 
                 <div className="grid grid-cols-3 gap-3">
