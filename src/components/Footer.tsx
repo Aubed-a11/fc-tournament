@@ -1,5 +1,6 @@
 import React from 'react';
-import { Mail, Phone, ShieldCheck, MessageCircle } from 'lucide-react';
+import { Mail, Phone, ShieldCheck, MessageCircle, Instagram, Handshake } from 'lucide-react';
+import { PARTNERS } from '../data/partners.ts';
 
 interface FooterProps {
   onNavigate: (page: string) => void;
@@ -9,6 +10,47 @@ export const Footer: React.FC<FooterProps> = ({ onNavigate }) => {
   return (
     <footer className="bg-[#05070a] border-t border-[#151c27] text-slate-400 text-xs">
       <div className="max-w-7xl mx-auto px-4 sm:px-6 lg:px-8 py-12">
+        {/* Nos partenaires */}
+        {PARTNERS.length > 0 && (
+          <div className="mb-10 pb-10 border-b border-[#151c27]">
+            <h4 className="flex items-center justify-center gap-2 text-white font-semibold uppercase tracking-wider text-[11px] font-mono mb-5">
+              <Handshake className="w-4 h-4 text-[#00ff66]" />
+              <span>Nos partenaires</span>
+            </h4>
+            <div className="flex flex-wrap items-center justify-center gap-4">
+              {PARTNERS.map((p) => (
+                <div
+                  key={p.name}
+                  className="flex items-center gap-4 p-4 pr-6 rounded-2xl bg-[#0b0f16] border border-[#1c2435] max-w-md"
+                >
+                  <img
+                    src={p.logo}
+                    alt={`Logo ${p.name}`}
+                    loading="lazy"
+                    className="w-16 h-16 sm:w-20 sm:h-20 rounded-full bg-white object-contain shrink-0"
+                  />
+                  <div className="space-y-1 min-w-0">
+                    <span className="block text-[10px] font-mono uppercase tracking-wider text-[#00ff66]">{p.role}</span>
+                    <span className="block font-display text-lg font-black text-white tracking-wide">{p.name}</span>
+                    <span className="block text-[11px] text-slate-400 leading-snug">{p.fullName}</span>
+                    {p.instagram && (
+                      <a
+                        href={`https://www.instagram.com/${p.instagram}/`}
+                        target="_blank"
+                        rel="noopener noreferrer"
+                        className="inline-flex items-center gap-1.5 text-[11px] text-slate-300 hover:text-[#00ff66] transition-colors pt-0.5"
+                      >
+                        <Instagram className="w-3.5 h-3.5" />
+                        <span>@{p.instagram}</span>
+                      </a>
+                    )}
+                  </div>
+                </div>
+              ))}
+            </div>
+          </div>
+        )}
+
         <div className="grid grid-cols-1 md:grid-cols-4 gap-8 mb-10">
           {/* Col 1: Brand & Mission */}
           <div className="md:col-span-2 space-y-3">
